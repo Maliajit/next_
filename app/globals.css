@@ -1,0 +1,151 @@
+@import "tailwindcss";
+
+:root {
+  /* Master Palette */
+  --fyl-deep-blue: #1C2E4A;
+  --fyl-black: #0A0A0A;
+  --fyl-silver: #D3D3D3;
+  --fyl-orange: #F28C38;
+  --fyl-teal: #48C9B0;
+  --fyl-gold: #F2C94C;
+  --fyl-white: #F9F9F7;
+  --fyl-charcoal: #555555;
+
+  /* Mappings */
+  --gold: var(--fyl-gold);
+  --gold-light: #FFEDA3;
+  --gold-dim: rgba(242, 201, 76, 0.35);
+  --cream: var(--fyl-white);
+  --cream-2: #F2F2EE;
+  --cream-3: #E9ECEF;
+  --dark: var(--fyl-black);
+  --navy: var(--fyl-deep-blue);
+  --rust: var(--fyl-orange);
+  --ts: var(--fyl-charcoal);
+  --curve: 72px;
+  --curve-sm: 40px;
+  --header-h: 70px;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto !important;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+body {
+  background: #F9F9F7;
+  color: #111111;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  max-width: 100vw;
+  touch-action: pan-y;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Global UI Classes from V1 */
+.label {
+  display: inline-block;
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 24px;
+  position: relative;
+  padding-left: 40px;
+}
+
+.label::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 28px;
+  height: 1px;
+  background: var(--gold);
+  transform: translateY(-50%);
+}
+
+.divider {
+  width: 48px;
+  height: 1px;
+  background: var(--gold);
+  margin: 26px auto;
+  opacity: .7;
+}
+
+/* V2 Colors/Classes (maintained for Shop/Customize) */
+.lbl-v2 {
+  font-size: 11px;
+  letter-spacing: .38em;
+  text-transform: uppercase;
+  color: var(--fyl-gold);
+  font-weight: 400;
+  margin-bottom: 14px;
+}
+
+.hd-v2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5.5vw, 82px);
+  font-weight: 400;
+  line-height: 1.08;
+  color: var(--fyl-deep-blue);
+}
+
+/* Common Buttons */
+.cta-v1 {
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--dark);
+  background: var(--gold);
+  padding: 11px 26px;
+  text-decoration: none;
+  transition: background .3s, transform 0.3s;
+  cursor: pointer;
+  border: none;
+  display: inline-block;
+}
+
+.cta-v1:hover {
+  background: var(--gold-light);
+  transform: translateY(-2px);
+}
