@@ -24,6 +24,7 @@ const FormField = ({
   hint,
   accept,               // for type="file"
   multiple = false,     // for type="file"
+  maxLength,
   style = {},
   className = '',
 }) => {
@@ -115,6 +116,7 @@ const FormField = ({
           required={required}
           accept={accept}
           multiple={multiple}
+          maxLength={maxLength}
           className="form-control"
           style={inputStyle}
         />

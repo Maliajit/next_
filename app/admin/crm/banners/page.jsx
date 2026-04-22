@@ -21,8 +21,11 @@ const BannerList = () => {
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({ title: '', position: 'Hero', status: 'active', image: '' });
     const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    
+    const fileInputRef = useRef(null);
     
     const tableRef = useRef(null);
     const tabulatorRef = useRef(null);
@@ -116,7 +119,36 @@ const BannerList = () => {
         const success = await deleteRecord('banners', deleteTarget.id, api.deleteBanner);
         setDeleting(false);
         if (success) {
-          setDeleteTarget(null);
+            setDeleteTarget(null);
+        }
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file); // Field name must match backend
+
+        const { data: resData, error } = await api.uploadMedia(formDataUpload);
+        setUploading(false);
+
+        if (error) {
+            toast?.error?.(error || 'Failed to upload image');
+            return;
+        }
+
+        // The backend returns an array of media objects
+        if (resData && Array.isArray(resData) && resData[0]) {
+            const fileName = resData[0].fileName;
+            // Prepend the backend uploads path
+            const imageUrl = `http://localhost:3001/uploads/${fileName}`;
+            setFormData(prev => ({ ...prev, image: imageUrl }));
+            toast?.success?.('Image uploaded successfully');
+        } else if (resData && resData.url) {
+            setFormData(prev => ({ ...prev, image: resData.url }));
+            toast?.success?.('Image uploaded successfully');
         }
     };
 
@@ -204,15 +236,50 @@ const BannerList = () => {
                                 </select>
                             </div>
                         </div>
-                        <div className="form-group">
-                            <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8, display: 'block' }}>Image URL</label>
-                            <input 
-                                type="text" 
-                                style={{ width: '100%', padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 10, outline: 'none' }}
-                                value={formData.image || ''} 
-                                onChange={e => setFormData({...formData, image: e.target.value})}
-                                placeholder="https://example.com/banner.jpg"
-                            />
+                        <div className="form-group border-t pt-4">
+                            <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 12, display: 'block' }}>Banner Media</label>
+                            
+                            <div 
+                                onClick={() => fileInputRef.current?.click()}
+                                style={{ 
+                                    width: '100%', height: 160, borderRadius: 12, border: '2px dashed #e2e8f0', 
+                                    background: '#f8fafc', display: 'flex', flexDirection: 'column', 
+                                    alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                                    position: 'relative', overflow: 'hidden', transition: 'all 0.2s'
+                                }}
+                            >
+                                {formData.image ? (
+                                    <>
+                                        <img src={formData.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Preview" />
+                                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', opacity: 0, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }} className="hover:opacity-100 opacity-hover">
+                                            <i className="fas fa-camera mr-2"></i> Change Image
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {uploading ? (
+                                            <><i className="fas fa-spinner fa-spin text-2xl text-indigo-500 mb-2"></i><span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Uploading...</span></>
+                                        ) : (
+                                            <><i className="fas fa-cloud-upload-alt text-3xl text-slate-300 mb-2"></i><span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Click to select banner image</span><span style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>Recommended: 1920x800px</span></>
+                                        )}
+                                    </>
+                                )}
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    onChange={handleImageUpload} 
+                                    accept="image/*" 
+                                    style={{ display: 'none' }} 
+                                />
+                            </div>
+
+                            {formData.image && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, background: '#f1f5f9', padding: '8px 12px', borderRadius: 8 }}>
+                                    <i className="fas fa-link text-slate-400 text-xs"></i>
+                                    <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{formData.image}</div>
+                                    <button type="button" onClick={() => setFormData({ ...formData, image: '' })} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14 }}><i className="fas fa-times-circle"></i></button>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 32, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>

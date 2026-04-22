@@ -13,6 +13,7 @@ import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import ConfirmModal from '@/components/admin/ui/ConfirmModal';
 import AdminModal from '@/components/admin/AdminModal';
+import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import { useToast } from '@/context/ToastContext';
 
 const AdminProducts = () => {
@@ -37,11 +38,13 @@ const AdminProducts = () => {
     name: '', slug: '', tagline: '', subtitle: '', 
     shortDesc: '', longDesc: '', heritageText: '',
     sku: '', basePrice: '', stock: '',
-    brandId: '', categoryId: '', isActive: true,
+    categoryId: '', isActive: true,
     heroImage: '', 
+    gallery: [],
     bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
     gradient: '', mistColor: '#f8fafc'
   });
+  const [pickerTarget, setPickerTarget] = useState(null); // 'primary' | 'gallery' | null
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
@@ -51,6 +54,15 @@ const AdminProducts = () => {
     actionsRef.current = {
       onEdit: (rec) => {
         setEditingRecord(rec);
+
+        // Parse images safely
+        let gal = [];
+        if (Array.isArray(rec.images)) {
+            gal = rec.images;
+        } else if (typeof rec.images === 'string') {
+            try { gal = JSON.parse(rec.images); } catch { gal = []; }
+        }
+
         setForm({
           name: rec.name || '',
           slug: rec.slug || '',
@@ -65,7 +77,8 @@ const AdminProducts = () => {
           brandId: rec.brandId?.toString() || '',
           categoryId: rec.mainCategoryId?.toString() || '',
           isActive: rec.status === 'active' || rec.isActive === true || rec.isActive === 1,
-          heroImage: rec.heroImage || (Array.isArray(rec.images) && rec.images[0]) || '',
+          heroImage: rec.heroImage || (gal.length > 0 ? gal[0] : ''),
+          gallery: gal.filter(img => img !== rec.heroImage),
           bgColor: rec.bgColor || '#ffffff',
           accentColor: rec.accentColor || '#6366f1',
           textColor: rec.textColor || '#1e293b',
@@ -175,6 +188,27 @@ const AdminProducts = () => {
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
   };
 
+  const handleMediaSelect = (selection) => {
+    if (pickerTarget === 'primary') {
+        setForm(prev => ({ ...prev, heroImage: selection }));
+    } else if (pickerTarget === 'gallery') {
+        setForm(prev => {
+            const newGallery = [...prev.gallery];
+            selection.forEach(url => {
+                if (!newGallery.includes(url)) newGallery.push(url);
+            });
+            return { ...prev, gallery: newGallery };
+        });
+    }
+  };
+
+  const removeGalleryImage = (url) => {
+    setForm(prev => ({
+        ...prev,
+        gallery: prev.gallery.filter(u => u !== url)
+    }));
+  };
+
   const validate = () => {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Product name is required';
@@ -203,7 +237,8 @@ const AdminProducts = () => {
         tagline: form.tagline,
         subtitle: form.subtitle,
         heritageText: form.heritageText,
-        images: form.heroImage ? [form.heroImage] : [],
+        heroImage: form.heroImage,
+        images: form.heroImage ? [form.heroImage, ...form.gallery] : form.gallery,
         bgColor: form.bgColor,
         accentColor: form.accentColor,
         textColor: form.textColor,
@@ -234,7 +269,7 @@ const AdminProducts = () => {
       shortDesc: '', longDesc: '', heritageText: '',
       sku: '', basePrice: '', stock: '',
       brandId: '', categoryId: '', isActive: true,
-      heroImage: '', 
+      heroImage: '', gallery: [],
       bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
       gradient: '', mistColor: '#f8fafc'
     });
@@ -338,11 +373,63 @@ const AdminProducts = () => {
                                 value={form.categoryId} 
                                 onChange={handleChange}
                                 options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
-                                required
                                 error={formErrors.categoryId}
                             />
-                            <div style={{ gridColumn: '1 / -1' }}>
-                                <FormField label="Hero Image URL" name="heroImage" value={form.heroImage} onChange={handleChange} placeholder="https://..." />
+                            
+                            {/* Visual Picker System (Express Version) */}
+                            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #f1f5f9', paddingTop: 16, marginTop: 4 }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                                    {/* Primary */}
+                                    <div>
+                                        <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Primary Display</p>
+                                        <div 
+                                            onClick={() => setPickerTarget('primary')}
+                                            style={{ 
+                                                width: '100%', height: 120, borderRadius: 12, border: '2px dashed #e2e8f0', background: '#f8fafc',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden'
+                                            }}
+                                        >
+                                            {form.heroImage ? (
+                                                <img src={form.heroImage} alt="Hero" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : (
+                                                <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                                                    <i className="fas fa-image fa-lg mb-1"></i>
+                                                    <p style={{ fontSize: 10, fontWeight: 700 }}>Select</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Gallery */}
+                                    <div>
+                                        <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Sub Gallery</p>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                                            {form.gallery.map((url, i) => (
+                                                <div key={i} style={{ position: 'relative', height: 57, borderRadius: 8, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                                    <img src={url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => removeGalleryImage(url)}
+                                                        style={{ position: 'absolute', top: 2, right: 2, width: 14, height: 14, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7 }}
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button 
+                                                type="button"
+                                                onClick={() => setPickerTarget('gallery')}
+                                                style={{ 
+                                                    height: 57, borderRadius: 8, border: '1px dashed #e2e8f0', background: '#f8fafc',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    cursor: 'pointer', color: '#94a3b8'
+                                                }}
+                                            >
+                                                <i className="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -369,6 +456,13 @@ const AdminProducts = () => {
             </div>
         </div>
       </AdminModal>
+
+      <MediaPickerModal 
+        isOpen={!!pickerTarget} 
+        onClose={() => setPickerTarget(null)} 
+        onSelect={handleMediaSelect}
+        multiple={pickerTarget === 'gallery'}
+      />
 
       <ConfirmModal
         isOpen={!!deleteTarget}

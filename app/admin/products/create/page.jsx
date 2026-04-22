@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminData } from '@/context/AdminDataContext';
+import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import * as api from '@/services/adminApi';
 import PageHeader from '@/components/admin/ui/PageHeader';
 import FormField from '@/components/admin/ui/FormField';
@@ -23,9 +24,11 @@ const AddProductPage = () => {
         sku: '', basePrice: '', stock: '',
         brandId: '', categoryId: '', isActive: true,
         heroImage: '', 
+        gallery: [],
         bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
         gradient: '', mistColor: '#f8fafc'
     });
+    const [pickerTarget, setPickerTarget] = useState(null); // 'primary' | 'gallery' | null
     const [formErrors, setFormErrors] = useState({});
 
     const handleChange = (e) => {
@@ -36,6 +39,28 @@ const AddProductPage = () => {
             ...(name === 'name' ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {}),
         }));
         if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
+    };
+
+    const handleMediaSelect = (selection) => {
+        if (pickerTarget === 'primary') {
+            setForm(prev => ({ ...prev, heroImage: selection }));
+        } else if (pickerTarget === 'gallery') {
+            // Append new selections to gallery, avoid duplicates
+            setForm(prev => {
+                const newGallery = [...prev.gallery];
+                selection.forEach(url => {
+                    if (!newGallery.includes(url)) newGallery.push(url);
+                });
+                return { ...prev, gallery: newGallery };
+            });
+        }
+    };
+
+    const removeGalleryImage = (url) => {
+        setForm(prev => ({
+            ...prev,
+            gallery: prev.gallery.filter(u => u !== url)
+        }));
     };
 
     const steps = ['basic', 'desc', 'taxonomy', 'theme'];
@@ -86,7 +111,8 @@ const AddProductPage = () => {
             tagline: form.tagline,
             subtitle: form.subtitle,
             heritageText: form.heritageText,
-            images: form.heroImage ? [form.heroImage] : [],
+            images: form.heroImage ? [form.heroImage, ...form.gallery] : form.gallery,
+            heroImage: form.heroImage,
             bgColor: form.bgColor,
             accentColor: form.accentColor,
             textColor: form.textColor,
@@ -212,18 +238,90 @@ const AddProductPage = () => {
                                             required
                                             error={formErrors.brandId}
                                         />
-                                        <FormField 
-                                            label="Primary Category" 
-                                            name="categoryId" 
-                                            type="select" 
-                                            value={form.categoryId} 
-                                            onChange={handleChange}
-                                            options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
-                                            required
-                                            error={formErrors.categoryId}
-                                        />
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <FormField label="Primary Display Image URL" name="heroImage" value={form.heroImage} onChange={handleChange} placeholder="https://res.cloudinary.com/..." />
+                                            <FormField 
+                                                label="Primary Category" 
+                                                name="categoryId" 
+                                                type="select" 
+                                                value={form.categoryId} 
+                                                onChange={handleChange}
+                                                options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
+                                                required
+                                                error={formErrors.categoryId}
+                                            />
+
+                                            {/* Media Selection Section */}
+                                            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #f1f5f9', paddingTop: 24, marginTop: 10 }}>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
+                                                    {/* Primary Image */}
+                                                    <div>
+                                                        <h5 style={{ fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                            <i className="fas fa-image text-indigo-500"></i>
+                                                            Primary Display Image
+                                                        </h5>
+                                                        <div 
+                                                            onClick={() => setPickerTarget('primary')}
+                                                            style={{ 
+                                                                width: '100%', 
+                                                                height: 200, 
+                                                                borderRadius: 16, 
+                                                                border: '2px dashed #cbd5e1', 
+                                                                background: '#f8fafc',
+                                                                display: 'flex', 
+                                                                alignItems: 'center', 
+                                                                justifyContent: 'center',
+                                                                cursor: 'pointer',
+                                                                overflow: 'hidden',
+                                                                transition: 'all 0.2s',
+                                                                position: 'relative'
+                                                            }}
+                                                            className="hover:border-indigo-400 hover:bg-indigo-50/10"
+                                                        >
+                                                            {form.heroImage ? (
+                                                                <img src={form.heroImage} alt="Primary" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                            ) : (
+                                                                <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                                                                    <i className="fas fa-plus-circle text-2xl mb-2"></i>
+                                                                    <p style={{ fontSize: 13, fontWeight: 600 }}>Select From Library</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Gallery Images */}
+                                                    <div>
+                                                        <h5 style={{ fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                            <i className="fas fa-images text-indigo-500"></i>
+                                                            Product Gallery (Sub Images)
+                                                        </h5>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                                                            {form.gallery.map((url, i) => (
+                                                                <div key={i} style={{ position: 'relative', height: 95, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                                                    <img src={url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => removeGalleryImage(url)}
+                                                                        style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}
+                                                                    >
+                                                                        <i className="fas fa-times"></i>
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => setPickerTarget('gallery')}
+                                                                style={{ 
+                                                                    height: 95, borderRadius: 12, border: '2px dashed #e2e8f0', background: 'transparent',
+                                                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                                                    cursor: 'pointer', transition: 'all 0.2s', color: '#94a3b8'
+                                                                }}
+                                                                className="hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/20"
+                                                            >
+                                                                <i className="fas fa-plus mb-1"></i>
+                                                                <span style={{ fontSize: 10, fontWeight: 700 }}>Add More</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                         </div>
                                     </div>
                                 </div>
@@ -268,9 +366,16 @@ const AddProductPage = () => {
                         </form>
                     </div>
                 </div>
-            </div>
         </div>
-    );
+
+        <MediaPickerModal 
+            isOpen={!!pickerTarget} 
+            onClose={() => setPickerTarget(null)} 
+            onSelect={handleMediaSelect}
+            multiple={pickerTarget === 'gallery'}
+        />
+    </div>
+);
 };
 
 export default AddProductPage;

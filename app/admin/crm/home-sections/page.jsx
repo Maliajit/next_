@@ -153,7 +153,7 @@ const HomeSections = () => {
                             <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8, display: 'block' }}>Status</label>
                             <select 
                                 style={{ width: '100%', padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 10, outline: 'none', background: '#fff' }}
-                                value={formData.status.toString()}
+                                value={String(formData.status ?? true)}
                                 onChange={e => setFormData({...formData, status: e.target.value === 'true'})}
                             >
                                 <option value="true">Visible (Active)</option>

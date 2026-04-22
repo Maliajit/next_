@@ -9,6 +9,7 @@ import { useAdminData } from '@/context/AdminDataContext';
 import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import AdminModal from '@/components/admin/AdminModal';
+import ConfirmModal from '@/components/admin/ui/ConfirmModal';
 import { useToast } from '@/context/ToastContext';
 
 const TestimonialList = () => {
@@ -23,6 +24,9 @@ const TestimonialList = () => {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ name: '', designation: '', rating: 5, message: '', isActive: true });
+  
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const starHtml = (rating) => {
     let html = '<div style="display:flex;gap:2px">';
@@ -48,12 +52,9 @@ const TestimonialList = () => {
         }); 
         setShowModal(true); 
       },
-      onDelete: async (id) => {
-        if (window.confirm('Delete this testimonial?')) {
-          await deleteRecord('testimonials', id, api.deleteTestimonial);
-        }
-      },
+      onDelete: (id, name) => setDeleteTarget({ id, name }),
     };
+    
 
     tabulatorRef.current = new Tabulator(tableRef.current, {
       data: testimonials,
@@ -110,8 +111,11 @@ const TestimonialList = () => {
       ],
     });
 
-    return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; };
+    return () => 
+      { tabulatorRef.current?.destroy(); 
+        tabulatorRef.current = null; };
   }, [testimonials, loading.testimonials]);
+
 
   const handleSave = async () => {
     if (!formData.name && !formData.message) return;
@@ -218,6 +222,21 @@ const TestimonialList = () => {
           </div>
         </div>
       </AdminModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          setDeleting(true);
+          const success = await deleteRecord('testimonials', deleteTarget.id, api.deleteTestimonial);
+          setDeleting(false);
+          if (success) setDeleteTarget(null);
+        }}
+        title="Delete Testimonial"
+        message={`Are you sure you want to remove the testimonial from "${deleteTarget?.name}"?`}
+        loading={deleting}
+        danger
+      />
     </div>
   );
 };

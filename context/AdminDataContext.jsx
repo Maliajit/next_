@@ -112,8 +112,8 @@ export const AdminDataProvider = ({ children }) => {
     fetchEntity('shippingMethods', api.getShippingMethods);
   }, [fetchEntity]);
 
-  // ─── Refetch helpers exposed to pages ───────────────────────
-  const refetch = {
+  // ─── Memoized API Actions ──────────────────────────────────
+  const memoizedRefetch = React.useMemo(() => ({
     products: () => fetchEntity('products', api.getProducts),
     categories: () => fetchEntity('categories', api.getCategories),
     brands: () => fetchEntity('brands', api.getBrands),
@@ -134,7 +134,7 @@ export const AdminDataProvider = ({ children }) => {
     settings: () => fetchEntity('settings', api.getSettings),
     inventory: () => fetchEntity('inventory', api.getInventory),
     shippingMethods: () => fetchEntity('shippingMethods', api.getShippingMethods),
-  };
+  }), [fetchEntity]);
 
   // ─── CRUD Operations (optimistic + real API) ────────────────
 
@@ -145,7 +145,7 @@ export const AdminDataProvider = ({ children }) => {
    * @param {function} apiFn - API function to call (e.g. api.createProduct)
    * @returns {object|null}  - created record or null on failure
    */
-  const addRecord = async (entity, record, apiFn) => {
+  const addRecord = useCallback(async (entity, record, apiFn) => {
     if (!apiFn) {
       // Fallback: local only
       const local = { ...record, id: Date.now() };
@@ -163,15 +163,15 @@ export const AdminDataProvider = ({ children }) => {
     }
     
     // Refresh list from server to ensure visibility
-    await refetch[entity]?.();
+    await memoizedRefetch[entity]?.();
     toast?.success?.(`Added successfully`);
     return created?.data || created;
-  };
+  }, [memoizedRefetch, toast]);
 
   /**
    * updateRecord — PUT to API, then refresh.
    */
-  const updateRecord = async (entity, id, updates, apiFn) => {
+  const updateRecord = useCallback(async (entity, id, updates, apiFn) => {
     if (!apiFn) {
       setData(prev => ({
         ...prev,
@@ -184,20 +184,18 @@ export const AdminDataProvider = ({ children }) => {
     const { error, success } = await apiFn(id, updates);
     if (error || success === false) {
       toast?.error?.(error || 'Failed to update');
-      return;
+      return false;
     }
-    // Optimistic update for immediate UI response
-    setData(prev => ({
-      ...prev,
-      [entity]: (prev[entity] || []).map(item => item.id === id ? { ...item, ...updates } : item),
-    }));
+    // Refresh list from server to ensure visibility
+    await memoizedRefetch[entity]?.();
     toast?.success?.(`Updated successfully`);
-  };
+    return true;
+  }, [memoizedRefetch, toast]);
 
   /**
    * deleteRecord — DELETE from API, then remove from local state.
    */
-  const deleteRecord = async (entity, id, apiFn) => {
+  const deleteRecord = useCallback(async (entity, id, apiFn) => {
     if (!apiFn) {
       setData(prev => ({
         ...prev,
@@ -212,15 +210,13 @@ export const AdminDataProvider = ({ children }) => {
       toast?.error?.(error || 'Failed to delete');
       return false;
     }
-    setData(prev => ({
-      ...prev,
-      [entity]: (prev[entity] || []).filter(item => item.id !== id),
-    }));
+    // Refresh list from server to ensure visibility
+    await memoizedRefetch[entity]?.();
     toast?.success?.(`Deleted successfully`);
     return true;
-  };
+  }, [memoizedRefetch, toast]);
 
-  const generateVariants = async (productId, selections) => {
+  const generateVariants = useCallback(async (productId, selections) => {
     const res = await api.generateVariants(productId, selections);
     if (res.error || res.success === false) {
       toast?.error?.(res.error || 'Failed to generate variants');
@@ -228,18 +224,18 @@ export const AdminDataProvider = ({ children }) => {
     }
     toast?.success?.(`Generated ${res.data?.count || 0} variants`);
     return res.data;
-  };
+  }, [toast]);
 
-  const getProductVariants = async (productId) => {
+  const getProductVariants = useCallback(async (productId) => {
     const res = await api.getProductVariants(productId);
     if (res.error || res.success === false) {
       toast?.error?.(res.error || 'Failed to fetch variants');
       return [];
     }
     return res.data;
-  };
+  }, [toast]);
 
-  const upload360Media = async (productId, formData) => {
+  const upload360Media = useCallback(async (productId, formData) => {
     const res = await api.upload360Media(productId, formData);
     if (res.error || res.success === false) {
       toast?.error?.(res.error || 'Failed to upload 360 media');
@@ -247,21 +243,23 @@ export const AdminDataProvider = ({ children }) => {
     }
     toast?.success?.('360 media uploaded');
     return res.data;
-  };
+  }, [toast]);
+
+  const value = React.useMemo(() => ({
+    data,
+    loading,
+    errors,
+    refetch: memoizedRefetch,
+    addRecord,
+    updateRecord,
+    deleteRecord,
+    generateVariants,
+    getProductVariants,
+    upload360Media,
+  }), [data, loading, errors, memoizedRefetch, addRecord, updateRecord, deleteRecord, generateVariants, getProductVariants, upload360Media]);
 
   return (
-    <AdminDataContext.Provider value={{
-      data,
-      loading,
-      errors,
-      refetch,
-      addRecord,
-      updateRecord,
-      deleteRecord,
-      generateVariants,
-      getProductVariants,
-      upload360Media,
-    }}>
+    <AdminDataContext.Provider value={value}>
       {children}
     </AdminDataContext.Provider>
   );

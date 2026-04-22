@@ -160,6 +160,11 @@ export const createSpecificationGroup = (data) => post('/specifications/groups',
 export const updateSpecificationGroup = (id, data) => put(`/specifications/groups/${id}`, data);
 export const deleteSpecificationGroup = (id) => del(`/specifications/groups/${id}`);
 
+export const getSpecificationValues = (specId) => get(`/specifications/${specId}/values`);
+export const createSpecificationValue = (specId, data) => post(`/specifications/${specId}/values`, data);
+export const updateSpecificationValue = (id, data) => put(`/specifications/values/${id}`, data);
+export const deleteSpecificationValue = (id) => del(`/specifications/values/${id}`);
+
 // ─── Taxes ────────────────────────────────────────────────────
 export const getTaxes = () => get('/system/taxes');
 export const createTaxRate = (data) => post('/system/taxes', data);

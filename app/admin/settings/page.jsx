@@ -16,18 +16,21 @@ const TAB_ICONS  = { general: 'fas fa-cog', seo: 'fas fa-search', payment: 'fas 
 const SettingsPage = () => {
     const toast = useToast();
     const { data, loading, errors, refetch } = useAdminData();
-    const remoteSettings = data.settings || {};
-
     const [activeTab, setActiveTab] = useState('general');
     const [settings, setSettings] = useState({});
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [saveError, setSaveError] = useState(null);
     const [isDirty, setIsDirty] = useState(false);
+    const fileInputRef = React.useRef(null);
+
+    // Use useMemo to prevent 'remoteSettings' from changing identity on every render 
+    // when data.settings is null/undefined.
+    const remoteSettings = React.useMemo(() => data.settings || {}, [data.settings]);
 
     useEffect(() => {
-        if (remoteSettings && typeof remoteSettings === 'object') {
+        if (remoteSettings && Object.keys(remoteSettings).length > 0) {
             // Normalize data from backend to frontend keys if necessary
-            // Backend might send snake_case or slightly different names
             const normalized = {
                 storeName: remoteSettings.storeName || remoteSettings.store_name || '',
                 storeEmail: remoteSettings.storeEmail || remoteSettings.store_email || remoteSettings.contactEmail || '',
@@ -50,8 +53,44 @@ const SettingsPage = () => {
         }
     }, [remoteSettings]);
 
+    const handleLogoUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const { data: resData, error } = await api.uploadMedia(formData);
+        setUploading(false);
+
+        if (error) {
+            toast?.error?.(error || 'Failed to upload logo');
+            return;
+        }
+
+        // Backend returns array of media objects
+        if (resData && Array.isArray(resData) && resData[0]) {
+            const fileName = resData[0].fileName;
+            const imageUrl = `http://localhost:3001/uploads/${fileName}`;
+            setSettings(prev => ({ ...prev, logo: imageUrl }));
+            setIsDirty(true);
+            toast?.success?.('Logo uploaded successfully');
+        }
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+        
+        // Custom logic for phone number: only 10 digits
+        if (name === 'storePhone') {
+            const cleaned = value.replace(/\D/g, '').slice(0, 10);
+            setSettings(prev => ({ ...prev, [name]: cleaned }));
+            setIsDirty(true);
+            setSaveError(null);
+            return;
+        }
+
         setSettings(prev => ({ 
             ...prev, 
             [name]: type === 'checkbox' ? checked : (type === 'number' ? parseFloat(value) : value) 
@@ -171,7 +210,7 @@ const SettingsPage = () => {
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                                             <FormField label="Store Name" name="storeName" value={s.storeName} onChange={handleChange} placeholder="e.g. Fylex Premium" required />
                                             <FormField label="Contact Email" name="storeEmail" type="email" value={s.storeEmail} onChange={handleChange} placeholder="hello@fylex.com" />
-                                            <FormField label="Support Phone" name="storePhone" value={s.storePhone} onChange={handleChange} placeholder="+91 123 456 7890" />
+                                            <FormField label="Support Phone" name="storePhone" value={s.storePhone} onChange={handleChange} placeholder="e.g. 9876543210" maxLength={10} hint="Numbers only, exactly 10 digits" />
                                             <FormField
                                                 label="Primary Currency"
                                                 name="currency"
@@ -189,28 +228,68 @@ const SettingsPage = () => {
                                         <FormField label="Business Address" name="storeAddress" type="textarea" value={s.storeAddress} onChange={handleChange} placeholder="Enter your full business address..." rows={3} />
 
                                         <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 30 }}>
-                                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <h5 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700 }}>Brand Logo</h5>
-                                                    <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>This logo will appear on your storefront and invoices.</p>
-                                                    <FormField label="Logo URL" name="logo" value={s.logo} onChange={handleChange} placeholder="https://..." hint="SVG or transparent PNG recommended" />
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 32 }}>
+                                                <div style={{ flex: '1 1 300px' }}>
+                                                    <h5 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700 }}>Store Logo</h5>
+                                                    <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Upload your official brand logo. Recommended format: SVG or transparent PNG.</p>
+                                                    
+                                                    <div 
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        style={{ 
+                                                            width: '100%', 
+                                                            height: 140, 
+                                                            borderRadius: 16, 
+                                                            border: '2px dashed #e2e8f0', 
+                                                            background: '#f8fafc',
+                                                            display: 'flex', 
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center', 
+                                                            justifyContent: 'center',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s',
+                                                            position: 'relative'
+                                                        }}
+                                                        className="hover:border-indigo-400 hover:bg-indigo-50/10"
+                                                    >
+                                                        {uploading ? (
+                                                            <><i className="fas fa-spinner fa-spin text-xl text-indigo-500 mb-2"></i><span style={{ fontSize: 13, fontWeight: 600 }}>Uploading...</span></>
+                                                        ) : (
+                                                            <><i className="fas fa-cloud-upload-alt text-2xl text-slate-300 mb-2"></i><span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Click to change logo</span></>
+                                                        )}
+                                                        <input 
+                                                            type="file" 
+                                                            ref={fileInputRef} 
+                                                            onChange={handleLogoUpload} 
+                                                            accept="image/*" 
+                                                            style={{ display: 'none' }} 
+                                                        />
+                                                    </div>
                                                 </div>
-                                                {s.logo && (
+
+                                                <div style={{ flex: '0 0 auto' }}>
+                                                    <h5 style={{ margin: '0 0 12px', fontSize: 12, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Preview</h5>
                                                     <div style={{ 
-                                                        width: 160, 
-                                                        height: 100, 
-                                                        background: '#f8fafc', 
-                                                        borderRadius: 12, 
-                                                        border: '2px dashed #e2e8f0', 
+                                                        width: 200, 
+                                                        height: 140, 
+                                                        background: '#fff', 
+                                                        borderRadius: 16, 
+                                                        border: '1px solid #e2e8f0', 
                                                         display: 'flex', 
                                                         alignItems: 'center', 
                                                         justifyContent: 'center',
-                                                        padding: 12
+                                                        padding: 16,
+                                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
                                                     }}>
-                                                        <img src={s.logo} alt="Store Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                                            onError={e => { e.target.style.display = 'none'; }} />
+                                                        {s.logo ? (
+                                                            <img src={s.logo} alt="Store Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                                                        ) : (
+                                                            <div style={{ color: '#cbd5e1', textAlign: 'center' }}>
+                                                                <i className="fas fa-image text-3xl mb-2 opacity-20"></i>
+                                                                <div style={{ fontSize: 11, fontWeight: 600 }}>No Logo</div>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -248,23 +327,6 @@ const SettingsPage = () => {
 
                                 {activeTab === 'payment' && (
                                     <div className="space-y-8">
-                                        {/* Razorpay Section */}
-                                        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', padding: 24 }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-                                                <div style={{ width: 44, height: 44, background: '#fff7ed', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <i className="fas fa-credit-card" style={{ color: '#ea580c', fontSize: 20 }}></i>
-                                                </div>
-                                                <div>
-                                                    <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Razorpay Integration</h4>
-                                                    <p style={{ margin: '2px 0 0', fontSize: 12, color: '#94a3b8' }}>Accept UPI, Cards, and Netbanking</p>
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                                                <FormField label="API Key ID" name="razorpayKey" value={s.razorpayKey} onChange={handleChange} placeholder="rzp_live_xxxxxxxx" />
-                                                <FormField label="API Key Secret" name="razorpaySecret" type="password" value={s.razorpaySecret} onChange={handleChange} placeholder="••••••••••••••••" />
-                                            </div>
-                                        </div>
-
                                         {/* COD Section */}
                                         <div style={{ background: '#fcfdfd', borderRadius: 16, border: '1px solid #dcfce7', padding: 24 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
