@@ -28,6 +28,7 @@ export const AdminDataProvider = ({ children }) => {
     offers: [],
     reviews: [],
     taxes: [],
+    taxClasses: [],
     tags: [],
     attributes: [],
     specifications: [],
@@ -51,6 +52,7 @@ export const AdminDataProvider = ({ children }) => {
     offers: true,
     reviews: true,
     taxes: true,
+    taxClasses: true,
     tags: true,
     attributes: true,
     specifications: true,
@@ -102,6 +104,7 @@ export const AdminDataProvider = ({ children }) => {
     fetchEntity('specifications', api.getSpecifications);
     fetchEntity('specificationGroups', api.getSpecificationGroups);
     fetchEntity('taxes', api.getTaxes);
+    fetchEntity('taxClasses', api.getTaxClasses);
     fetchEntity('media', api.getMedia);
     fetchEntity('pages', api.getPages);
     fetchEntity('banners', api.getBanners);
@@ -126,6 +129,7 @@ export const AdminDataProvider = ({ children }) => {
     specifications: () => fetchEntity('specifications', api.getSpecifications),
     specificationGroups: () => fetchEntity('specificationGroups', api.getSpecificationGroups),
     taxes: () => fetchEntity('taxes', api.getTaxes),
+    taxClasses: () => fetchEntity('taxClasses', api.getTaxClasses),
     media: () => fetchEntity('media', api.getMedia),
     pages: () => fetchEntity('pages', api.getPages),
     banners: () => fetchEntity('banners', api.getBanners),

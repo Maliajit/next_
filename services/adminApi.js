@@ -172,6 +172,12 @@ export const createTaxRate = (data) => post('/system/taxes', data);
 export const updateTaxRate = (id, data) => put(`/system/taxes/${id}`, data);
 export const deleteTaxRate = (id) => del(`/system/taxes/${id}`);
 
+export const getTaxClasses = () => get('/system/taxes/classes');
+export const createTaxClass = (data) => post('/system/taxes/classes', data);
+export const updateTaxClass = (id, data) => put(`/system/taxes/classes/${id}`, data);
+export const deleteTaxClass = (id) => del(`/system/taxes/classes/${id}`);
+
+
 // ─── Shipping Methods ──────────────────────────────────────────
 export const getShippingMethods = () => get('/system/shipping-methods');
 export const createShippingMethod = (data) => post('/system/shipping-methods', data);

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import '@/app/admin/css/datatable.css';
@@ -17,39 +17,82 @@ import { useToast } from '@/context/ToastContext';
 const TaxPage = () => {
   const toast = useToast();
   const { data, loading, errors, refetch, addRecord, updateRecord, deleteRecord } = useAdminData();
+  
   const taxes = data.taxes || [];
+  const taxClasses = data.taxClasses || [];
 
-  const tableRef = useRef(null);
-  const tabulatorRef = useRef(null);
-  const actionsRef = useRef({});
+  const [activeTab, setActiveTab] = useState('rates'); // 'rates' or 'classes'
 
-  const [showForm, setShowForm] = useState(false);
+  // Refs for Tabulator
+  const ratesTableRef = useRef(null);
+  const ratesTabulatorRef = useRef(null);
+  const classesTableRef = useRef(null);
+  const classesTabulatorRef = useRef(null);
+  
+  const ratesActionsRef = useRef({});
+  const classesActionsRef = useRef({});
+
+  // Modals & Forms State
+  const [showRateForm, setShowRateForm] = useState(false);
+  const [showClassForm, setShowClassForm] = useState(false);
+  const [editingRate, setEditingRate] = useState(null);
+  const [editingClass, setEditingClass] = useState(null);
+  
   const [submitting, setSubmitting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, name, type: 'rate'|'class' }
   const [deleting, setDeleting] = useState(false);
-  const [editingRecord, setEditingRecord] = useState(null);
 
-  const [form, setForm] = useState({ name: '', rate: '', isActive: true });
+  // Rate Form State
+  const [rateForm, setRateForm] = useState({
+    name: '',
+    code: '',
+    description: '',
+    rate: '0',
+    type: 'percentage',
+    priority: '0',
+    sortOrder: '0',
+    taxClassIds: [],
+    isCompound: false,
+    isActive: true
+  });
+
+  // Class Form State
+  const [classForm, setClassForm] = useState({
+    name: '',
+    code: '',
+    description: '',
+    taxRateIds: [],
+    isDefault: false
+  });
+
   const [formErrors, setFormErrors] = useState({});
 
+  // ─── Tabulator: Tax Rates ────────────────────────────────────
   useEffect(() => {
-    if (!tableRef.current || loading.taxes) return;
-    tabulatorRef.current?.destroy();
+    if (!ratesTableRef.current || loading.taxes || activeTab !== 'rates') return;
+    ratesTabulatorRef.current?.destroy();
 
-    actionsRef.current = {
+    ratesActionsRef.current = {
       onEdit: (rec) => {
-        setEditingRecord(rec);
-        setForm({
+        setEditingRate(rec);
+        setRateForm({
           name: rec.name || '',
-          rate: rec.rate?.toString() || '',
+          code: rec.code || '',
+          description: rec.description || '',
+          rate: rec.rate?.toString() || '0',
+          type: rec.type || 'percentage',
+          priority: rec.priority?.toString() || '0',
+          sortOrder: rec.sortOrder?.toString() || '0',
+          taxClassIds: rec.taxClasses?.map(c => c.id.toString()) || [],
+          isCompound: !!rec.isCompound,
           isActive: rec.isActive === true || rec.isActive === 1
         });
-        setShowForm(true);
+        setShowRateForm(true);
       },
-      onDelete: (id, name) => setDeleteTarget({ id, name })
+      onDelete: (id, name) => setDeleteTarget({ id, name, type: 'rate' })
     };
 
-    tabulatorRef.current = new Tabulator(tableRef.current, {
+    ratesTabulatorRef.current = new Tabulator(ratesTableRef.current, {
       data: taxes,
       layout: 'fitColumns',
       responsiveLayout: 'collapse',
@@ -57,181 +100,474 @@ const TaxPage = () => {
       paginationSize: 10,
       placeholder: 'No tax rates found',
       columns: [
-        {
-          title: 'ID', field: 'id', width: 80, hozAlign: 'center', headerSort: true,
-          formatter: (cell) => `<span style="font-weight:700;color:#94a3b8;font-size:12px">#${cell.getValue()}</span>`,
+        { title: 'ID', field: 'id', width: 70, hozAlign: 'center', formatter: (cell) => `<span class="text-slate-400 font-bold">#${cell.getValue()}</span>` },
+        { 
+          title: 'TAX NAME', field: 'name', minWidth: 200,
+          formatter: (cell) => `<div><div class="font-bold text-slate-800">${cell.getValue()}</div><div class="text-xs text-slate-400">${cell.getRow().getData().code || ''}</div></div>`
         },
-        {
-          title: 'TAX NAME', field: 'name', minWidth: 280,
-          formatter: (cell) => `<div style="font-weight:800;color:#1e293b;font-size:15px;padding:6px 0">${cell.getValue() || '—'}</div>`,
+        { 
+          title: 'RATE', field: 'rate', width: 120, hozAlign: 'center',
+          formatter: (cell) => {
+            const row = cell.getRow().getData();
+            const symbol = row.type === 'percentage' ? '%' : ' (Fixed)';
+            return `<span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg font-mono font-bold border border-indigo-100">${cell.getValue()}${symbol}</span>`;
+          }
         },
-        {
-          title: 'RATE (%)', field: 'rate', width: 140, hozAlign: 'center',
-          formatter: (cell) => `<span style="font-family:'SF Mono',monospace;font-size:13px;font-weight:800;color:#6366f1;background:#f5f3ff;padding:6px 16px;border-radius:10px;border:1px solid rgba(99,102,241,0.2)">${cell.getValue()}%</span>`,
+        { 
+            title: 'CLASSES', field: 'taxClasses', minWidth: 150,
+            formatter: (cell) => {
+                const classes = cell.getValue() || [];
+                if (classes.length === 0) return '<span class="text-slate-300 text-xs">—</span>';
+                return `<div class="flex flex-wrap gap-1">${classes.map(c => `<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">${c.name}</span>`).join('')}</div>`;
+            }
         },
-        {
-          title: 'STATUS', field: 'isActive', width: 140, hozAlign: 'center',
+        { 
+          title: 'STATUS', field: 'isActive', width: 110, hozAlign: 'center',
           formatter: (cell) => {
             const active = cell.getValue() === true || cell.getValue() === 1;
-            return `<div style="display:inline-flex;padding:6px 16px;border-radius:12px;font-size:11px;font-weight:800;background:${active ? '#ecfdf5' : '#fef2f2'};color:${active ? '#059669' : '#dc2626'};border:1px solid ${active ? '#10b981' : '#fecaca'};text-transform:uppercase;letter-spacing:0.04em">${active ? 'active' : 'disabled'}</div>`;
-          },
+            return `<div class="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${active ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">${active ? 'active' : 'disabled'}</div>`;
+          }
         },
         {
-          title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 130,
-          formatter: () => `<div style="display:flex;gap:10px;justify-content:flex-end">
-            <button class="btn-icon btn-icon-edit" style="width:36px;height:36px;background:#f5f3ff;color:#6366f1;border-radius:10px" title="Edit"><i class="fas fa-edit"></i></button>
-            <button class="btn-icon btn-icon-delete" style="width:36px;height:36px;background:#fef2f2;color:#ef4444;border-radius:10px" title="Delete"><i class="fas fa-trash-alt"></i></button>
+          title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 120,
+          formatter: () => `<div class="flex gap-2 justify-end">
+            <button class="btn-icon-edit w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors" title="Edit"><i class="fas fa-edit"></i></button>
+            <button class="btn-icon-delete w-9 h-9 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors" title="Delete"><i class="fas fa-trash-alt"></i></button>
           </div>`,
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
-            if (e.target.closest('.btn-icon-edit')) actionsRef.current.onEdit(d);
-            if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(d.id, d.name);
+            if (e.target.closest('.btn-icon-edit')) ratesActionsRef.current.onEdit(d);
+            if (e.target.closest('.btn-icon-delete')) ratesActionsRef.current.onDelete(d.id, d.name);
           },
         },
       ],
     });
 
-    return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; };
-  }, [taxes, loading.taxes]);
+    return () => { ratesTabulatorRef.current?.destroy(); ratesTabulatorRef.current = null; };
+  }, [taxes, loading.taxes, activeTab]);
 
-  const handleChange = (e) => {
+  // ─── Tabulator: Tax Classes ───────────────────────────────────
+  useEffect(() => {
+    if (!classesTableRef.current || loading.taxClasses || activeTab !== 'classes') return;
+    classesTabulatorRef.current?.destroy();
+
+    classesActionsRef.current = {
+      onEdit: (rec) => {
+        setEditingClass(rec);
+        setClassForm({
+          name: rec.name || '',
+          code: rec.code || '',
+          description: rec.description || '',
+          taxRateIds: rec.taxRates?.map(r => r.id.toString()) || [],
+          isDefault: rec.isDefault === true || rec.isDefault === 1
+        });
+        setShowClassForm(true);
+      },
+      onDelete: (id, name) => setDeleteTarget({ id, name, type: 'class' })
+    };
+
+    classesTabulatorRef.current = new Tabulator(classesTableRef.current, {
+      data: taxClasses,
+      layout: 'fitColumns',
+      responsiveLayout: 'collapse',
+      pagination: 'local',
+      paginationSize: 10,
+      placeholder: 'No tax classes found',
+      columns: [
+        { title: 'ID', field: 'id', width: 70, hozAlign: 'center', formatter: (cell) => `<span class="text-slate-400 font-bold">#${cell.getValue()}</span>` },
+        { 
+          title: 'CLASS NAME', field: 'name', minWidth: 200,
+          formatter: (cell) => `<div><div class="font-bold text-slate-800 uppercase tracking-tight">${cell.getValue()}</div><div class="text-xs text-slate-400">${cell.getRow().getData().code || ''}</div></div>`
+        },
+        { 
+            title: 'TAX RATES', field: 'taxRates', minWidth: 200,
+            formatter: (cell) => {
+                const rates = cell.getValue() || [];
+                if (rates.length === 0) return '<span class="text-slate-300 text-xs">No rates assigned</span>';
+                return `<div class="flex flex-wrap gap-1">${rates.map(r => `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[10px] font-bold border border-indigo-100">${r.name} (${r.rate}%)</span>`).join('')}</div>`;
+            }
+        },
+        { 
+          title: 'DEFAULT', field: 'isDefault', width: 120, hozAlign: 'center',
+          formatter: (cell) => {
+            const isDef = cell.getValue() === true || cell.getValue() === 1;
+            return isDef ? `<div class="text-amber-500"><i class="fas fa-star mr-1"></i> Default</div>` : `<span class="text-slate-300 text-xs">No</span>`;
+          }
+        },
+        {
+          title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 120,
+          formatter: () => `<div class="flex gap-2 justify-end">
+            <button class="btn-icon-edit w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors" title="Edit"><i class="fas fa-edit"></i></button>
+            <button class="btn-icon-delete w-9 h-9 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors" title="Delete"><i class="fas fa-trash-alt"></i></button>
+          </div>`,
+          cellClick: (e, cell) => {
+            const d = cell.getRow().getData();
+            if (e.target.closest('.btn-icon-edit')) classesActionsRef.current.onEdit(d);
+            if (e.target.closest('.btn-icon-delete')) classesActionsRef.current.onDelete(d.id, d.name);
+          },
+        },
+      ],
+    });
+
+    return () => { classesTabulatorRef.current?.destroy(); classesTabulatorRef.current = null; };
+  }, [taxClasses, loading.taxClasses, activeTab]);
+
+  // ─── Handlers ───────────────────────────────────────────────
+  const handleRateChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm(prev => ({
+    setRateForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : (name === 'isActive' ? value === 'active' : value)
+      [name]: type === 'checkbox' ? checked : value
     }));
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const validate = () => {
-    const errs = {};
-    if (!form.name.trim()) errs.name = 'Tax name is required';
-    if (!form.rate || isNaN(form.rate)) errs.rate = 'Enter a valid tax percentage';
-    return errs;
+  const handleClassChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setClassForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleRateSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length) { setFormErrors(errs); return; }
+    if (!rateForm.name) { setFormErrors({ name: 'Name is required' }); return; }
 
     setSubmitting(true);
-    const payload = { ...form, rate: parseFloat(form.rate) };
-    
+    const payload = {
+        ...rateForm,
+        rate: parseFloat(rateForm.rate),
+        priority: parseInt(rateForm.priority),
+        sortOrder: parseInt(rateForm.sortOrder),
+        taxClassIds: rateForm.taxClassIds
+    };
+
     try {
-      let result;
-      if (editingRecord) {
-        result = await updateRecord('taxes', editingRecord.id, payload, api.updateTaxRate);
+      if (editingRate) {
+        await updateRecord('taxes', editingRate.id, payload, api.updateTaxRate);
       } else {
-        result = await addRecord('taxes', payload, api.createTaxRate);
+        await addRecord('taxes', payload, api.createTaxRate);
       }
-      
-      if (result) {
-        closeModal();
-        await refetch.taxes();
-      }
+      closeRateModal();
+      await refetch.taxes();
+      await refetch.taxClasses(); // Refresh relations
     } finally {
       setSubmitting(false);
     }
   };
 
-  const closeModal = () => {
-    setShowForm(false);
-    setEditingRecord(null);
-    setForm({ name: '', rate: '', isActive: true });
-    setFormErrors({});
+  const handleClassSubmit = async (e) => {
+    e.preventDefault();
+    if (!classForm.name) { setFormErrors({ name: 'Name is required' }); return; }
+
+    setSubmitting(true);
+    try {
+      if (editingClass) {
+        await updateRecord('taxClasses', editingClass.id, classForm, api.updateTaxClass);
+      } else {
+        await addRecord('taxClasses', classForm, api.createTaxClass);
+      }
+      closeClassModal();
+      await refetch.taxClasses();
+      await refetch.taxes(); // Refresh relations
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const success = await deleteRecord('taxes', deleteTarget.id, api.deleteTaxRate);
+      const isRate = deleteTarget.type === 'rate';
+      const success = isRate 
+        ? await deleteRecord('taxes', deleteTarget.id, api.deleteTaxRate)
+        : await deleteRecord('taxClasses', deleteTarget.id, api.deleteTaxClass);
+      
       if (success) {
         setDeleteTarget(null);
-        await refetch.taxes();
+        await (isRate ? refetch.taxes() : refetch.taxClasses());
       }
     } finally {
       setDeleting(false);
     }
   };
 
+  const closeRateModal = () => {
+    setShowRateForm(false);
+    setEditingRate(null);
+    setRateForm({
+      name: '', code: '', description: '', rate: '0', type: 'percentage',
+      priority: '0', sortOrder: '0', taxClassIds: [], isCompound: false, isActive: true
+    });
+    setFormErrors({});
+  };
+
+  const closeClassModal = () => {
+    setShowClassForm(false);
+    setEditingClass(null);
+    setClassForm({ name: '', code: '', description: '', taxRateIds: [], isDefault: false });
+    setFormErrors({});
+  };
+
+  // ─── Render ─────────────────────────────────────────────────
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-10">
       <PageHeader
-        title="Tax Management"
-        subtitle="Manage global tax rates and VAT configurations for your products"
-        action={{ label: 'Configure New Tax', icon: 'fas fa-plus', onClick: () => setShowForm(true) }}
+        title="Tax & VAT Settings"
+        subtitle="Configure global tax rates, classes, and regional VAT rules"
+        action={{ 
+            label: activeTab === 'rates' ? 'Add New Tax Rate' : 'Create New Class', 
+            icon: 'fas fa-plus', 
+            onClick: () => activeTab === 'rates' ? setShowRateForm(true) : setShowClassForm(true) 
+        }}
       />
 
-      <div className="admin-card" style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-        <div className="admin-card-header" style={{ background: '#fff', borderBottom: '1px solid #f1f5f9', padding: '20px 24px' }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>Available Tax Rates</h3>
-        </div>
-        {loading.taxes && taxes.length === 0 ? (
-          <div style={{ padding: 100 }}><Loader message="Syncing tax configurations..." /></div>
-        ) : errors.taxes ? (
-          <div style={{ padding: 40 }}><ErrorBanner message={errors.taxes} onRetry={() => refetch.taxes()} /></div>
-        ) : (
-          <div style={{ overflowX: 'auto', padding: '0 12px 12px' }}>
-            <div style={{ minWidth: 800 }}><div ref={tableRef}></div></div>
-          </div>
-        )}
+      {/* Tabs Layout */}
+      <div className="flex gap-4 mb-2">
+        <button 
+            onClick={() => setActiveTab('rates')}
+            className={`px-6 py-3 rounded-2xl font-bold transition-all ${activeTab === 'rates' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+        >
+            <i className="fas fa-percent mr-2"></i> Tax Rates
+        </button>
+        <button 
+            onClick={() => setActiveTab('classes')}
+            className={`px-6 py-3 rounded-2xl font-bold transition-all ${activeTab === 'classes' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+        >
+            <i className="fas fa-layer-group mr-2"></i> Tax Classes
+        </button>
       </div>
 
-      {/* Tax Modal (Create/Edit) */}
+      {activeTab === 'rates' ? (
+        <div className="admin-card overflow-hidden border border-slate-200 shadow-sm rounded-[24px]">
+          <div className="bg-white border-bottom border-slate-100 px-6 py-5 flex items-center justify-between">
+            <h3 className="font-extrabold text-slate-800 m-0">Global Tax Rates</h3>
+            <div className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase tracking-widest">{taxes.length} entries found</div>
+          </div>
+          {loading.taxes ? (
+            <div className="py-24 text-center"><Loader message="Loading tax rates..." /></div>
+          ) : errors.taxes ? (
+            <div className="p-10"><ErrorBanner message={errors.taxes} onRetry={() => refetch.taxes()} /></div>
+          ) : (
+            <div className="px-3 pb-3 overflow-x-auto">
+              <div className="min-w-[900px]"><div ref={ratesTableRef}></div></div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="admin-card overflow-hidden border border-slate-200 shadow-sm rounded-[24px]">
+          <div className="bg-white border-bottom border-slate-100 px-6 py-5 flex items-center justify-between">
+            <h3 className="font-extrabold text-slate-800 m-0">Tax Classes</h3>
+            <div className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase tracking-widest">{taxClasses.length} entries found</div>
+          </div>
+          {loading.taxClasses ? (
+            <div className="py-24 text-center"><Loader message="Loading tax classes..." /></div>
+          ) : errors.taxClasses ? (
+            <div className="p-10"><ErrorBanner message={errors.taxClasses} onRetry={() => refetch.taxClasses()} /></div>
+          ) : (
+            <div className="px-3 pb-3 overflow-x-auto">
+              <div className="min-w-[900px]"><div ref={classesTableRef}></div></div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tax Rate Modal */}
       <AdminModal 
-        isOpen={showForm} 
-        onClose={closeModal} 
-        title={editingRecord ? "Edit Tax Configuration" : "New Tax Configuration"} 
-        maxWidth={500}
+        isOpen={showRateForm} 
+        onClose={closeRateModal} 
+        title={editingRate ? "Edit Tax Rate" : "Add New Tax Rate"} 
+        maxWidth={550}
       >
-        <form onSubmit={handleSubmit} style={{ padding: '4px' }}>
-          <div className="space-y-6">
+        <form onSubmit={handleRateSubmit} className="space-y-5">
             <FormField 
-                label="Tax Display Name" 
+                label="Tax Name *" 
                 name="name" 
-                value={form.name} 
-                onChange={handleChange} 
-                placeholder="e.g. GST 18% (Standard)" 
+                value={rateForm.name} 
+                onChange={handleRateChange} 
+                placeholder="e.g., GST, SGST, CGST" 
                 required 
                 error={formErrors.name}
-                hint="Use a clear name that identifies the tax type and percentage"
             />
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                <FormField 
-                    label="Rate Percentage (%)" 
-                    name="rate" 
-                    type="number" 
-                    value={form.rate} 
-                    onChange={handleChange} 
-                    placeholder="18" 
-                    required 
-                    error={formErrors.rate} 
-                />
 
+            <FormField 
+                label="Tax Code" 
+                name="code" 
+                value={rateForm.code} 
+                onChange={handleRateChange} 
+                placeholder="e.g., GST18, SGST9" 
+                hint="Unique identifier (optional)"
+            />
+
+            <FormField 
+                label="Description" 
+                name="description" 
+                type="textarea"
+                rows={3}
+                value={rateForm.description} 
+                onChange={handleRateChange} 
+                placeholder="Brief description of this tax rate"
+            />
+
+            <div className="grid grid-cols-2 gap-4">
                 <FormField 
-                    label="Application Status" 
-                    name="isActive" 
-                    type="select" 
-                    value={form.isActive ? 'active' : 'inactive'} 
-                    onChange={handleChange}
+                    label="Rate (%) *" 
+                    name="rate" 
+                    type="number"
+                    value={rateForm.rate} 
+                    onChange={handleRateChange} 
+                    required
+                />
+                <FormField 
+                    label="Type *" 
+                    name="type" 
+                    type="select"
+                    value={rateForm.type} 
+                    onChange={handleRateChange} 
                     options={[
-                        { value: 'active', label: 'Active — Live' }, 
-                        { value: 'inactive', label: 'Inactive — Disabled' }
+                        { value: 'percentage', label: 'Percentage (%)' },
+                        { value: 'fix_amount', label: 'Fixed Amount' }
                     ]}
                 />
             </div>
-          </div>
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 32, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
-            <button type="button" className="btn-secondary" style={{ padding: '10px 20px', borderRadius: 10 }} onClick={closeModal}>Discard</button>
-            <button type="submit" className="btn-indigo-gradient px-8" style={{ height: 42, borderRadius: 10 }} disabled={submitting}>
-              {submitting ? <i className="fas fa-circle-notch fa-spin mr-2"></i> : <i className={editingRecord ? "fas fa-save mr-2" : "fas fa-check-circle mr-2"}></i>}
-              {editingRecord ? 'Update Configuration' : 'Confirm & Create'}
-            </button>
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+                <FormField 
+                    label="Priority" 
+                    name="priority" 
+                    type="number"
+                    value={rateForm.priority} 
+                    onChange={handleRateChange} 
+                />
+                <FormField 
+                    label="Sort Order" 
+                    name="sortOrder" 
+                    type="number"
+                    value={rateForm.sortOrder} 
+                    onChange={handleRateChange} 
+                />
+            </div>
+
+            <FormField 
+                label="Tax Classes" 
+                name="taxClassIds" 
+                type="select"
+                multiple
+                value={rateForm.taxClassIds} 
+                onChange={(e) => {
+                    const values = Array.from(e.target.selectedOptions, option => option.value);
+                    setRateForm(prev => ({ ...prev, taxClassIds: values }));
+                }} 
+                options={taxClasses.map(c => ({ value: c.id.toString(), label: c.name }))}
+                hint="Hold Ctrl/Cmd to select multiple classes"
+            />
+
+            <div className="flex gap-6 pt-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                    <input 
+                        type="checkbox" 
+                        name="isCompound" 
+                        checked={rateForm.isCompound} 
+                        onChange={handleRateChange}
+                        className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Compound Tax</span>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer group">
+                    <input 
+                        type="checkbox" 
+                        name="isActive" 
+                        checked={rateForm.isActive} 
+                        onChange={handleRateChange}
+                        className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Active</span>
+                </label>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-6 border-t border-slate-100">
+                <button type="button" className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors" onClick={closeRateModal}>Cancel</button>
+                <button type="submit" className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2" disabled={submitting}>
+                    {submitting ? <i className="fas fa-circle-notch fa-spin"></i> : <i className="fas fa-check"></i>}
+                    {editingRate ? 'Update Rate' : 'Create Tax Rate'}
+                </button>
+            </div>
+        </form>
+      </AdminModal>
+
+      {/* Tax Class Modal */}
+      <AdminModal 
+        isOpen={showClassForm} 
+        onClose={closeClassModal} 
+        title={editingClass ? "Edit Tax Class" : "Create New Tax Class"} 
+        maxWidth={550}
+      >
+        <form onSubmit={handleClassSubmit} className="space-y-5">
+            <FormField 
+                label="Class Name *" 
+                name="name" 
+                value={classForm.name} 
+                onChange={handleClassChange} 
+                placeholder="e.g., Standard, Reduced, Zero" 
+                required 
+                error={formErrors.name}
+            />
+
+            <FormField 
+                label="Tax Code" 
+                name="code" 
+                value={classForm.code} 
+                onChange={handleClassChange} 
+                placeholder="e.g., STANDARD, REDUCED" 
+                hint="Unique identifier (auto-generated if empty)"
+            />
+
+            <FormField 
+                label="Description" 
+                name="description" 
+                type="textarea"
+                rows={3}
+                value={classForm.description} 
+                onChange={handleClassChange} 
+                placeholder="Brief description of this tax class"
+            />
+
+            <FormField 
+                label="Tax Rates" 
+                name="taxRateIds" 
+                type="select"
+                multiple
+                value={classForm.taxRateIds} 
+                onChange={(e) => {
+                    const values = Array.from(e.target.selectedOptions, option => option.value);
+                    setClassForm(prev => ({ ...prev, taxRateIds: values }));
+                }} 
+                options={taxes.map(r => ({ value: r.id.toString(), label: `${r.name} (${r.rate}%)` }))}
+                hint="Hold Ctrl/Cmd to select multiple tax rates"
+            />
+
+            <label className="flex items-center gap-3 cursor-pointer group pt-2">
+                <input 
+                    type="checkbox" 
+                    name="isDefault" 
+                    checked={classForm.isDefault} 
+                    onChange={handleClassChange}
+                    className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+                <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Set as Default Class</span>
+            </label>
+
+            <div className="flex gap-3 justify-end pt-6 border-t border-slate-100">
+                <button type="button" className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors" onClick={closeClassModal}>Cancel</button>
+                <button type="submit" className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2" disabled={submitting}>
+                    {submitting ? <i className="fas fa-circle-notch fa-spin"></i> : <i className="fas fa-save"></i>}
+                    {editingClass ? 'Update Class' : 'Create Tax Class'}
+                </button>
+            </div>
         </form>
       </AdminModal>
 
@@ -239,8 +575,8 @@ const TaxPage = () => {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Remove Tax Rate?"
-        message={`Warning: Deleting "${deleteTarget?.name}" may affect active products using this tax class. Are you absolutely sure?`}
+        title={deleteTarget?.type === 'rate' ? "Remove Tax Rate?" : "Delete Tax Class?"}
+        message={`Warning: Deleting "${deleteTarget?.name}" may affect linked products and calculations. Are you absolutely sure?`}
         confirmLabel="Confirm Removal"
         loading={deleting}
         danger

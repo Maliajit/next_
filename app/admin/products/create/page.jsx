@@ -16,6 +16,7 @@ const AddProductPage = () => {
     const { data, loading, addRecord } = useAdminData();
     const brands = data.brands || [];
     const categories = data.categories || [];
+    const taxClasses = data.taxClasses || [];
     const [tags, setTags] = useState([]);
 
     const [submitting, setSubmitting] = useState(false);
@@ -23,7 +24,7 @@ const AddProductPage = () => {
         name: '', slug: '', productCode: '',
         shortDesc: '', description: '',
         status: 'draft', productType: 'simple',
-        brandId: '', categoryId: '',
+        brandId: '', categoryId: '', taxClassId: '',
         heroImage: null,
         gallery: [],
         tagIds: [],
@@ -384,6 +385,10 @@ const AddProductPage = () => {
                             <FormField label="Brand" name="brandId" type="select" value={form.brandId} onChange={handleChange} options={[
                                 { value: '', label: 'Select Brand' },
                                 ...brands.map(b => ({ value: b.id.toString(), label: b.name }))
+                            ]} />
+                            <FormField label="Tax Class" name="taxClassId" type="select" value={form.taxClassId} onChange={handleChange} options={[
+                                { value: '', label: 'None' },
+                                ...taxClasses.map(tc => ({ value: tc.id.toString(), label: tc.name }))
                             ]} />
                             <div className="flex flex-col">
                                 <label className="text-sm font-medium text-gray-700 mb-2">Tags</label>

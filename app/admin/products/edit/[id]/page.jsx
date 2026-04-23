@@ -19,6 +19,7 @@ const EditProductPage = () => {
     const { data, loading, updateRecord } = useAdminData();
     const brands = data.brands || [];
     const categories = data.categories || [];
+    const taxClasses = data.taxClasses || [];
     const [tags, setTags] = useState([]);
 
     const [processing, setProcessing] = useState(true);
@@ -28,7 +29,7 @@ const EditProductPage = () => {
         name: '', slug: '', productCode: '',
         shortDesc: '', description: '',
         status: 'draft', productType: 'simple',
-        brandId: '', categoryId: '',
+        brandId: '', categoryId: '', taxClassId: '',
         heroImage: null, // {id, url}
         gallery: [], // [{id, url}]
         tagIds: [],
@@ -70,6 +71,7 @@ const EditProductPage = () => {
                     productType: p.productType || 'simple',
                     brandId: p.brandId?.toString() || '',
                     categoryId: p.mainCategoryId?.toString() || '',
+                    taxClassId: p.taxClassId?.toString() || '',
                     // Hero Image
                     heroImage: p.heroImage ? { url: p.heroImage } : null,
                     // Gallery (if available) - ProductMedia relation or images array
@@ -479,6 +481,10 @@ const EditProductPage = () => {
                         <FormField label="Brand" name="brandId" type="select" value={form.brandId} onChange={handleChange} options={[
                             { value: '', label: 'Select Brand' },
                             ...brands.map(b => ({ value: b.id.toString(), label: b.name }))
+                        ]} />
+                        <FormField label="Tax Class" name="taxClassId" type="select" value={form.taxClassId} onChange={handleChange} options={[
+                            { value: '', label: 'None' },
+                            ...taxClasses.map(tc => ({ value: tc.id.toString(), label: tc.name }))
                         ]} />
                         <div className="flex flex-col">
                             <label className="text-sm font-bold text-slate-700 mb-2">Tags</label>
