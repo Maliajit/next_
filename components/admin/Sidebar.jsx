@@ -24,7 +24,7 @@ const navItems = [
     path: '/admin/products',
     submenu: [
       { title: 'All Products', path: '/admin/products' },
-      { title: 'Add Product', path: '/admin/products?new=true' },
+      { title: 'Add Product', path: '/admin/products/create' },
       { title: 'Attributes', path: '/admin/products/attributes' },
       { title: 'Specifications', path: '/admin/products/specifications' },
       { title: 'Tags', path: '/admin/products/tags' },

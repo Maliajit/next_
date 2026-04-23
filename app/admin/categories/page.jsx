@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import '@/app/admin/css/datatable.css';
@@ -16,6 +16,7 @@ import AdminModal from '@/components/admin/AdminModal';
 import { useToast } from '@/context/ToastContext';
 
 const CategoriesPage = () => {
+  const router = useRouter();
   const toast = useToast();
   const { data, loading, errors, refetch, addRecord, updateRecord, deleteRecord } = useAdminData();
   const categories = data.categories || [];
@@ -124,11 +125,9 @@ const CategoriesPage = () => {
 
   useEffect(() => {
     if (searchParams.get('new') === 'true') {
-      setShowForm(true);
-      const newPath = window.location.pathname;
-      window.history.replaceState({}, '', newPath);
+      router.push('/admin/categories/create');
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -198,7 +197,7 @@ const CategoriesPage = () => {
       <PageHeader
         title="Categories"
         subtitle="Manage product hierarchy and organization"
-        action={{ label: 'Add Category', icon: 'fas fa-plus', onClick: () => setShowForm(true) }}
+        action={{ label: 'Add Category', icon: 'fas fa-plus', onClick: () => router.push('/admin/categories/create') }}
       />
 
       <div className="admin-card" style={{ borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--admin-shadow-sm)', border: '1px solid var(--admin-border-light)' }}>

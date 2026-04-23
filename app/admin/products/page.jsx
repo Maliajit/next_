@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import '@/app/admin/css/datatable.css';
@@ -12,8 +12,6 @@ import FormField from '@/components/admin/ui/FormField';
 import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import ConfirmModal from '@/components/admin/ui/ConfirmModal';
-import AdminModal from '@/components/admin/AdminModal';
-import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import { useToast } from '@/context/ToastContext';
 
 const AdminProducts = () => {
@@ -27,67 +25,14 @@ const AdminProducts = () => {
   const tabulatorRef = useRef(null);
   const actionsRef = useRef({});
 
-  const [showForm, setShowForm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [editingRecord, setEditingRecord] = useState(null);
-  const [activeTab, setActiveTab] = useState('basic');
-
-  const [form, setForm] = useState({
-    name: '', slug: '', tagline: '', subtitle: '', 
-    shortDesc: '', longDesc: '', heritageText: '',
-    sku: '', basePrice: '', stock: '',
-    categoryId: '', isActive: true,
-    heroImage: '', 
-    gallery: [],
-    bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
-    gradient: '', mistColor: '#f8fafc'
-  });
-  const [pickerTarget, setPickerTarget] = useState(null); // 'primary' | 'gallery' | null
-  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     if (!tableRef.current || loading.products) return;
     tabulatorRef.current?.destroy();
 
     actionsRef.current = {
-      onEdit: (rec) => {
-        setEditingRecord(rec);
-
-        // Parse images safely
-        let gal = [];
-        if (Array.isArray(rec.images)) {
-            gal = rec.images;
-        } else if (typeof rec.images === 'string') {
-            try { gal = JSON.parse(rec.images); } catch { gal = []; }
-        }
-
-        setForm({
-          name: rec.name || '',
-          slug: rec.slug || '',
-          tagline: rec.tagline || '',
-          subtitle: rec.subtitle || '',
-          shortDesc: rec.shortDescription || rec.shortDesc || '',
-          longDesc: rec.description || rec.longDesc || '',
-          heritageText: rec.heritageText || '',
-          sku: rec.sku || '',
-          basePrice: rec.price?.toString() || '',
-          stock: (rec.qty ?? rec.stock)?.toString() || '0',
-          brandId: rec.brandId?.toString() || '',
-          categoryId: rec.mainCategoryId?.toString() || '',
-          isActive: rec.status === 'active' || rec.isActive === true || rec.isActive === 1,
-          heroImage: rec.heroImage || (gal.length > 0 ? gal[0] : ''),
-          gallery: gal.filter(img => img !== rec.heroImage),
-          bgColor: rec.bgColor || '#ffffff',
-          accentColor: rec.accentColor || '#6366f1',
-          textColor: rec.textColor || '#1e293b',
-          gradient: rec.gradient || '',
-          mistColor: rec.mistColor || '#f8fafc'
-        });
-        setActiveTab('basic');
-        setShowForm(true);
-      },
       onDelete: (id, name) => setDeleteTarget({ id, name }),
     };
 
@@ -156,7 +101,7 @@ const AdminProducts = () => {
           </div>`,
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
-            if (e.target.closest('.btn-icon-edit')) actionsRef.current.onEdit(d);
+            if (e.target.closest('.btn-icon-edit')) router.push(`/admin/products/edit/${d.id}`);
             if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(d.id, d.name);
           },
         },
@@ -166,115 +111,8 @@ const AdminProducts = () => {
     return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; };
   }, [products, loading.products]);
   
-  const searchParams = useSearchParams();
   const router = useRouter();
 
-  useEffect(() => {
-    if (searchParams.get('new') === 'true') {
-      setShowForm(true);
-      // Clean up URL without reload
-      const newPath = window.location.pathname;
-      window.history.replaceState({}, '', newPath);
-    }
-  }, [searchParams]);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : (name === 'isActive' ? value === 'active' : value),
-      ...(name === 'name' ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {}),
-    }));
-    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
-  };
-
-  const handleMediaSelect = (selection) => {
-    if (pickerTarget === 'primary') {
-        setForm(prev => ({ ...prev, heroImage: selection }));
-    } else if (pickerTarget === 'gallery') {
-        setForm(prev => {
-            const newGallery = [...prev.gallery];
-            selection.forEach(url => {
-                if (!newGallery.includes(url)) newGallery.push(url);
-            });
-            return { ...prev, gallery: newGallery };
-        });
-    }
-  };
-
-  const removeGalleryImage = (url) => {
-    setForm(prev => ({
-        ...prev,
-        gallery: prev.gallery.filter(u => u !== url)
-    }));
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.name.trim()) errs.name = 'Product name is required';
-    if (!form.basePrice || isNaN(form.basePrice)) errs.basePrice = 'Valid price is required';
-    if (!form.categoryId) errs.categoryId = 'Category is required';
-    if (!form.brandId) errs.brandId = 'Brand is required';
-    return errs;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
-
-    setSubmitting(true);
-    const payload = { 
-        name: form.name,
-        slug: form.slug,
-        sku: form.sku,
-        price: parseFloat(form.basePrice) || 0,
-        qty: parseInt(form.stock) || 0,
-        brandId: form.brandId,
-        mainCategoryId: form.categoryId,
-        shortDescription: form.shortDesc,
-        description: form.longDesc,
-        tagline: form.tagline,
-        subtitle: form.subtitle,
-        heritageText: form.heritageText,
-        heroImage: form.heroImage,
-        images: form.heroImage ? [form.heroImage, ...form.gallery] : form.gallery,
-        bgColor: form.bgColor,
-        accentColor: form.accentColor,
-        textColor: form.textColor,
-        gradient: form.gradient,
-        mistColor: form.mistColor,
-        status: form.isActive ? 'active' : 'inactive'
-    };
-    
-    let success;
-    if (editingRecord) {
-      success = await updateRecord('products', editingRecord.id, payload, api.updateProduct);
-    } else {
-      success = await addRecord('products', payload, api.createProduct);
-    }
-    
-    setSubmitting(false);
-
-    if (success) {
-      closeModal();
-    }
-  };
-
-  const closeModal = () => {
-    setShowForm(false);
-    setEditingRecord(null);
-    setForm({
-      name: '', slug: '', tagline: '', subtitle: '', 
-      shortDesc: '', longDesc: '', heritageText: '',
-      sku: '', basePrice: '', stock: '',
-      brandId: '', categoryId: '', isActive: true,
-      heroImage: '', gallery: [],
-      bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
-      gradient: '', mistColor: '#f8fafc'
-    });
-    setFormErrors({});
-  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -299,170 +137,6 @@ const AdminProducts = () => {
         }
       </div>
 
-      {/* Product Comprehensive Modal */}
-      <AdminModal isOpen={showForm} onClose={closeModal} title={editingRecord ? "Edit Product" : "Register New Product"} maxWidth={900}>
-        <div style={{ display: 'flex', gap: 24 }}>
-            {/* Left Sidebar for Tabs */}
-            <div style={{ width: 140, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[
-                    { id: 'basic', label: 'Basic Info', icon: 'fa-info-circle' },
-                    { id: 'desc', label: 'Description', icon: 'fa-align-left' },
-                    { id: 'taxonomy', label: 'Organize', icon: 'fa-tags' },
-                    { id: 'theme', label: 'Visuals/Theme', icon: 'fa-palette' }
-                ].map(tab => (
-                    <button 
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        style={{
-                            padding: '12px 16px', borderRadius: 10, border: 'none', textAlign: 'left',
-                            background: activeTab === tab.id ? '#6366f115' : 'transparent',
-                            color: activeTab === tab.id ? '#6366f1' : '#64748b',
-                            fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s',
-                            display: 'flex', alignItems: 'center', gap: 10
-                        }}
-                    >
-                        <i className={`fas ${tab.icon}`} style={{ width: 16 }}></i>
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* Main Form Content */}
-            <div style={{ flex: 1 }}>
-                <form onSubmit={handleSubmit}>
-                    {activeTab === 'basic' && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                            <div style={{ gridColumn: '1 / -1' }}>
-                                <FormField label="Product Title" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph SE" required error={formErrors.name} />
-                            </div>
-                            <FormField label="Price (Base)" name="basePrice" type="number" value={form.basePrice} onChange={handleChange} placeholder="e.g. 15999" required error={formErrors.basePrice} />
-                            <FormField label="Initial Stock" name="stock" type="number" value={form.stock} onChange={handleChange} placeholder="e.g. 50" />
-                            <FormField label="SKU / Internal Model" name="sku" value={form.sku} onChange={handleChange} placeholder="FY-CHR-001" />
-                            <FormField label="Status" name="isActive" type="select" value={form.isActive ? 'active' : 'inactive'} onChange={handleChange} options={[{ value: 'active', label: 'Active (Live)' }, { value: 'inactive', label: 'Inactive (Hidden)' }]} />
-                        </div>
-                    )}
-
-                    {activeTab === 'desc' && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                            <FormField label="Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="Brief catchy text..." />
-                            <FormField label="Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="Model variants info..." />
-                            <div style={{ gridColumn: '1 / -1' }}>
-                                <FormField label="Short Summary" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} />
-                                <FormField label="Long Description" name="longDesc" type="textarea" value={form.longDesc} onChange={handleChange} rows={4} />
-                                <FormField label="Heritage / Story Text" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={2} />
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'taxonomy' && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                            <FormField 
-                                label="Brand" 
-                                name="brandId" 
-                                type="select" 
-                                value={form.brandId} 
-                                onChange={handleChange}
-                                options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b.id.toString(), label: b.name }))]}
-                                required
-                                error={formErrors.brandId}
-                            />
-                            <FormField 
-                                label="Main Category" 
-                                name="categoryId" 
-                                type="select" 
-                                value={form.categoryId} 
-                                onChange={handleChange}
-                                options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
-                                error={formErrors.categoryId}
-                            />
-                            
-                            {/* Visual Picker System (Express Version) */}
-                            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #f1f5f9', paddingTop: 16, marginTop: 4 }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                                    {/* Primary */}
-                                    <div>
-                                        <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Primary Display</p>
-                                        <div 
-                                            onClick={() => setPickerTarget('primary')}
-                                            style={{ 
-                                                width: '100%', height: 120, borderRadius: 12, border: '2px dashed #e2e8f0', background: '#f8fafc',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden'
-                                            }}
-                                        >
-                                            {form.heroImage ? (
-                                                <img src={form.heroImage} alt="Hero" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            ) : (
-                                                <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-                                                    <i className="fas fa-image fa-lg mb-1"></i>
-                                                    <p style={{ fontSize: 10, fontWeight: 700 }}>Select</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Gallery */}
-                                    <div>
-                                        <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginBottom: 6, textTransform: 'uppercase' }}>Sub Gallery</p>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-                                            {form.gallery.map((url, i) => (
-                                                <div key={i} style={{ position: 'relative', height: 57, borderRadius: 8, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                                                    <img src={url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={() => removeGalleryImage(url)}
-                                                        style={{ position: 'absolute', top: 2, right: 2, width: 14, height: 14, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7 }}
-                                                    >
-                                                        <i className="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <button 
-                                                type="button"
-                                                onClick={() => setPickerTarget('gallery')}
-                                                style={{ 
-                                                    height: 57, borderRadius: 8, border: '1px dashed #e2e8f0', background: '#f8fafc',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    cursor: 'pointer', color: '#94a3b8'
-                                                }}
-                                            >
-                                                <i className="fas fa-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'theme' && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                            <FormField label="Background Color" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
-                            <FormField label="Accent Color" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
-                            <FormField label="Text Color" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
-                            <FormField label="Mist Color" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
-                            {/* <div style={{ gridColumn: '1 / -1' }}>
-                                <FormField label="Background Gradient (CSS)" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(...)" />
-                            </div> */}
-                        </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
-                        <button type="button" className="btn-secondary" onClick={closeModal}>Cancel</button>
-                        <button type="submit" className="btn-primary" disabled={submitting}>
-                            {submitting ? <><i className="fas fa-spinner fa-spin mr-2"></i> Processing...</> : <><i className={editingRecord ? "fas fa-save mr-2" : "fas fa-plus mr-2"}></i> {editingRecord ? 'Update Catalog' : 'Add to Catalog'}</>}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-      </AdminModal>
-
-      <MediaPickerModal 
-        isOpen={!!pickerTarget} 
-        onClose={() => setPickerTarget(null)} 
-        onSelect={handleMediaSelect}
-        multiple={pickerTarget === 'gallery'}
-      />
 
       <ConfirmModal
         isOpen={!!deleteTarget}

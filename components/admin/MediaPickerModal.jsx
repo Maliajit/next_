@@ -19,19 +19,20 @@ const MediaPickerModal = ({ isOpen, onClose, onSelect, multiple = false }) => {
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; // Backend URL for uploads
 
-    const toggleSelect = (url) => {
+    const toggleSelect = (m) => {
+        const item = { id: m.id.toString(), url: `/uploads/${m.fileName}` };
         if (multiple) {
             setSelected(prev => 
-                prev.includes(url) ? prev.filter(u => u !== url) : [...prev, url]
+                prev.find(u => u.id === item.id) ? prev.filter(u => u.id !== item.id) : [...prev, item]
             );
         } else {
-            setSelected([url]);
+            setSelected([item]);
         }
     };
 
     const handleConfirm = () => {
         if (selected.length > 0) {
-            onSelect(multiple ? selected : selected[0]);
+            onSelect(multiple ? selected : [selected[0]]);
             onClose();
         }
     };
@@ -91,13 +92,13 @@ const MediaPickerModal = ({ isOpen, onClose, onSelect, multiple = false }) => {
                                 <p>No images found in your library.</p>
                             </div>
                         ) : filteredMedia.map((m) => {
-                            const url = `${API_URL}/uploads/${m.fileName}`;
-                            const isSelected = selected.includes(url);
+                            const showUrl = `${API_URL}/uploads/${m.fileName}`;
+                            const isSelected = selected.find(s => s.id === m.id.toString());
                             
                             return (
                                 <div 
                                     key={m.id}
-                                    onClick={() => toggleSelect(url)}
+                                    onClick={() => toggleSelect(m)}
                                     style={{ 
                                         position: 'relative',
                                         aspectRatio: '1 / 1',
@@ -110,7 +111,7 @@ const MediaPickerModal = ({ isOpen, onClose, onSelect, multiple = false }) => {
                                     }}
                                 >
                                     <img 
-                                        src={url} 
+                                        src={showUrl} 
                                         alt={m.originalFilename} 
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />

@@ -8,6 +8,7 @@ import PageHeader from '@/components/admin/ui/PageHeader';
 import FormField from '@/components/admin/ui/FormField';
 import Loader from '@/components/admin/ui/Loader';
 import { useToast } from '@/context/ToastContext';
+import { getFileUrl } from '@/lib/utils';
 
 const AddProductPage = () => {
     const toast = useToast();
@@ -15,367 +16,719 @@ const AddProductPage = () => {
     const { data, loading, addRecord } = useAdminData();
     const brands = data.brands || [];
     const categories = data.categories || [];
+    const [tags, setTags] = useState([]);
 
     const [submitting, setSubmitting] = useState(false);
-    const [activeTab, setActiveTab] = useState('basic');
     const [form, setForm] = useState({
-        name: '', slug: '', tagline: '', subtitle: '', 
-        shortDesc: '', longDesc: '', heritageText: '',
-        sku: '', basePrice: '', stock: '',
-        brandId: '', categoryId: '', isActive: true,
-        heroImage: '', 
+        name: '', slug: '', productCode: '',
+        shortDesc: '', description: '',
+        status: 'draft', productType: 'simple',
+        brandId: '', categoryId: '',
+        heroImage: null,
         gallery: [],
-        bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
-        gradient: '', mistColor: '#f8fafc'
+        tagIds: [],
+        specifications: {},
     });
-    const [pickerTarget, setPickerTarget] = useState(null); // 'primary' | 'gallery' | null
-    const [formErrors, setFormErrors] = useState({});
+
+    const [categoryDetails, setCategoryDetails] = useState(null);
+    const [selectedAttributeValues, setSelectedAttributeValues] = useState({});
+    const [variants, setVariants] = useState([]);
+    const [pickerTarget, setPickerTarget] = useState(null);
+    const [variantImageModal, setVariantImageModal] = useState(null);
+
+    useEffect(() => {
+        const fetchTags = async () => {
+            const res = await api.getTags();
+            if (res.success) setTags(res.data);
+        };
+        fetchTags();
+    }, []);
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value } = e.target;
         setForm(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : (name === 'isActive' ? value === 'active' : value),
+            [name]: value,
             ...(name === 'name' ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {}),
         }));
-        if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
+    };
+
+    const handleCategoryChange = async (e) => {
+        const catId = e.target.value;
+        setForm(prev => ({ ...prev, categoryId: catId, specifications: {} }));
+        setSelectedAttributeValues({});
+        setVariants([]);
+        
+        if (catId) {
+            const res = await api.getCategory(catId);
+            if (res.success) {
+                setCategoryDetails(res.data);
+            }
+        } else {
+            setCategoryDetails(null);
+        }
+    };
+
+    const handleSpecChange = (specId, value) => {
+        setForm(prev => ({
+            ...prev,
+            specifications: { ...prev.specifications, [specId]: value }
+        }));
+    };
+
+    const toggleAttributeValue = (attrId, valId) => {
+        setSelectedAttributeValues(prev => {
+            const current = prev[attrId] || [];
+            if (current.includes(valId)) {
+                return { ...prev, [attrId]: current.filter(id => id !== valId) };
+            } else {
+                return { ...prev, [attrId]: [...current, valId] };
+            }
+        });
     };
 
     const handleMediaSelect = (selection) => {
         if (pickerTarget === 'primary') {
-            setForm(prev => ({ ...prev, heroImage: selection }));
+            setForm(prev => ({ ...prev, heroImage: selection[0] }));
         } else if (pickerTarget === 'gallery') {
-            // Append new selections to gallery, avoid duplicates
-            setForm(prev => {
-                const newGallery = [...prev.gallery];
-                selection.forEach(url => {
-                    if (!newGallery.includes(url)) newGallery.push(url);
-                });
-                return { ...prev, gallery: newGallery };
+            setForm(prev => ({
+                ...prev,
+                gallery: [...prev.gallery, ...selection].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i)
+            }));
+        } else if (typeof pickerTarget === 'object') {
+            const { variantIndex, type } = pickerTarget;
+            setVariants(prev => {
+                const newVariants = [...prev];
+                if (type === 'primary') {
+                    newVariants[variantIndex].heroImage = selection[0];
+                } else {
+                    newVariants[variantIndex].gallery = [...(newVariants[variantIndex].gallery || []), ...selection].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
+                }
+                return newVariants;
             });
         }
+        setPickerTarget(null);
     };
 
-    const removeGalleryImage = (url) => {
-        setForm(prev => ({
-            ...prev,
-            gallery: prev.gallery.filter(u => u !== url)
-        }));
-    };
-
-    const steps = ['basic', 'desc', 'taxonomy', 'theme'];
-    
-    const validateStep = (step) => {
-        const errs = {};
-        if (step === 'basic') {
-            if (!form.name.trim()) errs.name = 'Product name is required';
-            if (!form.basePrice || isNaN(form.basePrice)) errs.basePrice = 'Valid price is required';
+    const moveGalleryImage = (index, direction) => {
+        const newGallery = [...form.gallery];
+        const targetIndex = index + direction;
+        if (targetIndex >= 0 && targetIndex < newGallery.length) {
+            [newGallery[index], newGallery[targetIndex]] = [newGallery[targetIndex], newGallery[index]];
+            setForm(prev => ({ ...prev, gallery: newGallery }));
         }
-        if (step === 'taxonomy') {
-            if (!form.categoryId) errs.categoryId = 'Category is required';
-            if (!form.brandId) errs.brandId = 'Brand is required';
-        }
-        return errs;
     };
 
-    const handleNextStep = (e) => {
-        e.preventDefault();
-        const currentIndex = steps.indexOf(activeTab);
-        const errs = validateStep(activeTab);
+    const moveVariantGalleryImage = (vIdx, gIdx, direction) => {
+        setVariants(prev => {
+            const newVariants = [...prev];
+            const variant = { ...newVariants[vIdx] };
+            const newGallery = [...(variant.gallery || [])];
+            const targetIndex = gIdx + direction;
+            if (targetIndex >= 0 && targetIndex < newGallery.length) {
+                [newGallery[gIdx], newGallery[targetIndex]] = [newGallery[targetIndex], newGallery[gIdx]];
+                variant.gallery = newGallery;
+                newVariants[vIdx] = variant;
+            }
+            return newVariants;
+        });
+    };
 
-        if (Object.keys(errs).length > 0) {
-            setFormErrors(errs);
-            toast.error("Please fix the errors before continuing.");
+    const generateVariants = () => {
+        if (!categoryDetails || !categoryDetails.attributes) return;
+
+        const arrays = categoryDetails.attributes
+            .filter(ca => selectedAttributeValues[ca.attribute.id]?.length > 0)
+            .map(ca => ({
+                id: ca.attribute.id,
+                name: ca.attribute.name,
+                values: ca.attribute.values.filter(v => selectedAttributeValues[ca.attribute.id].includes(v.id))
+            }));
+
+        if (arrays.length === 0) {
+            toast.error("Please select at least one value for an attribute.");
             return;
         }
 
-        if (currentIndex < steps.length - 1) {
-            setActiveTab(steps[currentIndex + 1]);
-        } else {
-            handleFinalSubmit();
-        }
+        const cartesian = arrays.reduce((acc, curr) => {
+            return acc.flatMap(a => curr.values.map(b => [...a, { attrId: curr.id, attrName: curr.name, valId: b.id, valLabel: b.label }]));
+        }, [[]]);
+
+        const newVariants = cartesian.map(combo => {
+            const name = combo.map(c => c.valLabel).join(' / ');
+            const skuSuffix = combo.map(c => c.valLabel.substring(0, 3).toUpperCase()).join('-');
+            return {
+                name,
+                sku: `${form.sku || 'SKU'}-${skuSuffix}`,
+                price: '',
+                stock: '0',
+                attributeValues: combo.map(c => ({ 
+                    attributeId: c.attrId, 
+                    attributeValueId: c.valId 
+                })),
+                heroImage: null,
+                gallery: [],
+                id: Math.random().toString(36).substr(2, 9)
+            };
+        });
+
+        setVariants(newVariants);
     };
 
-    const handleFinalSubmit = async () => {
+    const updateVariantField = (index, field, value) => {
+        setVariants(prev => {
+            const newVariants = [...prev];
+            newVariants[index][field] = value;
+            return newVariants;
+        });
+    };
+
+    const removeVariant = (index) => {
+        setVariants(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!form.name || !form.categoryId) {
+            toast.error("Please fill required fields.");
+            return;
+        }
+
         setSubmitting(true);
-        const payload = { 
-            name: form.name,
-            slug: form.slug,
-            sku: form.sku,
-            price: parseFloat(form.basePrice) || 0,
-            qty: parseInt(form.stock) || 0,
-            brandId: form.brandId,
-            mainCategoryId: form.categoryId,
+        const { shortDesc, categoryId, ...formData } = form;
+        const payload = {
+            ...formData,
             shortDescription: form.shortDesc,
-            description: form.longDesc,
-            tagline: form.tagline,
-            subtitle: form.subtitle,
-            heritageText: form.heritageText,
-            images: form.heroImage ? [form.heroImage, ...form.gallery] : form.gallery,
-            heroImage: form.heroImage,
-            bgColor: form.bgColor,
-            accentColor: form.accentColor,
-            textColor: form.textColor,
-            gradient: form.gradient,
-            mistColor: form.mistColor,
-            status: form.isActive ? 'active' : 'inactive'
+            mainCategoryId: form.categoryId,
+            sku: form.sku || form.productCode || `SKU-${Date.now()}`,
+            price: variants.length > 0 
+                ? Math.min(...variants.map(v => parseFloat(v.price) || Infinity)).toString()
+                : (parseFloat(form.price) || 0).toString(),
+            qty: variants.length > 0 
+                ? variants.reduce((acc, v) => acc + (parseInt(v.stock) || 0), 0)
+                : (parseInt(form.qty) || 0),
+            tagIds: form.tagIds,
+            heroImage: form.heroImage?.url,
+            images: [form.heroImage?.url, ...form.gallery.map(g => g.url)].filter(Boolean),
+            specifications: Object.entries(form.specifications).map(([id, val]) => {
+                const specItem = categoryDetails?.specGroups?.flatMap(sg => sg.specGroup.specifications).find(s => s.specification.id.toString() === id);
+                const isDropdown = specItem?.specification.type === 'select';
+                return {
+                    specificationId: id,
+                    value: isDropdown ? (specItem.specification.values.find(v => v.id.toString() === val)?.value || '') : (val || ''),
+                    specificationValueId: isDropdown ? val : null
+                };
+            }),
+            variants: variants.map(v => ({
+                sku: v.sku,
+                price: parseFloat(v.price) || 0,
+                stock: parseInt(v.stock) || 0,
+                attributeValues: v.attributeValues,
+                heroImageId: v.heroImage?.id || undefined,
+                galleryIds: v.gallery?.map(g => g.id).filter(id => id != null) || []
+            }))
         };
-        
+
         const success = await addRecord('products', payload, api.createProduct);
         setSubmitting(false);
 
         if (success) {
-            toast.success("Product saved to catalog successfully!");
+            toast.success("Product created successfully!");
             router.push('/admin/products');
         }
     };
 
-    if (loading.brands || loading.categories) {
-        return <Loader message="Preparing product form..." />;
-    }
-
-    const getButtonText = () => {
-        if (submitting) return "Saving Product...";
-        switch(activeTab) {
-            case 'basic': return "Save Product to Catalog (Go to Story)";
-            case 'desc': return "Save Product in Catalog (Go to Taxonomy)";
-            case 'taxonomy': return "Save Product in Catalog (Go to Visuals)";
-            case 'theme': return "Save Product & Finish to DB";
-            default: return "Save Product to Catalog";
-        }
-    };
+    if (loading.brands || loading.categories) return <Loader />;
 
     return (
-        <div className="space-y-6 animate-fade-in pb-12">
-            <PageHeader
-                title="Add New Product"
-                subtitle="Specify model details, heritage branding, and theme visuals"
-            />
+        <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="mb-8">
+                <PageHeader title="Add New Product" subtitle="Create unique items for your premium catalog" />
+            </div>
 
-            <div className="admin-card" style={{ padding: '30px', borderRadius: 20 }}>
-                <div style={{ display: 'flex', gap: 40 }}>
-                    {/* Sidebar Tabs */}
-                    <div style={{ width: 180, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {[
-                            { id: 'basic', label: 'Basic Info', icon: 'fa-info-circle' },
-                            { id: 'desc', label: 'Story & Copy', icon: 'fa-align-left' },
-                            { id: 'taxonomy', label: 'Taxonomy', icon: 'fa-tags' },
-                            { id: 'theme', label: 'Visual Theme', icon: 'fa-palette' }
-                        ].map(tab => (
-                            <button 
-                                key={tab.id}
-                                disabled={submitting}
-                                onClick={() => setActiveTab(tab.id)}
-                                style={{
-                                    padding: '14px 20px', borderRadius: 12, border: 'none', textAlign: 'left',
-                                    background: activeTab === tab.id ? '#6366f1' : '#f8fafc',
-                                    color: activeTab === tab.id ? '#fff' : '#64748b',
-                                    fontSize: 14, fontWeight: 700, cursor: activeTab === tab.id ? 'default' : 'pointer', transition: 'all 0.2s',
-                                    display: 'flex', alignItems: 'center', gap: 12,
-                                    boxShadow: activeTab === tab.id ? '0 10px 15px -3px rgba(99, 102, 241, 0.3)' : 'none',
-                                    opacity: submitting ? 0.5 : 1
-                                }}
-                            >
-                                <i className={`fas ${tab.icon}`} style={{ width: 18 }}></i>
-                                {tab.label}
-                            </button>
-                        ))}
+            <form onSubmit={handleSubmit} className="space-y-8">
+                {/* 1. Core Information */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <div className="px-8 py-5 border-b border-gray-200 bg-gray-50">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <i className="fas fa-info-circle text-indigo-600"></i> 
+                            Basic Information
+                        </h3>
                     </div>
-
-                    {/* Main Form Content */}
-                    <div style={{ flex: 1 }}>
-                        <form onSubmit={handleNextStep} className="space-y-8">
-                            {activeTab === 'basic' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">1</span>
-                                        Core Specifications
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <FormField label="Product Title" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph SE" required error={formErrors.name} />
-                                        </div>
-                                        <FormField label="Base Price" name="basePrice" type="number" value={form.basePrice} onChange={handleChange} placeholder="15999" required error={formErrors.basePrice} />
-                                        <FormField label="Initial Stock Qty" name="stock" type="number" value={form.stock} onChange={handleChange} placeholder="50" />
-                                        <FormField label="SKU / Model Number" name="sku" value={form.sku} onChange={handleChange} placeholder="FY-CHR-001" />
-                                        <FormField label="Publishing Status" name="isActive" type="select" value={form.isActive ? 'active' : 'inactive'} onChange={handleChange} options={[{ value: 'active', label: 'Active (Public)' }, { value: 'inactive', label: 'Inactive (Private)' }]} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'desc' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">2</span>
-                                        Brand Storytelling
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                                        <FormField label="Marketing Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="Legacy of Excellence..." />
-                                        <FormField label="Product Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="Limited Edition / Premium Finish" />
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <FormField label="Short Summary (Hover/Card)" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} />
-                                            <FormField label="Main Product Description" name="longDesc" type="textarea" value={form.longDesc} onChange={handleChange} rows={5} />
-                                            <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'taxonomy' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">3</span>
-                                        Classification
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                                        <FormField 
-                                            label="Brand Owner" 
-                                            name="brandId" 
-                                            type="select" 
-                                            value={form.brandId} 
-                                            onChange={handleChange}
-                                            options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b.id.toString(), label: b.name }))]}
-                                            required
-                                            error={formErrors.brandId}
-                                        />
-                                            <FormField 
-                                                label="Primary Category" 
-                                                name="categoryId" 
-                                                type="select" 
-                                                value={form.categoryId} 
-                                                onChange={handleChange}
-                                                options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
-                                                required
-                                                error={formErrors.categoryId}
-                                            />
-
-                                            {/* Media Selection Section */}
-                                            <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #f1f5f9', paddingTop: 24, marginTop: 10 }}>
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30 }}>
-                                                    {/* Primary Image */}
-                                                    <div>
-                                                        <h5 style={{ fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                            <i className="fas fa-image text-indigo-500"></i>
-                                                            Primary Display Image
-                                                        </h5>
-                                                        <div 
-                                                            onClick={() => setPickerTarget('primary')}
-                                                            style={{ 
-                                                                width: '100%', 
-                                                                height: 200, 
-                                                                borderRadius: 16, 
-                                                                border: '2px dashed #cbd5e1', 
-                                                                background: '#f8fafc',
-                                                                display: 'flex', 
-                                                                alignItems: 'center', 
-                                                                justifyContent: 'center',
-                                                                cursor: 'pointer',
-                                                                overflow: 'hidden',
-                                                                transition: 'all 0.2s',
-                                                                position: 'relative'
-                                                            }}
-                                                            className="hover:border-indigo-400 hover:bg-indigo-50/10"
-                                                        >
-                                                            {form.heroImage ? (
-                                                                <img src={form.heroImage} alt="Primary" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                            ) : (
-                                                                <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-                                                                    <i className="fas fa-plus-circle text-2xl mb-2"></i>
-                                                                    <p style={{ fontSize: 13, fontWeight: 600 }}>Select From Library</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Gallery Images */}
-                                                    <div>
-                                                        <h5 style={{ fontSize: 13, fontWeight: 700, color: '#475569', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                            <i className="fas fa-images text-indigo-500"></i>
-                                                            Product Gallery (Sub Images)
-                                                        </h5>
-                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                                                            {form.gallery.map((url, i) => (
-                                                                <div key={i} style={{ position: 'relative', height: 95, borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                                                                    <img src={url} alt="Gallery" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                    <button 
-                                                                        type="button"
-                                                                        onClick={() => removeGalleryImage(url)}
-                                                                        style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}
-                                                                    >
-                                                                        <i className="fas fa-times"></i>
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => setPickerTarget('gallery')}
-                                                                style={{ 
-                                                                    height: 95, borderRadius: 12, border: '2px dashed #e2e8f0', background: 'transparent',
-                                                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                                                    cursor: 'pointer', transition: 'all 0.2s', color: '#94a3b8'
-                                                                }}
-                                                                className="hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/20"
-                                                            >
-                                                                <i className="fas fa-plus mb-1"></i>
-                                                                <span style={{ fontSize: 10, fontWeight: 700 }}>Add More</span>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'theme' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">4</span>
-                                        UI Theme Customization
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
-                                        <FormField label="Page Background" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
-                                        <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
-                                        <FormField label="Interface Text" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
-                                        <FormField label="Surface Tint (Mist)" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <FormField label="CSS Background Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div style={{ display: 'flex', gap: 14, paddingTop: 30, borderTop: '1px solid #f1f5f9' }}>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                    disabled={submitting}
-                                    style={{ padding: '14px 28px' }}
-                                >
-                                    {submitting ? <><i className="fas fa-spinner fa-spin mr-2"></i> Initializing...</> : <><i className={`fas ${activeTab === 'theme' ? 'fa-check' : 'fa-arrow-right'} mr-2`}></i> {getButtonText()}</>}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => router.push('/admin/products')}
-                                    style={{ padding: '14px 28px' }}
-                                >
-                                    Discard Changes
-                                </button>
+                    <div className="p-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="md:col-span-2">
+                                <FormField label="Product Name *" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph X" required />
                             </div>
-                        </form>
+                            <FormField label="Slug" name="slug" value={form.slug} onChange={handleChange} placeholder="fylex-chronograph-x" />
+                            <FormField label="Product Code (Art. No.)" name="productCode" value={form.productCode} onChange={handleChange} placeholder="FY-CHR-001" />
+                            <div className="md:col-span-2">
+                                <FormField label="Short Description" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} />
+                            </div>
+                            <div className="md:col-span-2">
+                                <FormField label="Full Description" name="description" type="textarea" value={form.description} onChange={handleChange} rows={5} />
+                            </div>
+                            <FormField label="Status" name="status" type="select" value={form.status} onChange={handleChange} options={[
+                                { value: 'active', label: 'Active' },
+                                { value: 'inactive', label: 'Inactive' },
+                                { value: 'draft', label: 'Draft' }
+                            ]} />
+                            {form.productType === 'simple' && (
+                                <>
+                                    <FormField label="Base Price *" name="price" type="number" value={form.price} onChange={handleChange} placeholder="0.00" required />
+                                    <FormField label="Inventory (Quantity) *" name="qty" type="number" value={form.qty} onChange={handleChange} placeholder="0" required />
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
-        </div>
 
-        <MediaPickerModal 
-            isOpen={!!pickerTarget} 
-            onClose={() => setPickerTarget(null)} 
-            onSelect={handleMediaSelect}
-            multiple={pickerTarget === 'gallery'}
-        />
-    </div>
-);
+                {/* 2. Media (Only for Simple Products) */}
+                {form.productType === 'simple' && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <div className="px-8 py-5 border-b border-gray-200 bg-gray-50">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <i className="fas fa-images text-indigo-600"></i> 
+                                Product Media
+                            </h3>
+                        </div>
+                        <div className="p-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">Primary Image</label>
+                                    <div 
+                                        onClick={() => setPickerTarget('primary')}
+                                        className="h-64 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-indigo-400 hover:bg-indigo-50 transition-all"
+                                    >
+                                        {form.heroImage ? (
+                                            <img src={getFileUrl(form.heroImage.url)} className="w-full h-full object-contain" alt="Preview" />
+                                        ) : (
+                                            <div className="text-center">
+                                                <div className="w-12 h-12 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center mx-auto mb-3">
+                                                    <i className="fas fa-plus"></i>
+                                                </div>
+                                                <p className="text-gray-500 text-sm">Select Main Image</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">Gallery Images</label>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {form.gallery.map((img, i) => (
+                                            <div key={i} className="aspect-square rounded-lg border border-gray-200 overflow-hidden relative group bg-gray-50">
+                                                <img src={getFileUrl(img.url)} className="w-full h-full object-cover" alt="Gallery" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => moveGalleryImage(i, -1)}
+                                                        disabled={i === 0}
+                                                        className="w-8 h-8 bg-white/90 text-gray-700 rounded-full flex items-center justify-center hover:bg-white disabled:opacity-50 cursor-pointer"
+                                                        title="Move Left"
+                                                    >
+                                                        <i className="fas fa-arrow-left text-xs"></i>
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => moveGalleryImage(i, 1)}
+                                                        disabled={i === form.gallery.length - 1}
+                                                        className="w-8 h-8 bg-white/90 text-gray-700 rounded-full flex items-center justify-center hover:bg-white disabled:opacity-50 cursor-pointer"
+                                                        title="Move Right"
+                                                    >
+                                                        <i className="fas fa-arrow-right text-xs"></i>
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => setForm(prev => ({ ...prev, gallery: prev.gallery.filter(g => g.id !== img.id) }))}
+                                                        className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 cursor-pointer"
+                                                        title="Remove"
+                                                    >
+                                                        <i className="fas fa-trash-alt text-xs"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <button 
+                                            type="button"
+                                            onClick={() => setPickerTarget('gallery')}
+                                            className="aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400 hover:border-indigo-400 hover:text-indigo-500 transition-all"
+                                        >
+                                            <i className="fas fa-plus mb-1"></i>
+                                            <span className="text-xs">Add</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 3. Organization */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <div className="px-8 py-5 border-b border-gray-200 bg-gray-50">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <i className="fas fa-folder text-indigo-600"></i> 
+                            Organization
+                        </h3>
+                    </div>
+                    <div className="p-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField label="Product Type" name="productType" type="select" value={form.productType} onChange={handleChange} options={[
+                                { value: 'simple', label: 'Simple Product' },
+                                { value: 'configurable', label: 'Configurable (Variants)' }
+                            ]} />
+                            <FormField label="Main Category *" name="categoryId" type="select" value={form.categoryId} onChange={handleCategoryChange} options={[
+                                { value: '', label: 'Select Category' },
+                                ...categories.map(c => ({ value: c.id.toString(), label: c.name }))
+                            ]} />
+                            <FormField label="Brand" name="brandId" type="select" value={form.brandId} onChange={handleChange} options={[
+                                { value: '', label: 'Select Brand' },
+                                ...brands.map(b => ({ value: b.id.toString(), label: b.name }))
+                            ]} />
+                            <div className="flex flex-col">
+                                <label className="text-sm font-medium text-gray-700 mb-2">Tags</label>
+                                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 min-h-[50px]">
+                                    {tags.map(tag => (
+                                        <button
+                                            key={tag.id}
+                                            type="button"
+                                            onClick={() => setForm(prev => ({
+                                                ...prev,
+                                                tagIds: prev.tagIds.includes(tag.id.toString()) 
+                                                    ? prev.tagIds.filter(id => id !== tag.id.toString())
+                                                    : [...prev.tagIds, tag.id.toString()]
+                                            }))}
+                                            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                                                form.tagIds.includes(tag.id.toString()) 
+                                                ? 'bg-indigo-600 text-white' 
+                                                : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-400'
+                                            }`}
+                                        >
+                                            {tag.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. Specifications */}
+                {categoryDetails && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <div className="px-8 py-5 border-b border-gray-200 bg-gray-50">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <i className="fas fa-list-ul text-indigo-600"></i> 
+                                Specifications
+                            </h3>
+                        </div>
+                        <div className="p-8">
+                            {categoryDetails.specGroups?.map((group, gIdx) => (
+                                <div key={gIdx} className="mb-8 last:mb-0">
+                                    <h4 className="text-base font-semibold text-gray-700 mb-4 pb-2 border-b border-gray-200">
+                                        {group.specGroup.name}
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {group.specGroup.specifications?.map((spec, sIdx) => {
+                                            const s = spec.specification;
+                                            return (
+                                                <div key={sIdx}>
+                                                    {s.type === 'select' ? (
+                                                        <FormField 
+                                                            label={s.name} 
+                                                            type="select" 
+                                                            value={form.specifications[s.id] || ''} 
+                                                            onChange={(e) => handleSpecChange(s.id, e.target.value)}
+                                                            options={[{ value: '', label: `Select ${s.name}` }, ...s.values.map(v => ({ value: v.id.toString(), label: v.label || v.value }))]}
+                                                        />
+                                                    ) : (
+                                                        <FormField 
+                                                            label={s.name} 
+                                                            value={form.specifications[s.id] || ''} 
+                                                            onChange={(e) => handleSpecChange(s.id, e.target.value)}
+                                                            placeholder={s.name}
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 5. Variants (Conditional) */}
+                {form.productType === 'configurable' && categoryDetails && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <div className="px-8 py-5 border-b border-gray-200 bg-gray-50">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                <i className="fas fa-cubes text-indigo-600"></i> 
+                                Product Variants
+                            </h3>
+                        </div>
+                        <div className="p-8">
+                            <div className="space-y-6">
+                                <p className="text-sm text-gray-500">Select Attribute Values to Generate Variants</p>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {categoryDetails.attributes?.map((attrWrapper, idx) => {
+                                        const attr = attrWrapper.attribute;
+                                        return (
+                                            <div key={idx} className="p-5 rounded-lg border border-gray-200 bg-white">
+                                                <label className="flex items-center gap-2 font-medium text-gray-700 mb-4 cursor-pointer">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="w-4 h-4 text-indigo-600 rounded"
+                                                        checked={selectedAttributeValues[attr.id]?.length > 0}
+                                                        readOnly
+                                                    />
+                                                    {attr.name}
+                                                </label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {attr.values?.map(val => (
+                                                        <button
+                                                            key={val.id}
+                                                            type="button"
+                                                            onClick={() => toggleAttributeValue(attr.id, val.id)}
+                                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                                selectedAttributeValues[attr.id]?.includes(val.id)
+                                                                ? 'bg-indigo-600 text-white'
+                                                                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                                                            }`}
+                                                        >
+                                                            {val.label || val.value}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <button 
+                                    type="button" 
+                                    onClick={generateVariants}
+                                    className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                                >
+                                    Generate Variants
+                                </button>
+
+                                {variants.length > 0 && (
+                                    <div className="mt-8 overflow-x-auto">
+                                        <table className="w-full border-collapse">
+                                            <thead>
+                                                <tr className="bg-gray-50 border-b border-gray-200">
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Variant Name</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">SKU</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Price</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Stock</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Images</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {variants.map((variant, vIdx) => (
+                                                    <tr key={vIdx} className="hover:bg-gray-50">
+                                                        <td className="px-4 py-3 font-medium text-gray-900">{variant.name}</td>
+                                                        <td className="px-4 py-3">
+                                                            <input 
+                                                                type="text" 
+                                                                value={variant.sku} 
+                                                                onChange={(e) => updateVariantField(vIdx, 'sku', e.target.value)}
+                                                                className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                            />
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <input 
+                                                                type="number" 
+                                                                value={variant.price} 
+                                                                onChange={(e) => updateVariantField(vIdx, 'price', e.target.value)}
+                                                                placeholder="0.00"
+                                                                className="w-24 px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                            />
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <input 
+                                                                type="number" 
+                                                                value={variant.stock} 
+                                                                onChange={(e) => updateVariantField(vIdx, 'stock', e.target.value)}
+                                                                className="w-20 px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                                            />
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex -space-x-2">
+                                                                    {variant.heroImage ? (
+                                                                        <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-gray-100">
+                                                                            <img src={getFileUrl(variant.heroImage.url)} className="w-full h-full object-cover" />
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-gray-400">
+                                                                            <i className="fas fa-image text-xs"></i>
+                                                                        </div>
+                                                                    )}
+                                                                    {variant.gallery?.length > 0 && (
+                                                                        <div className="w-8 h-8 rounded-full border-2 border-indigo-100 bg-indigo-50 flex items-center justify-center text-indigo-600 text-xs font-bold">
+                                                                            +{variant.gallery.length}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })}
+                                                                    className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-indigo-600 hover:text-white transition-colors"
+                                                                >
+                                                                    Manage
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => removeVariant(vIdx)}
+                                                                className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors"
+                                                            >
+                                                                <i className="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Form Actions */}
+                <div className="sticky bottom-0 bg-white border-t border-gray-200 p-6 flex items-center justify-between rounded-xl shadow-lg">
+                    <div className="text-sm text-gray-500">
+                        <i className="fas fa-save mr-2"></i> All changes are saved on submit
+                    </div>
+                    <div className="flex gap-4">
+                        <button
+                            type="button"
+                            onClick={() => router.push('/admin/products')}
+                            className="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            className="px-8 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            {submitting ? <><i className="fas fa-spinner fa-spin"></i> Processing...</> : <><i className="fas fa-plus"></i> Create Product</>}
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <MediaPickerModal 
+                isOpen={!!pickerTarget} 
+                onClose={() => setPickerTarget(null)} 
+                onSelect={handleMediaSelect}
+                multiple={pickerTarget === 'gallery' || (pickerTarget && typeof pickerTarget === 'object' && pickerTarget.type === 'gallery')}
+            />
+
+            {/* Variant Image Type Selection Modal */}
+            {variantImageModal && (
+                <div className="fixed inset-0 z-[100] flex items-end justify-center pb-48 p-4 bg-black/50" onClick={() => setVariantImageModal(null)}>
+                    <div 
+                        className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h4 className="text-lg font-bold text-gray-900">Manage Variant Images</h4>
+                                <p className="text-xs text-gray-500 mt-0.5">Configure media for <span className="text-indigo-600 font-semibold">{variantImageModal.name}</span></p>
+                            </div>
+                            <button type="button" onClick={() => setVariantImageModal(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            {/* Variant Gallery Preview & Reorder */}
+                            {variants[variantImageModal.index]?.gallery?.length > 0 && (
+                                <div className="mb-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Display Order</label>
+                                    <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-thin">
+                                        {variants[variantImageModal.index].gallery.map((img, gIdx) => (
+                                            <div key={gIdx} className="relative flex-none w-16 h-16 rounded-xl border border-gray-200 overflow-hidden group/item shadow-sm">
+                                                <img src={getFileUrl(img.url)} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-indigo-900/40 opacity-0 group-hover/item:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5">
+                                                    <div className="flex gap-1.5">
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, -1)}
+                                                            disabled={gIdx === 0}
+                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-left text-[10px]"></i></button>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, 1)}
+                                                            disabled={gIdx === variants[variantImageModal.index].gallery.length - 1}
+                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-right text-[10px]"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setPickerTarget({ variantIndex: variantImageModal.index, type: 'primary' });
+                                    setVariantImageModal(null);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group/btn cursor-pointer"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover/btn:bg-indigo-600 group-hover/btn:text-white transition-all">
+                                    <i className="fas fa-star text-lg"></i>
+                                </div>
+                                <div className="text-left">
+                                    <div className="font-bold text-gray-900">Primary Image</div>
+                                    <div className="text-xs text-gray-500">Main image for this variant</div>
+                                </div>
+                            </button>
+
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setPickerTarget({ variantIndex: variantImageModal.index, type: 'gallery' });
+                                    setVariantImageModal(null);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-purple-400 hover:bg-purple-50/50 transition-all group/btn cursor-pointer"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover/btn:bg-purple-600 group-hover/btn:text-white transition-all">
+                                    <i className="fas fa-images text-lg"></i>
+                                </div>
+                                <div className="text-left">
+                                    <div className="font-bold text-gray-900">Add to Gallery</div>
+                                    <div className="text-xs text-gray-500">Upload lifestyle or angle shots</div>
+                                </div>
+                            </button>
+                        </div>
+                        <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-center">
+                            <button 
+                                type="button"
+                                onClick={() => setVariantImageModal(null)}
+                                className="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest cursor-pointer"
+                            >
+                                Close Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default AddProductPage;
