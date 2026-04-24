@@ -145,7 +145,11 @@ function DiscoverContent() {
     if (targetVariant) {
         addToCart(targetVariant.id.toString(), 1, { title: product.title });
     } else {
-        alert('This configuration is currently unavailable.');
+        if (product.productType === 'simple') {
+            alert('This simple product has no variants configured. Please contact support.');
+        } else {
+            alert('This configuration is currently unavailable.');
+        }
     }
   };
 
@@ -961,10 +965,11 @@ function DiscoverContent() {
 
       {/* ── TOP-RIGHT CTA ── */}
       <div className={`cfg-top-right-cta ${scrollDir === 'down' && isScrolled ? 'hidden' : ''}`}>
-        {product.productType !== 'simple' && (
+        {product.productType === 'simple' ? (
+          <button onClick={handleBookNow} className="cfg-cta-pill">Book Now</button>
+        ) : (
           <Link href={`/configure?watch=${product.id}`} className="cfg-cta-pill">Configure</Link>
         )}
-        <button onClick={handleBookNow} className="cfg-cta-pill" style={{ background: '#1a1a1a', color: '#fff', marginLeft: product.productType !== 'simple' ? '12px' : '0' }}>Book Now</button>
       </div>
 
       <div className="cfg-content-wrapper">

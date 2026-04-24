@@ -19,7 +19,7 @@ export function CartProvider({ children }) {
         return;
       }
       try {
-        const data = await fetchCart();
+        const data = await fetchCart(userId);
         const cartItems = data?.items || [];
         if (Array.isArray(cartItems)) {
             const mapped = cartItems.map(item => ({
@@ -49,7 +49,7 @@ export function CartProvider({ children }) {
       const result = await addToCartApi(userId, variantId, quantity);
       if (result) {
         // Refresh cart after adding
-        const data = await fetchCart();
+        const data = await fetchCart(userId);
         const cartItems = data?.items || [];
         const mapped = cartItems.map(item => ({
             ...item,
@@ -71,7 +71,7 @@ export function CartProvider({ children }) {
   const removeFromCart = async (id) => {
     if (!userId) return;
     try {
-      const result = await removeFromCartApi(id);
+      const result = await removeFromCartApi(userId, id);
       setItems(prev => prev.filter(i => i.id !== id));
       info?.('Item removed from cart');
     } catch (err) {
@@ -87,7 +87,7 @@ export function CartProvider({ children }) {
       if (!item) return;
       
       const newQty = Math.max(1, item.qty + delta);
-      const updatedItem = await updateCartQtyApi(id, newQty);
+      const updatedItem = await updateCartQtyApi(userId, id, newQty);
       if (updatedItem) {
         setItems(prev =>
           prev.map(i => i.id === id ? { 
