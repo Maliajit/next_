@@ -14,7 +14,15 @@ export function WishlistProvider({ children }) {
     const loadWishlist = async () => {
       try {
         const data = await fetchWishlist();
-        if (data) setWishlist(data);
+        if (data && Array.isArray(data)) {
+            const mapped = data.map(item => ({
+                ...item,
+                id: item.id.toString(),
+                price: item.price ? `₹${item.price.toLocaleString()}` : '₹0',
+                image: item.heroImage || item.image || (item.product?.heroImage) || '/assets/fylex-watch-v2/premium.png'
+            }));
+            setWishlist(mapped);
+        }
       } catch (err) {
         console.error('Failed to load wishlist', err);
       }

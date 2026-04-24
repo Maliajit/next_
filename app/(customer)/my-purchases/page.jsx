@@ -180,7 +180,7 @@ export default function MyPurchases() {
                   {order.items.map((item, idx) => (
                     <div key={idx} className="bought-item">
                       <div className="bought-img">
-                        <img src={item.heroImage} alt={item.title} />
+                        <img src={item.image || item.heroImage} alt={item.title} />
                       </div>
                       <div className="bought-info">
                         <h3>{item.title} {item.titleAccent}</h3>

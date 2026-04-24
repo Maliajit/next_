@@ -2,25 +2,38 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useOrder } from '@/context/OrderContext';
+import { useWishlist } from '@/context/WishlistContext';
 
 const Profile = () => {
   const { user, logout, loading } = useAuth();
+  const { orders } = useOrder();
+  const { wishlist } = useWishlist();
   const navigate = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/login');
+      navigate.push('/login');
     }
   }, [user, loading, navigate]);
 
   if (loading || !user) {
     return (
-      <div className="flex items-center justify-center min-vh-100 bg-fylex-offwhite">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-fylex-gold"></div>
+      <div className="flex items-center justify-center min-h-screen bg-[#F9F9F7]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#c4a35a]"></div>
       </div>
     );
   }
+
+  // Calculate dynamic stats
+  const totalInvestment = orders.reduce((acc, order) => {
+      const val = parseFloat(String(order.total || '0').replace(/[^0-9.]/g, '')) || 0;
+      return acc + val;
+  }, 0);
+
+  const recentOrders = orders.slice(0, 3);
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: (
@@ -60,7 +73,6 @@ const Profile = () => {
           --fylex-navy: #1C2E4A;
         }
         
-        /* Background decorative elements */
         .profile-bg-blob {
           position: fixed; border-radius: 50%;
           filter: blur(100px); pointer-events: none; opacity: 0.15; z-index: -1;
@@ -81,7 +93,6 @@ const Profile = () => {
           .profile-container { flex-direction: column; padding-top: 80px; }
         }
 
-        /* Sidebar Glassmorphism */
         .profile-sidebar {
           width: 320px;
           flex-shrink: 0;
@@ -114,13 +125,13 @@ const Profile = () => {
           border-radius: 50%;
           margin: 0 auto 15px;
           display: flex; align-items: center; justify-content: center;
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 3rem;
           box-shadow: 0 15px 30px rgba(28,46,74,0.15);
           border: 4px solid white;
         }
         .profile-name-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 1.8rem; color: var(--fylex-navy);
           font-weight: 500; margin-bottom: 5px;
         }
@@ -156,7 +167,6 @@ const Profile = () => {
         }
         .back-to-home:hover { color: var(--fylex-navy); }
 
-        /* Main Content */
         .profile-main-content {
           flex: 1;
           background: white;
@@ -171,12 +181,11 @@ const Profile = () => {
         }
 
         .section-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Playfair Display', serif;
           font-size: 3rem; color: var(--fylex-navy);
           margin-bottom: 30px; line-height: 1;
         }
 
-        /* Overview Page */
         .stats-cluster {
           display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
           margin-bottom: 60px;
@@ -188,10 +197,9 @@ const Profile = () => {
           transition: transform 0.3s;
         }
         .stat-box:hover { transform: translateY(-5px); border-color: var(--fylex-gold); }
-        .stat-val { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: var(--fylex-navy); display: block; }
+        .stat-val { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--fylex-navy); display: block; }
         .stat-lbl { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em; }
 
-        /* Order Items */
         .order-card-premium {
           display: flex; align-items: center; gap: 30px;
           padding: 25px; border: 1px solid #f0f0f0; border-radius: 24px;
@@ -211,7 +219,6 @@ const Profile = () => {
         .status-delivered { background: #E6F9F0; color: #0EA271; }
         .status-processing { background: #FFF9E6; color: #D4A017; }
 
-        /* Tracking Flow */
         .tracking-viz {
           background: var(--fylex-navy); padding: 50px; border-radius: 30px; color: white;
           position: relative; overflow: hidden;
@@ -239,23 +246,20 @@ const Profile = () => {
         }
         .logout-pill:hover { background: rgba(239, 68, 68, 0.05); }
 
-        /* Animations */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade { animation: fadeIn 0.6s ease forwards; }
       `}</style>
 
-      {/* Background Blobs */}
       <div className="profile-bg-blob blob-1"></div>
       <div className="profile-bg-blob blob-2"></div>
 
       <div className="profile-container">
-        {/* Sidebar */}
         <aside className="profile-sidebar animate-fade" style={{ animationDelay: '0.1s' }}>
           <div className="user-profile-header">
             <div className="profile-avatar-large">
-              {user.firstName ? user.firstName[0] : user.email[0]}
+              {user.firstName ? user.firstName[0] : (user.email ? user.email[0] : '?')}
             </div>
-            <h2 className="profile-name-title">{user.firstName} {user.lastName}</h2>
+            <h2 className="profile-name-title">{user.firstName || 'Member'} {user.lastName || ''}</h2>
             <span className="profile-tag">Heritage Member</span>
           </div>
 
@@ -272,7 +276,7 @@ const Profile = () => {
             ))}
           </ul>
 
-          <div className="logout-pill" onClick={() => { logout(); navigate('/'); }}>
+          <div className="logout-pill" onClick={() => { logout(); navigate.push('/'); }}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -287,7 +291,6 @@ const Profile = () => {
           </Link>
         </aside>
 
-        {/* Main Content */}
         <main className="profile-main-content animate-fade" style={{ animationDelay: '0.3s' }}>
           {activeTab === 'overview' && (
             <div key="overview">
@@ -297,34 +300,36 @@ const Profile = () => {
               <div className="stats-cluster">
                 <div className="stat-box">
                   <span className="stat-lbl">Active Orders</span>
-                  <span className="stat-val">02</span>
+                  <span className="stat-val">{orders.length.toString().padStart(2, '0')}</span>
                 </div>
                 <div className="stat-box">
                   <span className="stat-lbl">Collection Worth</span>
-                  <span className="stat-val">$52,400</span>
+                  <span className="stat-val">₹{totalInvestment.toLocaleString()}</span>
                 </div>
                 <div className="stat-box">
                   <span className="stat-lbl">Wishlist Items</span>
-                  <span className="stat-val">14</span>
+                  <span className="stat-val">{wishlist.length.toString().padStart(2, '0')}</span>
                 </div>
               </div>
 
-              <h3 className="text-sm font-bold uppercase tracking-widest text-navy mb-6">Recent Acquisitions</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-[#1C2E4A] mb-6">Recent Acquisitions</h3>
               <div className="space-y-4">
-                {user.recentOrders?.map((order, i) => (
+                {recentOrders.length > 0 ? recentOrders.map((order, i) => (
                   <div key={i} className="order-card-premium">
-                    <img src={order.img} alt={order.name} className="item-thumb" />
+                    <img src={order.items?.[0]?.image || '/assets/fylex-watch-v2/premium.png'} alt={order.items?.[0]?.title} className="item-thumb" />
                     <div className="item-meta">
                       <span className="text-xs text-gray-400 font-mono">#{order.id}</span>
-                      <h4 className="text-lg font-semibold text-navy mt-1">{order.name}</h4>
+                      <h4 className="text-lg font-semibold text-[#1C2E4A] mt-1">{order.items?.[0]?.title || 'Bespoke Timepiece'}</h4>
                     </div>
                     <div>
-                      <span className={`item-status-pill ${order.status === 'Delivered' ? 'status-delivered' : 'status-processing'}`}>
-                        {order.status}
+                      <span className={`item-status-pill status-delivered`}>
+                        Delivered
                       </span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-gray-400 italic">No recent acquisitions found.</p>
+                )}
               </div>
             </div>
           )}
@@ -346,19 +351,23 @@ const Profile = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {user.orderHistory?.map((order, i) => (
+                    {orders.length > 0 ? orders.map((order, i) => (
                       <tr key={i} className="bg-gray-50 hover:bg-gray-100 transition-colors">
                         <td className="p-5 pl-8 rounded-l-2xl font-mono text-xs">{order.id}</td>
                         <td className="p-5 text-gray-600 text-sm">{order.date}</td>
-                        <td className="p-5 font-semibold text-navy">{order.items}</td>
-                        <td className="p-5 font-bold text-navy">{order.total}</td>
+                        <td className="p-5 font-semibold text-[#1C2E4A]">{order.items?.[0]?.title || 'Watch'}</td>
+                        <td className="p-5 font-bold text-[#1C2E4A]">{order.total}</td>
                         <td className="p-5 rounded-r-2xl">
-                          <span className={`item-status-pill ${order.status === 'Delivered' ? 'status-delivered' : 'status-processing'}`}>
-                            {order.status}
+                          <span className={`item-status-pill status-delivered`}>
+                            Delivered
                           </span>
                         </td>
                       </tr>
-                    ))}
+                    )) : (
+                        <tr>
+                            <td colSpan="5" className="text-center py-10 text-gray-400">No history available.</td>
+                        </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -370,36 +379,42 @@ const Profile = () => {
                 <h1 className="section-title">Timeline & Tracking</h1>
                 <p className="text-gray-500 mb-10">Monitor the journey of your newest addition from our atelier to your hands.</p>
                 
-                <div className="tracking-viz">
-                  <div className="flex justify-between items-end mb-4">
-                     <div>
-                        <span className="text-xs text-gold uppercase tracking-tighter">Current Journey</span>
-                        <h4 className="text-xl font-serif mt-1">Order #FLX-9922883441</h4>
-                     </div>
-                     <span className="text-sm font-medium opacity-80">Estimated: 3 Days</span>
-                  </div>
+                {orders.length > 0 ? (
+                    <div className="tracking-viz">
+                      <div className="flex justify-between items-end mb-4">
+                         <div>
+                            <span className="text-xs text-[#c4a35a] uppercase tracking-tighter">Current Journey</span>
+                            <h4 className="text-xl font-serif mt-1">Order #{orders[0].id}</h4>
+                         </div>
+                         <span className="text-sm font-medium opacity-80">Estimated: Delivered</span>
+                      </div>
 
-                  <div className="track-progress-container">
-                    <div className="track-bar" style={{ width: '66%' }}></div>
-                    <div className="track-nodes">
-                       <div className="node completed"><div className="node-label active">Ordered</div></div>
-                       <div className="node completed"><div className="node-label active">Atelier</div></div>
-                       <div className="node completed"><div className="node-label active">Transit</div></div>
-                       <div className="node"><div className="node-label">Home</div></div>
-                    </div>
-                  </div>
+                      <div className="track-progress-container">
+                        <div className="track-bar" style={{ width: '100%' }}></div>
+                        <div className="track-nodes">
+                           <div className="node completed"><div className="node-label active">Ordered</div></div>
+                           <div className="node completed"><div className="node-label active">Atelier</div></div>
+                           <div className="node completed"><div className="node-label active">Transit</div></div>
+                           <div className="node completed"><div className="node-label active">Home</div></div>
+                        </div>
+                      </div>
 
-                  <div className="mt-12 grid grid-cols-2 gap-10">
-                    <div className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
-                      <span className="text-[10px] uppercase opacity-50 tracking-widest">Last Update</span>
-                      <p className="text-sm mt-1">Departed Switzerland Distribution Facility</p>
+                      <div className="mt-12 grid grid-cols-2 gap-10">
+                        <div className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
+                          <span className="text-[10px] uppercase opacity-50 tracking-widest">Last Update</span>
+                          <p className="text-sm mt-1">Successfully Delivered</p>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
+                          <span className="text-[10px] uppercase opacity-50 tracking-widest">Signed By</span>
+                          <p className="text-sm mt-1">{user.firstName} {user.lastName}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
-                      <span className="text-[10px] uppercase opacity-50 tracking-widest">Next Stop</span>
-                      <p className="text-sm mt-1">International Port of Entry, New York</p>
+                ) : (
+                    <div className="p-20 text-center bg-gray-50 rounded-3xl">
+                        <p className="text-gray-400">No active shipments to track.</p>
                     </div>
-                  </div>
-                </div>
+                )}
              </div>
           )}
 
@@ -412,21 +427,21 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">First Distinction</label>
-                    <input type="text" defaultValue={user.firstName} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-gold outline-none" />
+                    <input type="text" defaultValue={user.firstName} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Family Name</label>
-                    <input type="text" defaultValue={user.lastName} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-gold outline-none" />
+                    <input type="text" defaultValue={user.lastName} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Digital Address</label>
-                  <input type="email" defaultValue={user.email} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-gold outline-none" />
+                  <input type="email" defaultValue={user.email} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
                 </div>
 
                 <div className="pt-4">
-                  <button className="bg-navy text-white px-10 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-gold transition-colors duration-500">
+                  <button className="bg-[#1C2E4A] text-white px-10 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#c4a35a] transition-colors duration-500">
                     Update Registry
                   </button>
                 </div>

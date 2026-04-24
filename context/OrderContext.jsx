@@ -12,7 +12,19 @@ export function OrderProvider({ children }) {
     const loadOrders = async () => {
       try {
         const data = await fetchOrders();
-        if (data) setOrders(data);
+        if (data && Array.isArray(data)) {
+            const mapped = data.map(order => ({
+                ...order,
+                id: order.id.toString(),
+                date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Recent',
+                items: (order.items || []).map(item => ({
+                    ...item,
+                    price: item.price ? `₹${item.price.toLocaleString()}` : '₹0',
+                    image: item.product?.heroImage || item.image || '/assets/fylex-watch-v2/premium.png'
+                }))
+            }));
+            setOrders(mapped);
+        }
       } catch (err) {
         console.warn('Order API unavailable, using local data:', err.message);
       }

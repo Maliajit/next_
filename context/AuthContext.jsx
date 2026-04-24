@@ -22,14 +22,7 @@ export const AuthProvider = ({ children }) => {
       ...userData,
       id: userData.id || 'usr_' + Math.random().toString(36).substr(2, 9),
       joinDate: userData.joinDate || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      role: userData.role || 'customer',
-      orderHistory: userData.orderHistory || [
-        { id: 'ORD-77291', date: '2026-03-15', total: '$12,400', status: 'Delivered', items: 'Datejust Gold' },
-        { id: 'ORD-66102', date: '2026-02-10', total: '$36,500', status: 'Shipped', items: 'Submariner Blue' },
-      ],
-      recentOrders: userData.recentOrders || [
-         { id: 'ORD-77291', name: 'Datejust Gold', status: 'Delivered', img: '/assets/fylex-watch-v2/premium.png' }
-      ]
+      role: userData.role || 'customer'
     };
     setUser(user);
     localStorage.setItem('fylexx_user', JSON.stringify(user));

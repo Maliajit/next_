@@ -6,7 +6,9 @@ import * as api from '@/services/adminApi';
 import PageHeader from '@/components/admin/ui/PageHeader';
 import FormField from '@/components/admin/ui/FormField';
 import Loader from '@/components/admin/ui/Loader';
+import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import { useToast } from '@/context/ToastContext';
+import { getFileUrl } from '@/lib/utils';
 import '@/app/admin/css/custom.css';
 
 const ProductEditPageContent = () => {
@@ -25,11 +27,14 @@ const ProductEditPageContent = () => {
         shortDesc: '', longDesc: '', heritageText: '',
         sku: '', basePrice: '', stock: '',
         brandId: '', categoryId: '', isActive: true,
-        heroImage: '', 
+        heroImage: null, 
+        gallery: [],
         bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
         gradient: '', mistColor: '#f8fafc'
     });
     const [formErrors, setFormErrors] = useState({});
+    const [pickerTarget, setPickerTarget] = useState(null);
+    const [variantImageModal, setVariantImageModal] = useState(null);
 
     useEffect(() => {
         if (productId && data.products && data.products.length > 0) {
@@ -49,7 +54,8 @@ const ProductEditPageContent = () => {
                     brandId: p.brandId?.toString() || '',
                     categoryId: p.mainCategoryId?.toString() || '',
                     isActive: p.status === 'active',
-                    heroImage: Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : (typeof p.images === 'string' ? p.images : ''),
+                    heroImage: p.heroImage ? { url: p.heroImage } : (p.images?.length > 0 ? { url: p.images[0] } : null),
+                    gallery: p.images?.slice(1).map(url => ({ url })) || [],
                     bgColor: p.bgColor || '#ffffff',
                     accentColor: p.accentColor || '#6366f1',
                     textColor: p.textColor || '#1e293b',
@@ -59,6 +65,27 @@ const ProductEditPageContent = () => {
             }
         }
     }, [productId, data.products]);
+
+    const handleMediaSelect = (selection) => {
+        if (pickerTarget === 'primary') {
+            setForm(prev => ({ ...prev, heroImage: selection[0] }));
+        } else if (pickerTarget === 'gallery') {
+            setForm(prev => ({
+                ...prev,
+                gallery: [...prev.gallery, ...selection].filter((v, i, a) => a.findIndex(t => t.url === v.url) === i)
+            }));
+        }
+        setPickerTarget(null);
+    };
+
+    const moveGalleryImage = (index, direction) => {
+        const newGallery = [...form.gallery];
+        const targetIndex = index + direction;
+        if (targetIndex >= 0 && targetIndex < newGallery.length) {
+            [newGallery[index], newGallery[targetIndex]] = [newGallery[targetIndex], newGallery[index]];
+            setForm(prev => ({ ...prev, gallery: newGallery }));
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -118,7 +145,8 @@ const ProductEditPageContent = () => {
             tagline: form.tagline,
             subtitle: form.subtitle,
             heritageText: form.heritageText,
-            images: form.heroImage ? [form.heroImage] : [],
+            heroImage: form.heroImage?.url,
+            images: [form.heroImage?.url, ...form.gallery.map(g => g.url)].filter(Boolean),
             bgColor: form.bgColor,
             accentColor: form.accentColor,
             textColor: form.textColor,
@@ -148,53 +176,47 @@ const ProductEditPageContent = () => {
     };
 
     return (
-        <div className="space-y-6 animate-fade-in pb-12">
+        <div className="max-w-7xl mx-auto px-6 py-8 pb-20 animate-fade-in">
             <PageHeader
                 title="Edit Product"
                 subtitle={`Modifying: ${form.name || productId}`}
             />
 
-            <div className="admin-card" style={{ padding: '30px', borderRadius: 20 }}>
-                <div style={{ display: 'flex', gap: 40 }}>
-                    {/* Sidebar Tabs */}
-                    <div style={{ width: 180, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {[
-                            { id: 'basic', label: 'Basic Info', icon: 'fa-info-circle' },
-                            { id: 'desc', label: 'Story & Copy', icon: 'fa-align-left' },
-                            { id: 'taxonomy', label: 'Taxonomy', icon: 'fa-tags' },
-                            { id: 'theme', label: 'Visual Theme', icon: 'fa-palette' }
-                        ].map(tab => (
-                            <button 
-                                key={tab.id}
-                                disabled={submitting}
-                                onClick={() => setActiveTab(tab.id)}
-                                style={{
-                                    padding: '14px 20px', borderRadius: 12, border: 'none', textAlign: 'left',
-                                    background: activeTab === tab.id ? '#6366f1' : '#f8fafc',
-                                    color: activeTab === tab.id ? '#fff' : '#64748b',
-                                    fontSize: 14, fontWeight: 700, cursor: activeTab === tab.id ? 'default' : 'pointer', transition: 'all 0.2s',
-                                    display: 'flex', alignItems: 'center', gap: 12,
-                                    boxShadow: activeTab === tab.id ? '0 10px 15px -3px rgba(99, 102, 241, 0.3)' : 'none',
-                                    opacity: submitting ? 0.5 : 1
-                                }}
-                            >
-                                <i className={`fas ${tab.icon}`} style={{ width: 18 }}></i>
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
+            <form onSubmit={handleNextStep} className="mt-8 space-y-8">
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="flex flex-col md:flex-row min-h-[600px]">
+                        {/* Sidebar Tabs */}
+                        <div className="w-full md:w-64 bg-gray-50 border-r border-gray-200 p-6 space-y-2">
+                            {[
+                                { id: 'basic', label: 'Basic Info', icon: 'fa-info-circle' },
+                                { id: 'desc', label: 'Story & Copy', icon: 'fa-align-left' },
+                                { id: 'taxonomy', label: 'Taxonomy & Media', icon: 'fa-tags' },
+                                { id: 'theme', label: 'Visual Theme', icon: 'fa-palette' }
+                            ].map(tab => (
+                                <button 
+                                    key={tab.id}
+                                    type="button"
+                                    disabled={submitting}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
+                                        activeTab === tab.id 
+                                        ? 'bg-indigo-600 text-white shadow-md' 
+                                        : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    <i className={`fas ${tab.icon} w-5`}></i>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
 
-                    {/* Main Form Content */}
-                    <div style={{ flex: 1 }}>
-                        <form onSubmit={handleNextStep} className="space-y-8">
+                        {/* Main Form Content */}
+                        <div className="flex-1 p-8">
                             {activeTab === 'basic' && (
                                 <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">1</span>
-                                        Core Specifications
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                                        <div style={{ gridColumn: '1 / -1' }}>
+                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">Core Specifications</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="md:col-span-2">
                                             <FormField label="Product Title" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph SE" required error={formErrors.name} />
                                         </div>
                                         <FormField label="Base Price" name="basePrice" type="number" value={form.basePrice} onChange={handleChange} placeholder="15999" required error={formErrors.basePrice} />
@@ -207,14 +229,11 @@ const ProductEditPageContent = () => {
 
                             {activeTab === 'desc' && (
                                 <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">2</span>
-                                        Brand Storytelling
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">Brand Storytelling</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <FormField label="Marketing Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="Legacy of Excellence..." />
                                         <FormField label="Product Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="Limited Edition / Premium Finish" />
-                                        <div style={{ gridColumn: '1 / -1' }}>
+                                        <div className="md:col-span-2">
                                             <FormField label="Short Summary (Hover/Card)" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} />
                                             <FormField label="Main Product Description" name="longDesc" type="textarea" value={form.longDesc} onChange={handleChange} rows={5} />
                                             <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
@@ -225,11 +244,8 @@ const ProductEditPageContent = () => {
 
                             {activeTab === 'taxonomy' && (
                                 <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">3</span>
-                                        Classification
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">Classification & Media</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <FormField 
                                             label="Brand Owner" 
                                             name="brandId" 
@@ -250,8 +266,48 @@ const ProductEditPageContent = () => {
                                             required
                                             error={formErrors.categoryId}
                                         />
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <FormField label="Primary Display Image URL" name="heroImage" value={form.heroImage} onChange={handleChange} placeholder="https://res.cloudinary.com/..." />
+                                        
+                                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-3">Primary Image</label>
+                                                <div 
+                                                    onClick={() => setPickerTarget('primary')}
+                                                    className="h-48 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-indigo-400 transition-all shadow-inner"
+                                                >
+                                                    {form.heroImage ? (
+                                                        <img src={getFileUrl(form.heroImage.url)} className="w-full h-full object-contain" alt="Preview" />
+                                                    ) : (
+                                                        <div className="text-center">
+                                                            <i className="fas fa-image text-gray-400 text-2xl mb-2"></i>
+                                                            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Select Image</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-3">Gallery</label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {form.gallery.map((img, i) => (
+                                                        <div key={i} className="aspect-square rounded-lg border border-gray-200 overflow-hidden relative group">
+                                                            <img src={getFileUrl(img.url)} className="w-full h-full object-cover" alt="Gallery" />
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => setForm(prev => ({ ...prev, gallery: prev.gallery.filter(g => g.url !== img.url) }))}
+                                                                className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                                                            >
+                                                                <i className="fas fa-times text-[10px]"></i>
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setPickerTarget('gallery')}
+                                                        className="aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400 hover:border-indigo-400 transition-all"
+                                                    >
+                                                        <i className="fas fa-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -259,44 +315,52 @@ const ProductEditPageContent = () => {
 
                             {activeTab === 'theme' && (
                                 <div className="space-y-6 animate-slide-up">
-                                    <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
-                                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">4</span>
-                                        UI Theme Customization
-                                    </h4>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">UI Theme Customization</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <FormField label="Page Background" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
                                         <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
                                         <FormField label="Interface Text" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
                                         <FormField label="Surface Tint (Mist)" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
-                                        <div style={{ gridColumn: '1 / -1' }}>
+                                        <div className="md:col-span-2">
                                             <FormField label="CSS Background Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
                                         </div>
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
 
-                            <div style={{ display: 'flex', gap: 14, paddingTop: 30, borderTop: '1px solid #f1f5f9' }}>
-                                <button
-                                    type="submit"
-                                    className="btn-primary"
-                                    disabled={submitting}
-                                    style={{ padding: '14px 28px' }}
-                                >
-                                    {submitting ? <><i className="fas fa-spinner fa-spin mr-2"></i> Updating...</> : <><i className={`fas ${activeTab === 'theme' ? 'fa-save' : 'fa-arrow-right'} mr-2`}></i> {getButtonText()}</>}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    onClick={() => router.push('/admin/products')}
-                                    style={{ padding: '14px 28px' }}
-                                >
-                                    Discard Changes
-                                </button>
-                            </div>
-                        </form>
+                    <div className="bg-gray-50 border-t border-gray-200 p-6 flex items-center justify-between">
+                        <div className="text-sm text-gray-500 flex items-center gap-2 font-medium">
+                            <i className="fas fa-save text-indigo-500"></i>
+                            Changes are saved to the master catalog
+                        </div>
+                        <div className="flex gap-4">
+                            <button
+                                type="button"
+                                className="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all shadow-sm"
+                                onClick={() => router.push('/admin/products')}
+                            >
+                                Discard Changes
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-10 py-2.5 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                disabled={submitting}
+                            >
+                                {submitting ? <><i className="fas fa-spinner fa-spin mr-2"></i> Updating...</> : <><i className={`fas ${activeTab === 'theme' ? 'fa-save' : 'fa-arrow-right'} mr-2`}></i> {getButtonText()}</>}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </form>
+
+            <MediaPickerModal 
+                isOpen={!!pickerTarget} 
+                onClose={() => setPickerTarget(null)} 
+                onSelect={handleMediaSelect}
+                multiple={pickerTarget === 'gallery'}
+            />
         </div>
     );
 };

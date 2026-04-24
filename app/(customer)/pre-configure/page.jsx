@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
@@ -7,14 +7,42 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import productsData from '../../../data/productsData';
+import { fetchProducts } from '../../../lib/api';
+import { useWishlist } from '@/context/WishlistContext';
 
 const PreConfigure = () => {
-  const [favorites, setFavorites] = useState({});
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
-  const toggleFavorite = (id) => {
-    setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
-  };
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const res = await fetchProducts();
+        const rawData = res.data || (Array.isArray(res) ? res : []);
+        const mapped = rawData.map(p => {
+            const nameParts = p.name.split(' ');
+            return {
+                id: p.id.toString(),
+                title: nameParts.slice(0, -1).join(' ') || p.name,
+                titleAccent: nameParts.length > 1 ? ` ${nameParts[nameParts.length - 1]}` : '',
+                price: `₹${p.price.toLocaleString()}`,
+                heroImage: p.heroImage || p.images?.[0] || '/assets/fylex-watch-v2/premium.png',
+                theme: p.bgColor || 'champagne'
+            };
+        });
+        setProducts(mapped);
+      } catch (err) {
+        console.error('Failed to fetch products for pre-configure', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  if (loading) return <div className="h-screen flex items-center justify-center bg-white text-navy font-serif text-2xl">Initializing Atelier...</div>;
+  if (products.length === 0) return <div className="h-screen flex items-center justify-center bg-white text-navy font-serif">No timepieces available for configuration.</div>;
 
   return (
     <div className="pre-configure-page fixed inset-0 flex flex-col bg-white overflow-hidden z-[1001]">
@@ -265,7 +293,7 @@ const PreConfigure = () => {
             loop={true}
             className="mySwiper h-full w-full"
           >
-            {productsData.map((product) => (
+            {products.map((product) => (
               <SwiperSlide key={product.id}>
                 <div className={`slide-bg section-${product.theme}`}>
                   <div className="p-aura-shadow"></div>
@@ -288,13 +316,13 @@ const PreConfigure = () => {
                         Configure
                       </Link>
                       <button
-                        className={`btn-fav ${favorites[product.id] ? 'active' : ''}`}
+                        className={`btn-fav ${isInWishlist(product.id) ? 'active' : ''}`}
                         onClick={(e) => {
                           e.preventDefault();
-                          toggleFavorite(product.id);
+                          toggleWishlist(product);
                         }}
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill={favorites[product.id] ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
                           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                       </button>

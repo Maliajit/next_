@@ -1,4 +1,6 @@
 "use client";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useOrder } from '@/context/OrderContext';
 
@@ -25,22 +27,22 @@ const Checkout = () => {
     } else {
       // Place Order logic
       const totalAmount = items.reduce((sum, item) => {
-        const p = parseFloat(item.price.replace(/[^0-9.]/g, ''));
-        return sum + (p * item.qty);
+        const pStr = String(item.price || '0').replace(/[^0-9.]/g, '');
+        return sum + (parseFloat(pStr) * (item.qty || 1));
       }, 0);
       
       addOrder({
         items: [...items],
-        total: `$${totalAmount.toLocaleString()}`
+        total: `₹${totalAmount.toLocaleString()}`
       });
       clearCart();
-      navigate('/my-purchases');
+      navigate.push('/my-purchases');
     }
   };
 
   const handleBack = () => {
     if (activeStep > 1) setActiveStep(activeStep - 1);
-    else navigate('/cart');
+    else navigate.push('/cart');
   };
 
   return (
@@ -176,30 +178,44 @@ const Checkout = () => {
             <div className="order-summary-card glassmorphism">
               <h3 className="summary-title">Order Summary</h3>
               <div className="summary-items">
-                <div className="summary-item">
-                  <div className="item-thumbnail rose-bg" />
-                  <div className="item-info">
-                    <div className="item-name">Fylexx Midnight Rose</div>
-                    <div className="item-meta">1 item · 40mm</div>
+                {items.map((item) => (
+                  <div key={item.id} className="summary-item">
+                    <div className="item-thumbnail rose-bg">
+                      <img src={item.image || item.heroImage} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    </div>
+                    <div className="item-info">
+                      <div className="item-name">{item.title}</div>
+                      <div className="item-meta">{item.qty} item{item.qty !== 1 ? 's' : ''}</div>
+                    </div>
+                    <div className="item-price">{item.price}</div>
                   </div>
-                  <div className="item-price">$32,500</div>
-                </div>
+                ))}
               </div>
               <div className="summary-divider" />
-              <div className="summary-lines">
-                <div className="summary-line">
-                  <span>Subtotal</span>
-                  <span>$32,500</span>
-                </div>
-                <div className="summary-line">
-                  <span>Shipping</span>
-                  <span className="free-tag">Free</span>
-                </div>
-                <div className="summary-line total">
-                  <span>Total</span>
-                  <span>$32,500</span>
-                </div>
-              </div>
+              {(() => {
+                const subtotal = items.reduce((s, i) => {
+                  const pStr = String(i.price || '0').replace(/[^0-9.]/g, '');
+                  return s + (parseFloat(pStr) || 0) * (i.qty || 1);
+                }, 0);
+                const shipping = subtotal > 150000 ? 0 : 500;
+                const total = subtotal + shipping;
+                return (
+                  <div className="summary-lines">
+                    <div className="summary-line">
+                      <span>Subtotal</span>
+                      <span>₹{subtotal.toLocaleString()}</span>
+                    </div>
+                    <div className="summary-line">
+                      <span>Shipping</span>
+                      <span className={shipping === 0 ? 'free-tag' : ''}>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
+                    </div>
+                    <div className="summary-line total">
+                      <span>Total</span>
+                      <span>₹{total.toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
             <div className="trust-badge-mini">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

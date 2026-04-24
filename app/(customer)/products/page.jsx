@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useWishlist } from '@/context/WishlistContext';
 import { fetchProducts } from '../../../lib/api';
+import { getFileUrl } from '@/lib/utils';
 
 const Products = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -17,18 +18,8 @@ const Products = () => {
     const loadProducts = async () => {
       try {
         const res = await fetchProducts();
-        console.log('Customer fetchProducts result:', res);
+        const rawData = res.data || (Array.isArray(res) ? res : []);
         
-        // Handle different response formats
-        const rawData = res.data || (Array.isArray(res) ? res : null);
-        
-        if (!rawData) {
-          console.error('No products data found in response:', res);
-          setError(res.error || 'No products returned from server');
-          setLoading(false);
-          return;
-        }
-
         const hexToRgb = (hex) => {
           if (!hex) return '196, 163, 90';
           const cleanHex = hex.replace('#', '');
@@ -38,32 +29,56 @@ const Products = () => {
           return `${r}, ${g}, ${b}`;
         };
 
-        const mapped = (Array.isArray(rawData) ? rawData : []).map((p, idx) => ({
-        id: p.id.toString(),
-        num: String(idx + 1).padStart(2, '0'),
-        title: p.name,
-        titleAccent: '', // Optional: parse from name if needed
-        subtitle: p.subtitle || 'Luxury Collection',
-        tagline: p.tagline || '',
-        description: p.description || p.shortDescription || '',
-        image: p.heroImage || (p.images?.[0]) || '/assets/fylex-watch-v2/premium.png',
-        price: `₹${p.price}`,
-        totalStock: p.qty || 0,
-        sold: 0, // Placeholder
-        theme: p.bgColor || 'champagne',
-        bgColor: p.bgColor || '#ffffff',
-        accentColor: p.accentColor || '#c4a35a',
-        accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
-        textColor: p.textColor || '#1a1a1a',
-        gradient: p.gradient || '',
-        mistColor: p.mistColor || '',
-        combinations: (p.variants || []).map(v => ({
-            id: v.id.toString(),
-            name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-            img: v.variantImages?.[0]?.media?.path || '/assets/fylex-watch-v2/Olive-green-dial.png'
-        }))
-      }));
-      setCollections(mapped);
+        const mapped = rawData.map((p, idx) => {
+            // Pick parent image or first variant's main image
+            let rawImg = p.heroImage || (p.images?.[0]);
+            
+            if (!rawImg && p.variants?.length > 0) {
+                const firstVar = p.variants[0];
+                const varMain = firstVar.variantImages?.find(vi => vi.type === 'MAIN')?.media;
+                if (varMain) {
+                    rawImg = varMain.url || (varMain.fileName ? `/uploads/${varMain.fileName}` : '');
+                }
+            }
+
+            if (rawImg && !rawImg.startsWith('http') && !rawImg.startsWith('/') && !rawImg.startsWith('data:')) {
+                rawImg = `/uploads/${rawImg}`;
+            }
+
+            return {
+                id: p.id.toString(),
+                num: String(idx + 1).padStart(2, '0'),
+                title: p.name,
+                titleAccent: '',
+                subtitle: p.subtitle || 'Luxury Collection',
+                tagline: p.tagline || '',
+                description: p.description || p.shortDescription || '',
+                image: getFileUrl(rawImg) || '/assets/fylex-watch-v2/premium.png',
+                price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
+                totalStock: p.qty || 0,
+                sold: 0,
+                theme: p.bgColor || 'champagne',
+                bgColor: p.bgColor || '#ffffff',
+                accentColor: p.accentColor || '#c4a35a',
+                accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
+                textColor: p.textColor || '#1a1a1a',
+                gradient: p.gradient || '',
+                mistColor: p.mistColor || '',
+                combinations: (p.variants || []).map(v => {
+                    const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
+                    let vPath = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+                    if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
+                        vPath = `/uploads/${vPath}`;
+                    }
+                    return {
+                        id: v.id.toString(),
+                        name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
+                        img: getFileUrl(vPath) || '/assets/fylex-watch-v2/Olive-green-dial.png'
+                    };
+                })
+            };
+        });
+        setCollections(mapped);
     } catch (err) {
         console.error('Failed to load products:', err);
         setError(err.message || 'An unexpected error occurred');

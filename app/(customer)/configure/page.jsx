@@ -43,71 +43,83 @@ function ConfigureContent() {
 
   useEffect(() => {
     const loadProduct = async () => {
-      const data = await fetchProducts();
-      const rawData = data.data || data;
-      const p = (Array.isArray(rawData) ? rawData : []).find(item => item.id.toString() === watchId) || rawData?.[0];
+      try {
+        console.log('Fetching product for watchId:', watchId);
+        const data = await fetchProducts();
+        const rawData = data.data || (Array.isArray(data) ? data : []);
+        console.log('Raw products data:', rawData);
+        
+        const p = rawData.find(item => item.id.toString() === watchId) || rawData?.[0];
 
-      if (!p) {
-        setLoading(false);
-        return;
-      }
+        if (!p) {
+          console.warn('No product found for watchId:', watchId);
+          setLoading(false);
+          return;
+        }
 
-      // Map product and its media
-      const mappedProduct = {
-        ...p,
-        id: p.id.toString(),
-        title: p.name,
-        price: `₹${p.price}`,
-        heroImage: p.heroImage || p.images?.[0] || '/assets/fylex-watch-v2/premium.png',
-        theme: p.bgColor || 'champagne',
-        accentColor: p.accentColor || '#c4a35a',
-        textColor: p.textColor || '#1a1a1a',
-      };
-      setProduct(mappedProduct);
-      setPreviewSrc(mappedProduct.heroImage);
+        console.log('Mapped product:', p);
+        // Map product and its media
+        const mappedProduct = {
+          ...p,
+          id: p.id.toString(),
+          title: p.name,
+          price: `₹${p.price.toLocaleString()}`,
+          heroImage: p.heroImage || p.images?.[0] || '/assets/fylex-watch-v2/premium.png',
+          theme: p.bgColor || 'champagne',
+          accentColor: p.accentColor || '#c4a35a',
+          textColor: p.textColor || '#1a1a1a',
+        };
+        setProduct(mappedProduct);
+        setPreviewSrc(mappedProduct.heroImage);
 
-      // Extract 360 view media
-      const threeSixty = (p.productMedia || []).filter(m => m.role === '360_view').map(m => m.media?.path).filter(Boolean);
-      setMedia360(threeSixty);
+        // Extract 360 view media
+        const threeSixty = (p.productMedia || [])
+          .filter(m => m.role === '360_view')
+          .map(m => m.media?.path)
+          .filter(Boolean);
+        setMedia360(threeSixty);
 
-      // Extract attributes and build steps
-      const attrMap = {};
-      (p.variants || []).forEach(v => {
-        (v.variantAttributes || []).forEach(va => {
-            const attr = va.attributeValue?.attribute;
-            if(!attr) return;
-            if(!attrMap[attr.name]) {
-                attrMap[attr.name] = { id: attr.id, title: `Choose your ${attr.name.toLowerCase()}`, options: [] };
-            }
-            if(!attrMap[attr.name].options.some(o => o.name === va.attributeValue.label)) {
-                attrMap[attr.name].options.push({ 
-                    name: va.attributeValue.label, 
-                    img: (v.variantImages?.[0]?.media?.path) || mappedProduct.heroImage,
-                    dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? (v.variantImages?.[0]?.media?.path) : null
-                });
-            }
+        // Extract attributes and build steps
+        const attrMap = {};
+        (p.variants || []).forEach(v => {
+          (v.variantAttributes || []).forEach(va => {
+              const attr = va.attributeValue?.attribute;
+              if(!attr) return;
+              if(!attrMap[attr.name]) {
+                  attrMap[attr.name] = { id: attr.id, title: `Choose your ${attr.name.toLowerCase()}`, options: [] };
+              }
+              if(!attrMap[attr.name].options.some(o => o.name === va.attributeValue.label)) {
+                  attrMap[attr.name].options.push({ 
+                      name: va.attributeValue.label, 
+                      img: (v.variantImages?.[0]?.media?.path) || mappedProduct.heroImage,
+                      dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? (v.variantImages?.[0]?.media?.path) : null
+                  });
+              }
+          });
         });
-      });
 
-      const dynamicSteps = Object.keys(attrMap).map((key, idx, arr) => ({
-        ...attrMap[key],
-        id: key.toLowerCase(),
-        nextLbl: idx < arr.length - 1 ? Object.keys(attrMap)[idx+1] : 'Discover'
-      }));
+        const dynamicSteps = Object.keys(attrMap).map((key, idx, arr) => ({
+          ...attrMap[key],
+          id: key.toLowerCase(),
+          nextLbl: idx < arr.length - 1 ? Object.keys(attrMap)[idx+1] : 'Discover'
+        }));
 
-      setStepsData(dynamicSteps);
-      setVariants(p.variants || []);
-      
-      const initialSelections = {};
-      dynamicSteps.forEach(step => {
-          initialSelections[step.id] = step.options[0]?.name;
-      });
-      setUserSelections(initialSelections);
+        setStepsData(dynamicSteps);
+        setVariants(p.variants || []);
+        
+        const initialSelections = {};
+        dynamicSteps.forEach(step => {
+            initialSelections[step.id] = step.options[0]?.name;
+        });
+        setUserSelections(initialSelections);
 
-      const dialsStep = dynamicSteps.find(s => s.id === 'dial' || s.id === 'dials');
-      if (dialsStep) setDialOptions(dialsStep.options);
-
-      setLoading(false);
+        const dialsStep = dynamicSteps.find(s => s.id === 'dial' || s.id === 'dials');
+        if (dialsStep) setDialOptions(dialsStep.options);
+      } catch (err) {
+        console.error('Failed to load product for configurator:', err);
+      } finally {
+        setLoading(false);
+      }
     };
     loadProduct();
   }, [watchId, router]);

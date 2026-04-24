@@ -11,6 +11,7 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/free-mode';
 import { fetchProducts } from '../../../lib/api';
+import { getFileUrl } from '@/lib/utils';
 import localProductsData from '../../../data/productsData';
 
 function DiscoverContent() {
@@ -31,20 +32,54 @@ function DiscoverContent() {
     const loadData = async () => {
       const data = await fetchProducts();
       if (data) {
-        const actualData = data.data || data;
-        const mapped = (Array.isArray(actualData) ? actualData : []).map(p => ({
-            ...p,
-            id: p.id.toString(),
-            title: p.name,
-            description: p.description || p.shortDescription || '',
-            image: p.heroImage || (p.images?.[0]) || '/assets/fylex-watch-v2/premium.png',
-            theme: p.bgColor || 'champagne',
-            combinations: (p.variants || []).map(v => ({
-                id: v.id.toString(),
-                name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-                img: v.variantImages?.[0]?.media?.path || '/assets/fylex-watch-v2/Olive-green-dial.png'
-            }))
-        }));
+        const actualData = data.data || (Array.isArray(data) ? data : []);
+        const mapped = actualData.map(p => {
+            // Main Image Resolution
+            let rawHero = p.heroImage || (p.images?.[0]);
+            if (!rawHero && p.variants?.length > 0) {
+                const vImg = p.variants[0].variantImages?.find(vi => vi.type === 'MAIN')?.media || p.variants[0].variantImages?.[0]?.media;
+                rawHero = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+            }
+            if (rawHero && !rawHero.startsWith('http') && !rawHero.startsWith('/') && !rawHero.startsWith('data:')) {
+                rawHero = `/uploads/${rawHero}`;
+            }
+
+            return {
+                ...p,
+                id: p.id.toString(),
+                title: p.name,
+                subtitle: p.subtitle || 'Luxury Collection',
+                description: p.shortDescription || p.description || '',
+                longDesc: p.description || p.shortDescription || 'Experience the pinnacle of watchmaking with our masterfully crafted timepiece.',
+                heroImage: getFileUrl(rawHero) || '/assets/fylex-watch-v2/premium.png',
+                image: getFileUrl(rawHero) || '/assets/fylex-watch-v2/premium.png',
+                theme: p.bgColor || 'champagne',
+                accentColor: p.accentColor || '#c4a35a',
+                textColor: p.textColor || '#1a1a1a',
+                videoUrl: p.videoUrl || '/assets/fylex-watch-v2/watch-video.mp4',
+                heritageText: p.heritageText || 'Founded on the principles of precision and timeless elegance, Fylex has been at the forefront of horological innovation for generations.',
+                sold: p.soldCount || (p.id % 100) + 120, // Real data or believable placeholder
+                totalStock: p.qty || p.stockCount || 500,
+                galleryImages: (p.productMedia?.length > 0) 
+                    ? p.productMedia.map(m => {
+                        let mPath = m.media?.url || (m.media?.fileName ? `/uploads/${m.media.fileName}` : '');
+                        return getFileUrl(mPath);
+                    }).filter(Boolean)
+                    : (p.images || []).map(img => getFileUrl(img.startsWith('http') || img.startsWith('/') ? img : `/uploads/${img}`)),
+                combinations: (p.variants || []).map(v => {
+                    const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
+                    let vPath = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+                    if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
+                        vPath = `/uploads/${vPath}`;
+                    }
+                    return {
+                        id: v.id.toString(),
+                        name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
+                        img: getFileUrl(vPath) || '/assets/fylex-watch-v2/Olive-green-dial.png'
+                    };
+                })
+            };
+        });
         setProductsData(mapped);
       }
       setLoading(false);
@@ -105,8 +140,9 @@ function DiscoverContent() {
   const materialParam = searchParams.get('material');
   const bezelParam = searchParams.get('bezel');
   const dialParam = searchParams.get('dial');
-  const hasConfig = materialParam && bezelParam && dialParam;
+  const hasConfig = !!(materialParam || bezelParam || dialParam);
 
+  // Dynamic config map derived from product variants if possible, with hardcoded fallbacks for featured looks
   const configMap = {
     materials: {
       "Yellow Gold": { img: '/assets/fylex-watch-v2/goldwatch.png', desc: '18 ct yellow gold, our proprietary alloy, offers an unmistakable radiance and a majestic presence on the wrist.' },
@@ -124,6 +160,23 @@ function DiscoverContent() {
       "Meteorite": { img: '/assets/fylex-watch-v2/metoritedial.png', desc: 'Forged in the heart of distant stars, the meteorite dial features unique natural patterns that make your timepiece truly unique.' },
       "Diamond-paved": { img: '/assets/fylex-watch-v2/Diamondpavedial.png', desc: 'A breathtaking landscape of light, the diamond-paved dial is a testament to our gem-setting prowess and dedication to opulence.' }
     }
+  };
+
+  // Attempt to find images from actual variants if not in hardcoded map
+  const findVariantImg = (attrName, valName) => {
+    const match = (product.variants || []).find(v => 
+      (v.variantAttributes || []).some(va => 
+        va.attributeValue?.attribute?.name?.toLowerCase() === attrName.toLowerCase() && 
+        va.attributeValue?.label === valName
+      )
+    );
+    const vImg = match?.variantImages?.find(vi => vi.type === 'MAIN')?.media || match?.variantImages?.[0]?.media;
+    if (!vImg) return null;
+    let vPath = vImg.url || (vImg.fileName ? `/uploads/${vImg.fileName}` : '');
+    if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
+        vPath = `/uploads/${vPath}`;
+    }
+    return getFileUrl(vPath);
   };
 
   return (
@@ -837,31 +890,31 @@ function DiscoverContent() {
               {/* Material Choice */}
               <div className="cfg-choice-card">
                 <div className="cfg-choice-img-wrap">
-                  <img src={configMap.materials[materialParam]?.img} alt={materialParam} className="cfg-choice-img" />
+                  <img src={findVariantImg('material', materialParam) || configMap.materials[materialParam]?.img || product.image} alt={materialParam} className="cfg-choice-img" />
                 </div>
                 <span className="cfg-choice-label">Material</span>
-                <h3 className="cfg-choice-name">{materialParam}</h3>
-                <p className="cfg-choice-desc">{configMap.materials[materialParam]?.desc}</p>
+                <h3 className="cfg-choice-name">{materialParam || 'Standard'}</h3>
+                <p className="cfg-choice-desc">{configMap.materials[materialParam]?.desc || 'Crafted with our signature high-performance materials for lasting elegance.'}</p>
               </div>
 
               {/* Bezel Choice */}
               <div className="cfg-choice-card">
                 <div className="cfg-choice-img-wrap">
-                  <img src={configMap.bezels[bezelParam]?.img} alt={bezelParam} className="cfg-choice-img" />
+                  <img src={findVariantImg('bezel', bezelParam) || configMap.bezels[bezelParam]?.img || product.image} alt={bezelParam} className="cfg-choice-img" />
                 </div>
                 <span className="cfg-choice-label">Bezel</span>
-                <h3 className="cfg-choice-name">{bezelParam}</h3>
-                <p className="cfg-choice-desc">{configMap.bezels[bezelParam]?.desc}</p>
+                <h3 className="cfg-choice-name">{bezelParam || 'Smooth'}</h3>
+                <p className="cfg-choice-desc">{configMap.bezels[bezelParam]?.desc || 'A masterfully finished bezel that frames the face of time with absolute precision.'}</p>
               </div>
 
               {/* Dial Choice */}
               <div className="cfg-choice-card">
                 <div className="cfg-choice-img-wrap">
-                  <img src={configMap.dials[dialParam]?.img} alt={dialParam} className="cfg-choice-img" />
+                  <img src={findVariantImg('dial', dialParam) || configMap.dials[dialParam]?.img || product.image} alt={dialParam} className="cfg-choice-img" />
                 </div>
                 <span className="cfg-choice-label">Dial</span>
-                <h3 className="cfg-choice-name">{dialParam}</h3>
-                <p className="cfg-choice-desc">{configMap.dials[dialParam]?.desc}</p>
+                <h3 className="cfg-choice-name">{dialParam || 'Classic'}</h3>
+                <p className="cfg-choice-desc">{configMap.dials[dialParam]?.desc || 'The face of the watch, designed and manufactured in-house for peerless legibility and beauty.'}</p>
               </div>
             </div>
           </section>

@@ -13,7 +13,15 @@ export function CartProvider({ children }) {
     const loadCart = async () => {
       try {
         const data = await fetchCart();
-        if (data) setItems(data);
+        if (data && Array.isArray(data)) {
+            const mapped = data.map(item => ({
+                ...item,
+                id: item.id.toString(),
+                price: item.price ? `₹${item.price.toLocaleString()}` : '₹0',
+                image: item.product?.heroImage || item.image || '/assets/fylex-watch-v2/premium.png'
+            }));
+            setItems(mapped);
+        }
       } catch (err) {
         console.error('Initial cart load failed', err);
       }

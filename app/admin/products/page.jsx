@@ -13,6 +13,7 @@ import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import ConfirmModal from '@/components/admin/ui/ConfirmModal';
 import { useToast } from '@/context/ToastContext';
+import { getFileUrl } from '@/lib/utils';
 
 const AdminProducts = () => {
   const toast = useToast();
@@ -49,15 +50,28 @@ const AdminProducts = () => {
           formatter: (cell) => `<span style="font-weight:600;color:#94a3b8">#${cell.getValue()}</span>`,
         },
         {
-          title: 'PRODUCT INFO', field: 'name', minWidth: 300,
+          title: 'TYPE', field: 'productType', width: 100,
+          formatter: (cell) => {
+            const val = cell.getValue() || 'simple';
+            const isConfig = val === 'configurable';
+            return `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:${isConfig ? '#8b5cf6' : '#64748b'};background:${isConfig ? '#f5f3ff' : '#f1f5f9'};padding:4px 8px;border-radius:6px;display:inline-block">${val}</div>`;
+          }
+        },
+        {
+          title: 'PRODUCT INFO', field: 'name', minWidth: 250,
           formatter: (cell) => {
             const d = cell.getRow().getData();
-            const imgSrc = d.heroImage || (Array.isArray(d.images) && d.images[0]) || d.image || d.image_url || '';
+            let rawImg = d.heroImage || (Array.isArray(d.images) && d.images[0]) || d.image || d.image_url || '';
+            if (rawImg && !rawImg.startsWith('http') && !rawImg.startsWith('/') && !rawImg.startsWith('data:')) {
+                rawImg = `/uploads/${rawImg}`;
+            }
+            const imgSrc = getFileUrl(rawImg);
             const cat = d.mainCategory?.name || d.category?.name || 'Uncategorized';
             return `
               <div style="display:flex;align-items:center;gap:14px;padding:6px 0">
                 <div style="width:52px;height:52px;background:#f8fafc;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #e2e8f0">
-                  ${imgSrc ? `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover" />` : `<i class="fas fa-box" style="color:#cbd5e1;font-size:18px"></i>`}
+                  ${imgSrc ? `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />` : ''}
+                  <i class="fas fa-box" style="color:#cbd5e1;font-size:18px;${imgSrc ? 'display:none' : 'display:block'}"></i>
                 </div>
                 <div style="min-width:0">
                   <div style="font-weight:800;color:#1e293b;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>

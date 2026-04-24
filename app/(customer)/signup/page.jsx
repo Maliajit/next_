@@ -253,7 +253,7 @@ export default function Signup() {
         });
         setDone(true);
         // Auto-redirect after a short delay to show success
-        setTimeout(() => navigate('/profile'), 2000);
+        setTimeout(() => navigate.push('/profile'), 2000);
       }, 2000);
     }
   };

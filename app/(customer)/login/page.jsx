@@ -66,7 +66,7 @@ export default function Login() {
       setSubmitting(false);
       // Simulate account finding
       login({ email, firstName: email.split('@')[0], lastName: '' });
-      navigate('/profile');
+      navigate.push('/profile');
     }, 1500);
   };
 

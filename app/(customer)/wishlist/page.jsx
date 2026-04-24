@@ -2,9 +2,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { useWishlist } from '@/context/WishlistContext';
+import { useCart } from '@/context/CartContext';
 
 export default function Wishlist() {
   const { wishlist, toggleWishlist } = useWishlist();
+  const { addToCart } = useCart();
 
   return (
     <div className="wishlist-page">
@@ -129,6 +131,17 @@ export default function Wishlist() {
           letter-spacing: 0.1em;
           transition: all 0.3s;
         }
+        .btn-cart {
+          background: #c4a35a;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+          font-family: 'Inter', sans-serif;
+        }
+        .btn-cart:hover {
+          background: #1a1a1a;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
         .btn-config {
           background: #1a1a1a;
           color: #fff;
@@ -201,12 +214,13 @@ export default function Wishlist() {
                   </svg>
                 </button>
                 <div className="wishlist-item-img">
-                  <img src={item.heroImage} alt={item.title} />
+                  <img src={item.image || item.heroImage} alt={item.title} />
                 </div>
                 <div className="wishlist-item-info">
-                  <h3>{item.title} {item.titleAccent}</h3>
+                  <h3>{item.title} {item.titleAccent || ''}</h3>
                   <span className="price">{item.price}</span>
                   <div className="wishlist-btn-group">
+                    <button onClick={() => addToCart(item)} className="wishlist-btn btn-cart">Add to Cart</button>
                     <Link href={`/discover?watch=${item.id}`} className="wishlist-btn btn-config">Discover</Link>
                   </div>
                 </div>
