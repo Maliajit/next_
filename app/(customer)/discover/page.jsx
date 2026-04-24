@@ -68,7 +68,7 @@ function DiscoverContent() {
                 mistColor: p.mistColor || '',
                 mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
                 textColor: p.textColor || '#1a1a1a',
-                videoUrl: p.videoUrl || '/assets/fylex-watch-v2/watch-video.mp4',
+                videoUrl: p.videoUrl || null,
                 heritageText: p.heritageText || 'Founded on the principles of precision and timeless elegance, Fylex has been at the forefront of horological innovation for generations.',
                 sold: p.soldCount || (p.id % 100) + 120, // Real data or believable placeholder
                 totalStock: p.qty || p.stockCount || 500,
@@ -977,18 +977,20 @@ function DiscoverContent() {
           </section>
         )}
 
-        <section className="cfg-video-section">
-          <div className="cfg-video-wrap">
-            <video
-              src={product.videoUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
-        </section>
+        {product.videoUrl && (
+          <section className="cfg-video-section">
+            <div className="cfg-video-wrap">
+              <video
+                src={product.videoUrl}
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+          </section>
+        )}
 
         <section className="cfg-swiper-section">
           <h2 className="cfg-swiper-title">The Gallery</h2>

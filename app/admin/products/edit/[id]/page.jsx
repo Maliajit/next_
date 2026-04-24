@@ -44,6 +44,7 @@ const EditProductPage = () => {
         textColor: '#1a1a1a',
         gradient: '',
         mistColor: '#f8fafc',
+        videoUrl: '',
     });
 
     const [categoryDetails, setCategoryDetails] = useState(null);
@@ -92,6 +93,7 @@ const EditProductPage = () => {
                     textColor: p.textColor || '#1a1a1a',
                     gradient: p.gradient || '',
                     mistColor: p.mistColor || '#f8fafc',
+                    videoUrl: p.videoUrl || '',
                     // Hero Image
                     heroImage: p.heroImage ? { url: p.heroImage.startsWith('http') || p.heroImage.startsWith('/') ? p.heroImage : `/uploads/${p.heroImage}` } : null,
                     // Gallery
@@ -285,6 +287,7 @@ const EditProductPage = () => {
         const payload = {
             ...form,
             shortDescription: form.shortDesc,
+            videoUrl: form.videoUrl,
             mainCategoryId: form.categoryId,
             sku: form.sku || form.productCode || `SKU-${Date.now()}`,
             price: variants.length > 0 
@@ -449,6 +452,8 @@ const EditProductPage = () => {
                                         <FormField label="Short Description" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} placeholder="A brief summary for listings..." />
                                         <FormField label="Full Description" name="description" type="textarea" value={form.description} onChange={handleChange} rows={6} placeholder="Detailed product storytelling..." />
                                         <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={4} placeholder="The legacy and craftsmanship behind this piece..." />
+                                        <FormField label="Video Showcase URL" name="videoUrl" value={form.videoUrl} onChange={handleChange} placeholder="e.g. /assets/videos/watch-promo.mp4 or direct MP4 link" />
+                                        <p className="mt-2 text-xs text-gray-400 font-medium italic">Leave empty to hide the video section on the storefront.</p>
                                     </div>
                                 </div>
                             )}

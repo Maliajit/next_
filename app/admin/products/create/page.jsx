@@ -33,7 +33,7 @@ const AddProductPage = () => {
         specifications: {},
         price: '', qty: '',
         bgColor: '#ffffff', accentColor: '#c4a35a', textColor: '#1a1a1a', 
-        gradient: '', mistColor: '#f8fafc'
+        gradient: '', mistColor: '#f8fafc', videoUrl: ''
     });
 
     const [categoryDetails, setCategoryDetails] = useState(null);
@@ -224,6 +224,7 @@ const AddProductPage = () => {
             textColor: form.textColor,
             gradient: form.gradient,
             mistColor: form.mistColor,
+            videoUrl: form.videoUrl,
             specifications: Object.entries(form.specifications).map(([id, val]) => {
                 const specItem = categoryDetails?.specGroups?.flatMap(sg => sg.specGroup.specifications).find(s => s.specification.id.toString() === id);
                 const isDropdown = specItem?.specification.type === 'select';
@@ -334,6 +335,10 @@ const AddProductPage = () => {
                                         </div>
                                         <div className="md:col-span-2">
                                             <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <FormField label="Video Showcase URL" name="videoUrl" value={form.videoUrl} onChange={handleChange} placeholder="e.g. /assets/videos/watch-promo.mp4 or direct MP4 link" />
+                                            <p className="mt-2 text-[10px] text-gray-400 font-medium italic">Leave empty to hide the video section on the storefront.</p>
                                         </div>
                                     </div>
                                 </div>
