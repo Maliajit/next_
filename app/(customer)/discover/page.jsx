@@ -33,6 +33,15 @@ function DiscoverContent() {
       const data = await fetchProducts();
       if (data) {
         const actualData = data.data || (Array.isArray(data) ? data : []);
+        const hexToRgb = (hex) => {
+          if (!hex) return '196, 163, 90';
+          const cleanHex = hex.replace('#', '');
+          const r = parseInt(cleanHex.substring(0, 2), 16);
+          const g = parseInt(cleanHex.substring(2, 4), 16);
+          const b = parseInt(cleanHex.substring(4, 6), 16);
+          return `${r}, ${g}, ${b}`;
+        };
+
         const mapped = actualData.map(p => {
             // Main Image Resolution
             let rawHero = p.heroImage || (p.images?.[0]);
@@ -55,6 +64,9 @@ function DiscoverContent() {
                 image: getFileUrl(rawHero) || '/assets/fylex-watch-v2/premium.png',
                 theme: p.bgColor || 'champagne',
                 accentColor: p.accentColor || '#c4a35a',
+                accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
+                mistColor: p.mistColor || '',
+                mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
                 textColor: p.textColor || '#1a1a1a',
                 videoUrl: p.videoUrl || '/assets/fylex-watch-v2/watch-video.mp4',
                 heritageText: p.heritageText || 'Founded on the principles of precision and timeless elegance, Fylex has been at the forefront of horological innovation for generations.',
@@ -286,7 +298,7 @@ function DiscoverContent() {
         /* ═══ HERO SECTION ═══ */
         .cfg-hero {
           min-height: 100vh;
-          background: ${product.bgColor};
+          background: ${product.gradient || product.bgColor};
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -368,12 +380,15 @@ function DiscoverContent() {
           grid-template-columns: 1fr 1fr;
           gap: 60px;
           align-items: center;
-          /* Black + Pink Layered Gradient */
-          background: 
-            radial-gradient(circle at 10% 10%, rgba(255, 45, 117, 0.15) 0%, transparent 40%),
-            radial-gradient(circle at 90% 90%, rgba(255, 45, 117, 0.1) 0%, transparent 40%),
-            linear-gradient(135deg, #000000 0%, #0a0005 50%, #000000 100%);
+          background: #000;
           position: relative;
+          overflow: hidden;
+        }
+        .cfg-mist-layer {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 1;
         }
         .cfg-desc-eyebrow {
           font-size: 0.8rem;
@@ -921,21 +936,33 @@ function DiscoverContent() {
         )}
 
         {!hasConfig ? (
-          <section className="cfg-desc-section">
-            <div className="cfg-desc-content">
+          <section className="cfg-desc-section" style={{
+            background: product.gradient || `
+              radial-gradient(circle at 10% 10%, rgba(${product.accentRgb}, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at 90% 90%, rgba(${product.accentRgb}, 0.1) 0%, transparent 40%),
+              linear-gradient(135deg, #000000 0%, #050505 50%, #000000 100%)
+            `
+          }}>
+            <div className="cfg-mist-layer" style={{
+              background: `radial-gradient(circle at 70% 40%, rgba(${product.mistRgb}, 0.2) 0%, transparent 70%)`
+            }}></div>
+            <div className="cfg-desc-content" style={{ position: 'relative', zIndex: 2 }}>
               <span className="cfg-desc-eyebrow">About This Timepiece</span>
               <h2 className="cfg-desc-heading">Crafted for the Extraordinary</h2>
               <p className="cfg-desc-text">{product.longDesc}</p>
             </div>
-            <div className="cfg-desc-img-wrap">
+            <div className="cfg-desc-img-wrap" style={{ position: 'relative', zIndex: 2 }}>
               <img src={product.heroImage} alt={product.title} className="cfg-desc-img" />
             </div>
           </section>
         ) : (
           <section className="cfg-desc-section" style={{
-            background: 'radial-gradient(circle at 10% 10%, rgba(255, 45, 117, 0.08) 0%, transparent 40%), linear-gradient(135deg, #ffffff 0%, #fff0f5 100%)'
+            background: product.gradient || 'radial-gradient(circle at 10% 10%, rgba(255, 45, 117, 0.08) 0%, transparent 40%), linear-gradient(135deg, #ffffff 0%, #fff0f5 100%)'
           }}>
-            <div className="cfg-desc-content">
+            <div className="cfg-mist-layer" style={{
+              background: `radial-gradient(circle at 70% 40%, rgba(${product.mistRgb}, 0.15) 0%, transparent 70%)`
+            }}></div>
+            <div className="cfg-desc-content" style={{ position: 'relative', zIndex: 2 }}>
               <span className="cfg-desc-eyebrow" style={{ color: '#c4a35a' }}>Your Masterpiece</span>
               <h2 className="cfg-desc-heading" style={{ color: '#1a1a1a' }}>The Result of Your Craft</h2>
               <p className="cfg-desc-text" style={{ color: '#444' }}>

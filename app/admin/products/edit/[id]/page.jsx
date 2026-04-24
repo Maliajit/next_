@@ -681,7 +681,7 @@ const EditProductPage = () => {
                 isOpen={!!pickerTarget} 
                 onClose={() => setPickerTarget(null)}
                 onSelect={handleMediaSelect}
-                multiple={pickerTarget === 'gallery' || (typeof pickerTarget === 'object' && pickerTarget.type === 'gallery')}
+                multiple={pickerTarget === 'gallery' || (pickerTarget && typeof pickerTarget === 'object' && pickerTarget.type === 'gallery')}
             />
 
             {variantImageModal !== null && (

@@ -23,8 +23,23 @@ export default function Shop() {
     const loadProducts = async () => {
       try {
         const res = await fetchProducts();
-        const data = res.data || (Array.isArray(res) ? res : []);
-        setProducts(data);
+        const rawData = res.data || (Array.isArray(res) ? res : []);
+        const hexToRgb = (hex) => {
+          if (!hex) return '196, 163, 90';
+          const cleanHex = hex.replace('#', '');
+          const r = parseInt(cleanHex.substring(0, 2), 16);
+          const g = parseInt(cleanHex.substring(2, 4), 16);
+          const b = parseInt(cleanHex.substring(4, 6), 16);
+          return `${r}, ${g}, ${b}`;
+        };
+
+        const mapped = rawData.map(p => ({
+          ...p,
+          accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
+          mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
+          gradient: p.gradient || ''
+        }));
+        setProducts(mapped);
       } catch (err) {
         console.error('Failed to load shop products:', err);
       } finally {
@@ -35,9 +50,9 @@ export default function Shop() {
   }, []);
 
   const displayProducts = products.length > 0 ? products : [
-    { id: '1', name: 'Master Steel', subtitle: '904L Steel · Black Dial · Oyster Bracelet', price: '14,800', heroImage: '/assets/fylex-watch-v2/premium.png', slug: 'master-steel' },
-    { id: '2', name: 'Master Gold', subtitle: '18K Rose Gold · Champagne Dial · Leather', price: '38,500', heroImage: '/assets/fylex-watch-v2/goldwatch.png', slug: 'master-gold' },
-    { id: '3', name: 'Master Noir', subtitle: 'DLC Coated · Meteorite Dial · Rubber Strap', price: '22,400', heroImage: '/assets/fylex-watch-v2/olive-green.png', slug: 'master-noir' }
+    { id: '1', name: 'Master Steel', subtitle: '904L Steel · Black Dial · Oyster Bracelet', price: '14,800', heroImage: '/assets/fylex-watch-v2/premium.png', slug: 'master-steel', bgColor: '#fffbf2', mistRgb: '241, 228, 209' },
+    { id: '2', name: 'Master Gold', subtitle: '18K Rose Gold · Champagne Dial · Leather', price: '38,500', heroImage: '/assets/fylex-watch-v2/goldwatch.png', slug: 'master-gold', bgColor: '#f0f4f8', mistRgb: '209, 217, 230' },
+    { id: '3', name: 'Master Noir', subtitle: 'DLC Coated · Meteorite Dial · Rubber Strap', price: '22,400', heroImage: '/assets/fylex-watch-v2/olive-green.png', slug: 'master-noir', bgColor: '#f0fdf4', mistRgb: '220, 252, 231' }
   ];
 
   const watchImages = displayProducts.map(p => p.heroImage || (p.images && p.images[0]) || '/assets/fylex-watch-v2/premium.png');
@@ -459,24 +474,23 @@ export default function Shop() {
       <section id="rot">
         <div className="rst">
           <div className="rbs">
-            <div className={`rbg-layer g-1 ${activeWatchIndex === 0 ? 'active' : ''}`} style={{ opacity: activeWatchIndex === 0 ? 1 : 0 }}>
-              <div className="r-shadow"></div>
-              <div className="r-mist"></div>
-              <div className="r-glow"></div>
-              <div className="r-side-shadow"></div>
-            </div>
-            <div className={`rbg-layer g-2 ${activeWatchIndex === 1 ? 'active' : ''}`} style={{ opacity: activeWatchIndex === 1 ? 1 : 0 }}>
-              <div className="r-shadow"></div>
-              <div className="r-mist"></div>
-              <div className="r-glow"></div>
-              <div className="r-side-shadow"></div>
-            </div>
-            <div className={`rbg-layer g-3 ${activeWatchIndex === 2 ? 'active' : ''}`} style={{ opacity: activeWatchIndex === 2 ? 1 : 0 }}>
-              <div className="r-shadow"></div>
-              <div className="r-mist"></div>
-              <div className="r-glow"></div>
-              <div className="r-side-shadow"></div>
-            </div>
+            {displayProducts.map((p, idx) => (
+              <div 
+                key={p.id || idx} 
+                className={`rbg-layer ${activeWatchIndex === idx ? 'active' : ''}`} 
+                style={{ 
+                    opacity: activeWatchIndex === idx ? 1 : 0,
+                    background: p.gradient || p.bgColor || '#fff'
+                }}
+              >
+                <div className="r-shadow"></div>
+                <div className="r-mist" style={{
+                    background: `radial-gradient(circle at 70% 30%, rgba(${p.mistRgb || p.accentRgb || '196,163,90'}, 0.4) 0%, transparent 70%)`
+                }}></div>
+                <div className="r-glow"></div>
+                <div className="r-side-shadow"></div>
+              </div>
+            ))}
           </div>
           <div className="rblur"></div>
           <div className="rtxt r0">

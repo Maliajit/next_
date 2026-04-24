@@ -64,6 +64,7 @@ const Products = () => {
                 textColor: p.textColor || '#1a1a1a',
                 gradient: p.gradient || '',
                 mistColor: p.mistColor || '',
+                mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
                 combinations: (p.variants || []).map(v => {
                     const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
                     let vPath = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
@@ -879,14 +880,15 @@ const Products = () => {
       <div className="p-sections-list">
         {collections.map((col) => {
           const sectionStyle = {
-            background: `
+            background: col.gradient || `
               radial-gradient(circle at 100% 0%, rgba(${col.accentRgb}, 0.25) 0%, transparent 60%),
               radial-gradient(circle at 5% 40%, rgba(${col.accentRgb}, 0.15) 0%, transparent 50%),
               linear-gradient(145deg, #020202 0%, #151515 40%, rgba(${col.accentRgb}, 0.05) 50%, #050505 100%)
             `
           };
+
           const mistStyle = {
-            background: `radial-gradient(circle at 75% 35%, rgba(${col.accentRgb}, 0.35) 0%, transparent 80%)`
+            background: `radial-gradient(circle at 75% 35%, rgba(${col.mistRgb}, 0.35) 0%, transparent 80%)`
           };
 
           return (
