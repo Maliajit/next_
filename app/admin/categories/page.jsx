@@ -20,7 +20,7 @@ const CategoriesPage = () => {
   const toast = useToast();
   const { data, loading, errors, refetch, addRecord, updateRecord, deleteRecord } = useAdminData();
   const categories = data.categories || [];
-  
+
   const tableRef = useRef(null);
   const tabulatorRef = useRef(null);
   const actionsRef = useRef({});
@@ -87,9 +87,9 @@ const CategoriesPage = () => {
         {
           title: 'PARENT', field: 'parent.name', width: 160,
           formatter: (cell) => {
-             const val = cell.getValue();
-             if(!val) return '<span style="color:#cbd5e1;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Root</span>';
-             return `<span style="font-size:11px;font-weight:800;color:#6366f1;background:#f5f3ff;padding:4px 12px;border-radius:8px;border:1px solid rgba(99,102,241,0.1);text-transform:uppercase">${val}</span>`;
+            const val = cell.getValue();
+            if (!val) return '<span style="color:#cbd5e1;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Root</span>';
+            return `<span style="font-size:11px;font-weight:800;color:#6366f1;background:#f5f3ff;padding:4px 12px;border-radius:8px;border:1px solid rgba(99,102,241,0.1);text-transform:uppercase">${val}</span>`;
           }
         },
         {
@@ -151,21 +151,21 @@ const CategoriesPage = () => {
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
 
     setSubmitting(true);
-    const payload = { 
-        name: form.name,
-        slug: form.slug,
-        description: form.description,
-        parentId: form.parentId || null,
-        status: form.isActive ? 1 : 0
+    const payload = {
+      name: form.name,
+      slug: form.slug,
+      description: form.description,
+      parentId: form.parentId || null,
+      status: form.isActive ? 1 : 0
     };
-    
+
     let success;
     if (editingRecord) {
       success = await updateRecord('categories', editingRecord.id, payload, api.updateCategory);
     } else {
       success = await addRecord('categories', payload, api.createCategory);
     }
-    
+
     setSubmitting(false);
     if (success) closeModal();
   };
@@ -202,8 +202,8 @@ const CategoriesPage = () => {
 
       <div className="admin-card" style={{ borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--admin-shadow-sm)', border: '1px solid var(--admin-border-light)' }}>
         {loading.categories ? <Loader message="Loading categories..." /> :
-         errors.categories   ? <ErrorBanner message={errors.categories} onRetry={() => refetch.categories()} /> :
-         <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 850 }}><div ref={tableRef}></div></div></div>
+          errors.categories ? <ErrorBanner message={errors.categories} onRetry={() => refetch.categories()} /> :
+            <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 850 }}><div ref={tableRef}></div></div></div>
         }
       </div>
 
@@ -211,33 +211,33 @@ const CategoriesPage = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div style={{ gridColumn: '1 / -1' }}>
-                <FormField label="Category Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Smartwatches" required error={formErrors.name} />
+              <FormField label="Category Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Smartwatches" required error={formErrors.name} />
             </div>
-            
+
             <FormField label="Slug / URL Key" name="slug" value={form.slug} onChange={handleChange} placeholder="e.g. smartwatches" hint="Unique identifier" />
-            
-            <FormField 
-              label="Availability" 
-              name="isActive" 
-              type="select" 
-              value={form.isActive ? 'active' : 'inactive'} 
+
+            <FormField
+              label="Availability"
+              name="isActive"
+              type="select"
+              value={form.isActive ? 'active' : 'inactive'}
               onChange={handleChange}
               options={[{ value: 'active', label: 'Active (Live)' }, { value: 'inactive', label: 'Hidden' }]}
             />
 
             <div style={{ gridColumn: '1 / -1' }}>
-                <FormField 
-                  label="Parent Category (Optional)" 
-                  name="parentId" 
-                  type="select" 
-                  value={form.parentId} 
-                  onChange={handleChange}
-                  options={parentOptions}
-                />
+              <FormField
+                label="Parent Category (Optional)"
+                name="parentId"
+                type="select"
+                value={form.parentId}
+                onChange={handleChange}
+                options={parentOptions}
+              />
             </div>
 
             <div style={{ gridColumn: '1 / -1' }}>
-                <FormField label="Description" name="description" type="textarea" value={form.description} onChange={handleChange} placeholder="Optional category summary..." rows={3} />
+              <FormField label="Description" name="description" type="textarea" value={form.description} onChange={handleChange} placeholder="Optional category summary..." rows={3} />
             </div>
           </div>
 

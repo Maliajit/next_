@@ -110,7 +110,7 @@ const AdminProducts = () => {
 
     return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; };
   }, [products, loading.products]);
-  
+
   const router = useRouter();
 
 
@@ -132,8 +132,8 @@ const AdminProducts = () => {
 
       <div className="admin-card" style={{ borderRadius: 16, overflow: 'hidden' }}>
         {loading.products ? <Loader message="Loading catalog..." /> :
-         errors.products   ? <ErrorBanner message={errors.products} onRetry={() => refetch.products()} /> :
-         <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 1000 }}><div ref={tableRef}></div></div></div>
+          errors.products ? <ErrorBanner message={errors.products} onRetry={() => refetch.products()} /> :
+            <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 1000 }}><div ref={tableRef}></div></div></div>
         }
       </div>
 

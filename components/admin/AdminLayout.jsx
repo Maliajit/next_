@@ -9,7 +9,7 @@ const AdminLayout = ({ children }) => {
   // Initialize as false to avoid SSR mismatch, then read localStorage in useEffect
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
+
   const pathname = usePathname();
   const router = useRouter();
 
@@ -17,7 +17,7 @@ const AdminLayout = ({ children }) => {
     // Read localStorage only on client
     const saved = localStorage.getItem('sidebarState');
     setSidebarExpanded(saved !== 'collapsed');
-    
+
     // Auth Guard
     const token = localStorage.getItem('admin_token');
     if (!token && pathname !== '/admin/login') {
