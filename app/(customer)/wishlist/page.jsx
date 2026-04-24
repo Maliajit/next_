@@ -220,7 +220,10 @@ export default function Wishlist() {
                   <h3>{item.title} {item.titleAccent || ''}</h3>
                   <span className="price">{item.price}</span>
                   <div className="wishlist-btn-group">
-                    <button onClick={() => addToCart(item)} className="wishlist-btn btn-cart">Add to Cart</button>
+                    <button onClick={() => {
+                        const variantId = item.variantId || (item.variants?.[0]?.id) || item.id;
+                        addToCart(variantId.toString(), 1, item);
+                    }} className="wishlist-btn btn-cart">Add to Cart</button>
                     <Link href={`/discover?watch=${item.id}`} className="wishlist-btn btn-config">Discover</Link>
                   </div>
                 </div>

@@ -12,6 +12,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import { X, RefreshCw } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { fetchProducts } from '../../../lib/api';
+import { getFileUrl } from '@/lib/utils';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,9 +29,6 @@ function ConfigureContent() {
   const [media360, setMedia360] = useState([]);
   const [frameIndex, setFrameIndex] = useState(0);
 
-  if (loading) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111' }}>Initializing Configurator...</div>;
-  if (!product) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111' }}>Product not found.</div>;
-
   const [currentStep, setCurrentStep] = useState(0);
   const [activeOpt, setActiveOpt] = useState(0);
   const [activeThumb, setActiveThumb] = useState(0);
@@ -44,27 +42,22 @@ function ConfigureContent() {
   useEffect(() => {
     const loadProduct = async () => {
       try {
-        console.log('Fetching product for watchId:', watchId);
         const data = await fetchProducts();
         const rawData = data.data || (Array.isArray(data) ? data : []);
-        console.log('Raw products data:', rawData);
-        
         const p = rawData.find(item => item.id.toString() === watchId) || rawData?.[0];
 
         if (!p) {
-          console.warn('No product found for watchId:', watchId);
           setLoading(false);
           return;
         }
 
-        console.log('Mapped product:', p);
-        // Map product and its media
         const mappedProduct = {
           ...p,
           id: p.id.toString(),
           title: p.name,
-          price: `₹${p.price.toLocaleString()}`,
-          heroImage: p.heroImage || p.images?.[0] || '/assets/fylex-watch-v2/premium.png',
+          price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
+          heroImage: getFileUrl(p.heroImage || p.images?.[0]) || '/assets/fylex-watch-v2/premium.png',
+          galleryImages: (p.productMedia || []).filter(m => m.type === 'GALLERY' || m.role === 'gallery').map(m => getFileUrl(m.media?.path || m.media?.url)),
           theme: p.bgColor || 'champagne',
           accentColor: p.accentColor || '#c4a35a',
           textColor: p.textColor || '#1a1a1a',
@@ -72,14 +65,12 @@ function ConfigureContent() {
         setProduct(mappedProduct);
         setPreviewSrc(mappedProduct.heroImage);
 
-        // Extract 360 view media
         const threeSixty = (p.productMedia || [])
-          .filter(m => m.role === '360_view')
-          .map(m => m.media?.path)
+          .filter(m => m.type === '360' || m.role === '360_view')
+          .map(m => getFileUrl(m.media?.path || m.media?.url))
           .filter(Boolean);
         setMedia360(threeSixty);
 
-        // Extract attributes and build steps
         const attrMap = {};
         (p.variants || []).forEach(v => {
           (v.variantAttributes || []).forEach(va => {
@@ -89,10 +80,12 @@ function ConfigureContent() {
                   attrMap[attr.name] = { id: attr.id, title: `Choose your ${attr.name.toLowerCase()}`, options: [] };
               }
               if(!attrMap[attr.name].options.some(o => o.name === va.attributeValue.label)) {
+                  const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
+                  const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
                   attrMap[attr.name].options.push({ 
                       name: va.attributeValue.label, 
-                      img: (v.variantImages?.[0]?.media?.path) || mappedProduct.heroImage,
-                      dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? (v.variantImages?.[0]?.media?.path) : null
+                      img: vPath || mappedProduct.heroImage,
+                      dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? vPath : null
                   });
               }
           });
@@ -113,6 +106,22 @@ function ConfigureContent() {
         });
         setUserSelections(initialSelections);
 
+        // Auto-select initial variant image if matches defaults
+        const initialMatch = (p.variants || []).find(v => {
+          const vAttrs = v.variantAttributes || [];
+          if (vAttrs.length === 0) return false;
+          return vAttrs.every(va => {
+            const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+            return initialSelections[attrName] === va.attributeValue?.label;
+          });
+        });
+
+        if (initialMatch) {
+          const vImg = initialMatch.variantImages?.find(vi => vi.type === 'MAIN')?.media || initialMatch.variantImages?.[0]?.media;
+          const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
+          if (vPath) setPreviewSrc(vPath);
+        }
+
         const dialsStep = dynamicSteps.find(s => s.id === 'dial' || s.id === 'dials');
         if (dialsStep) setDialOptions(dialsStep.options);
       } catch (err) {
@@ -122,12 +131,38 @@ function ConfigureContent() {
       }
     };
     loadProduct();
-  }, [watchId, router]);
+  }, [watchId]);
 
   const previewImgRef = useRef(null);
   const configuratorRef = useRef(null);
   const storyRef = useRef(null);
   const parallaxInited = useRef(false);
+
+  useEffect(() => {
+    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true, syncTouch: true });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    return () => {
+      lenis.destroy();
+      gsap.ticker.remove((time) => lenis.raf(time * 1000));
+    };
+  }, []);
+
+  const isLastStep = currentStep >= 0 && currentStep === stepsData.length - 1;
+  const isDialStep = currentStep >= 0 && currentStep < stepsData.length && stepsData[currentStep].id === 'dial';
+
+  useEffect(() => {
+    if (isLastStep) setTimeout(() => ScrollTrigger.refresh(), 120);
+  }, [isLastStep]);
+
+  useEffect(() => {
+    if (isDialStep && !appliedDial) setAppliedDial(dialOptions[0]?.dialImg);
+  }, [isDialStep, appliedDial, dialOptions]);
+
+  if (loading) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111' }}>Initializing Configurator...</div>;
+  if (!product) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111' }}>Product not found.</div>;
+
+
 
   const handleWishlistClick = () => {
     toggleWishlist(product);
@@ -174,26 +209,7 @@ function ConfigureContent() {
     }
   };
 
-  const isLastStep = currentStep >= 0 && currentStep === stepsData.length - 1;
-  const isDialStep = currentStep >= 0 && currentStep < stepsData.length && stepsData[currentStep].id === 'dial';
 
-  useEffect(() => {
-    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true, syncTouch: true });
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => lenis.raf(time * 1000));
-    return () => {
-      lenis.destroy();
-      gsap.ticker.remove((time) => lenis.raf(time * 1000));
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isLastStep) setTimeout(() => ScrollTrigger.refresh(), 120);
-  }, [isLastStep]);
-
-  useEffect(() => {
-    if (isDialStep && !appliedDial) setAppliedDial(dialOptions[0]?.dialImg);
-  }, [isDialStep, appliedDial, dialOptions]);
 
   const updatePreviewImage = (src) => {
     if (!src || src === previewSrc) return;
@@ -222,8 +238,10 @@ function ConfigureContent() {
     setUserSelections(nextSelections);
 
     const match = findMatchingVariant(nextSelections);
-    if (match && match.variantImages?.[0]?.media?.path) {
-      updatePreviewImage(match.variantImages[0].media.path);
+    if (match) {
+      const vImg = match.variantImages?.find(vi => vi.type === 'MAIN')?.media || match.variantImages?.[0]?.media;
+      const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
+      updatePreviewImage(vPath || src);
     } else {
       updatePreviewImage(src);
     }
@@ -302,11 +320,11 @@ function ConfigureContent() {
           ) : (
             <img src={previewSrc} alt="Watch preview" className="watch-preview" ref={previewImgRef} />
           )}
-          {!isLastStep && media360.length === 0 && (
+          {!isLastStep && media360.length === 0 && product.galleryImages?.length > 0 && (
             <div className="thumbnails">
-              {[{id:'Overview',img:'/assets/fylex-watch-v2/only-dial.png'},{id:'Side L',img:'/assets/fylex-watch-v2/left-side.png'},{id:'Side R',img:'/assets/fylex-watch-v2/right-side.png'}].map(angle => (
-                <div key={angle.id} className={`thumb ${previewSrc === angle.img ? 'active' : ''}`} onClick={() => updatePreviewImage(angle.img)}>
-                  <img src={angle.img} alt={angle.id} />
+              {product.galleryImages.map((img, idx) => (
+                <div key={idx} className={`thumb ${previewSrc === img ? 'active' : ''}`} onClick={() => updatePreviewImage(img)}>
+                  <img src={img} alt={`Gallery ${idx}`} />
                 </div>
               ))}
             </div>

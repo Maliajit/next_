@@ -11,11 +11,13 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/effect-coverflow';
 import 'swiper/css/free-mode';
 import { fetchProducts } from '../../../lib/api';
+import { useCart } from '@/context/CartContext';
 import { getFileUrl } from '@/lib/utils';
 import localProductsData from '../../../data/productsData';
 
 function DiscoverContent() {
   const searchParams = useSearchParams();
+  const { addToCart } = useCart();
   const watchId = searchParams.get('watch');
   const mode = searchParams.get('mode');
   const isGeneralMode = mode === 'all';
@@ -80,14 +82,14 @@ function DiscoverContent() {
                     : (p.images || []).map(img => getFileUrl(img.startsWith('http') || img.startsWith('/') ? img : `/uploads/${img}`)),
                 combinations: (p.variants || []).map(v => {
                     const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
-                    let vPath = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+                    let vPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
                     if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
                         vPath = `/uploads/${vPath}`;
                     }
                     return {
                         id: v.id.toString(),
                         name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-                        img: getFileUrl(vPath) || '/assets/fylex-watch-v2/Olive-green-dial.png'
+                        img: getFileUrl(vPath) || getFileUrl(rawHero) || '/assets/fylex-watch-v2/Olive-green-dial.png'
                     };
                 })
             };
@@ -119,6 +121,33 @@ function DiscoverContent() {
     setActiveModalData({ ...p, combinations: templates });
   };
   const closeInfoModal = () => setActiveModalData(null);
+  
+  const handleBookNow = () => {
+    // Find matching variant based on current configuration
+    let targetVariant = null;
+    const variants = product.variants || [];
+    
+    if (hasConfig) {
+        targetVariant = variants.find(v => {
+            return (v.variantAttributes || []).every(va => {
+                const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+                const selectedVal = searchParams.get(attrName);
+                return selectedVal === va.attributeValue?.label;
+            });
+        });
+    }
+
+    // Fallback to first variant if no exact match (or if not in config mode)
+    if (!targetVariant && variants.length > 0) {
+        targetVariant = variants[0];
+    }
+
+    if (targetVariant) {
+        addToCart(targetVariant.id.toString(), 1, { title: product.title });
+    } else {
+        alert('This configuration is currently unavailable.');
+    }
+  };
 
   // Scroll to top on product change
   useEffect(() => {
@@ -149,10 +178,49 @@ function DiscoverContent() {
       </div>
     );
   }
+  // ── DYNAMIC VARIANT MATCHING ──
+  const selections = {};
+  searchParams.forEach((value, key) => {
+    if (key !== 'watch' && key !== 'mode') {
+      selections[key.toLowerCase()] = value;
+    }
+  });
+
+  const matchingVariant = (product.variants || []).find(v => {
+    const vAttrs = v.variantAttributes || [];
+    if (vAttrs.length === 0) return false;
+    return vAttrs.every(va => {
+      const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+      return selections[attrName] === va.attributeValue?.label;
+    });
+  });
+
+  if (matchingVariant) {
+    const vMainImg = matchingVariant.variantImages?.find(vi => vi.type === 'MAIN')?.media || matchingVariant.variantImages?.[0]?.media;
+    if (vMainImg) {
+      let vPath = vMainImg.url || vMainImg.path || (vMainImg.fileName ? `/uploads/${vMainImg.fileName}` : '');
+      product.heroImage = getFileUrl(vPath);
+      product.image = getFileUrl(vPath);
+    }
+    
+    const vGallery = (matchingVariant.variantImages || [])
+      .filter(vi => vi.type === 'GALLERY' || vi.type === 'gallery')
+      .map(vi => {
+        const m = vi.media;
+        const p = m?.url || m?.path || (m?.fileName ? `/uploads/${m.fileName}` : '');
+        return getFileUrl(p);
+      })
+      .filter(Boolean);
+    
+    if (vGallery.length > 0) {
+      product.galleryImages = vGallery;
+    }
+  }
+
+  const hasConfig = Object.keys(selections).length > 0;
   const materialParam = searchParams.get('material');
   const bezelParam = searchParams.get('bezel');
   const dialParam = searchParams.get('dial');
-  const hasConfig = !!(materialParam || bezelParam || dialParam);
 
   // Dynamic config map derived from product variants if possible, with hardcoded fallbacks for featured looks
   const configMap = {
@@ -176,15 +244,31 @@ function DiscoverContent() {
 
   // Attempt to find images from actual variants if not in hardcoded map
   const findVariantImg = (attrName, valName) => {
-    const match = (product.variants || []).find(v => 
-      (v.variantAttributes || []).some(va => 
+    // Try to find the variant that matches the current selection as closely as possible
+    const currentSelections = selections || {};
+    const match = (product.variants || []).find(v => {
+      const vAttrs = v.variantAttributes || [];
+      // Must have the target attribute value
+      const hasTarget = vAttrs.some(va => 
         va.attributeValue?.attribute?.name?.toLowerCase() === attrName.toLowerCase() && 
         va.attributeValue?.label === valName
-      )
-    );
+      );
+      if (!hasTarget) return false;
+
+      // Try to match other current selections too
+      return vAttrs.every(va => {
+        const aName = va.attributeValue?.attribute?.name?.toLowerCase();
+        if (aName === attrName.toLowerCase()) return true; // already checked
+        if (currentSelections[aName]) {
+          return va.attributeValue?.label === currentSelections[aName];
+        }
+        return true;
+      });
+    });
+
     const vImg = match?.variantImages?.find(vi => vi.type === 'MAIN')?.media || match?.variantImages?.[0]?.media;
     if (!vImg) return null;
-    let vPath = vImg.url || (vImg.fileName ? `/uploads/${vImg.fileName}` : '');
+    let vPath = vImg.url || vImg.path || (vImg.fileName ? `/uploads/${vImg.fileName}` : '');
     if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
         vPath = `/uploads/${vPath}`;
     }
@@ -843,11 +927,44 @@ function DiscoverContent() {
           color: #fff;
         }
         .section-rose-burgundy .cfg-swiper-title { color: #fff; }
+        
+        .cfg-book-btn {
+          background: #1a1a1a;
+          color: #fff;
+          padding: 18px 48px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          border: none;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          margin-top: 40px;
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .cfg-book-btn:hover {
+          background: #c4a35a;
+          transform: translateY(-3px);
+          box-shadow: 0 15px 40px rgba(196, 163, 90, 0.3);
+        }
+        .cfg-book-btn svg {
+          transition: transform 0.3s;
+        }
+        .cfg-book-btn:hover svg {
+          transform: translateX(5px);
+        }
       `}</style>
 
       {/* ── TOP-RIGHT CTA ── */}
       <div className={`cfg-top-right-cta ${scrollDir === 'down' && isScrolled ? 'hidden' : ''}`}>
-        <Link href={`/configure?watch=${product.id}`} className="cfg-cta-pill">Configure</Link>
+        {product.productType !== 'simple' && (
+          <Link href={`/configure?watch=${product.id}`} className="cfg-cta-pill">Configure</Link>
+        )}
+        <button onClick={handleBookNow} className="cfg-cta-pill" style={{ background: '#1a1a1a', color: '#fff', marginLeft: product.productType !== 'simple' ? '12px' : '0' }}>Book Now</button>
       </div>
 
       <div className="cfg-content-wrapper">
@@ -902,35 +1019,32 @@ function DiscoverContent() {
             </div>
 
             <div className="cfg-choices-grid">
-              {/* Material Choice */}
-              <div className="cfg-choice-card">
-                <div className="cfg-choice-img-wrap">
-                  <img src={findVariantImg('material', materialParam) || configMap.materials[materialParam]?.img || product.image} alt={materialParam} className="cfg-choice-img" />
-                </div>
-                <span className="cfg-choice-label">Material</span>
-                <h3 className="cfg-choice-name">{materialParam || 'Standard'}</h3>
-                <p className="cfg-choice-desc">{configMap.materials[materialParam]?.desc || 'Crafted with our signature high-performance materials for lasting elegance.'}</p>
-              </div>
-
-              {/* Bezel Choice */}
-              <div className="cfg-choice-card">
-                <div className="cfg-choice-img-wrap">
-                  <img src={findVariantImg('bezel', bezelParam) || configMap.bezels[bezelParam]?.img || product.image} alt={bezelParam} className="cfg-choice-img" />
-                </div>
-                <span className="cfg-choice-label">Bezel</span>
-                <h3 className="cfg-choice-name">{bezelParam || 'Smooth'}</h3>
-                <p className="cfg-choice-desc">{configMap.bezels[bezelParam]?.desc || 'A masterfully finished bezel that frames the face of time with absolute precision.'}</p>
-              </div>
-
-              {/* Dial Choice */}
-              <div className="cfg-choice-card">
-                <div className="cfg-choice-img-wrap">
-                  <img src={findVariantImg('dial', dialParam) || configMap.dials[dialParam]?.img || product.image} alt={dialParam} className="cfg-choice-img" />
-                </div>
-                <span className="cfg-choice-label">Dial</span>
-                <h3 className="cfg-choice-name">{dialParam || 'Classic'}</h3>
-                <p className="cfg-choice-desc">{configMap.dials[dialParam]?.desc || 'The face of the watch, designed and manufactured in-house for peerless legibility and beauty.'}</p>
-              </div>
+              {Object.keys(selections).map(key => {
+                const val = selections[key];
+                const vPath = findVariantImg(key, val);
+                return (
+                  <div key={key} className="cfg-choice-card">
+                    <div className="cfg-choice-img-wrap">
+                      <img src={vPath || product.image} alt={val} className="cfg-choice-img" />
+                    </div>
+                    <span className="cfg-choice-label" style={{ textTransform: 'capitalize' }}>{key}</span>
+                    <h3 className="cfg-choice-name">{val}</h3>
+                    <p className="cfg-choice-desc">
+                      {configMap.materials[val]?.desc || 
+                       configMap.bezels[val]?.desc || 
+                       configMap.dials[val]?.desc || 
+                       `Premium ${key} selection crafted with absolute precision for a superior timepiece experience.`}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div style={{ textAlign: 'center', marginTop: '60px' }}>
+                <button onClick={handleBookNow} className="cfg-book-btn">
+                    Book This Configuration
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                </button>
             </div>
           </section>
         )}

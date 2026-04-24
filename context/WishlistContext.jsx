@@ -2,18 +2,21 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchWishlist, toggleWishlistApi } from '../lib/api';
 import { useToast } from './ToastContext';
+import { useAuth } from './AuthContext';
 
 const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const { success, error, info } = useToast() || {};
+  const { user } = useAuth();
 
   // Initial load from backend
   useEffect(() => {
     const loadWishlist = async () => {
+      if (!user?.id) return;
       try {
-        const data = await fetchWishlist();
+        const data = await fetchWishlist(user.id);
         if (data && Array.isArray(data)) {
             const mapped = data.map(item => ({
                 ...item,
@@ -28,11 +31,15 @@ export function WishlistProvider({ children }) {
       }
     };
     loadWishlist();
-  }, []);
+  }, [user?.id]);
 
   const toggleWishlist = async (product) => {
+    if (!user?.id) {
+      error?.('Please login to manage your wishlist');
+      return;
+    }
     try {
-      const result = await toggleWishlistApi(product);
+      const result = await toggleWishlistApi(user.id, product);
       if (result) {
         if (result.isInWishlist === false) {
           setWishlist(prev => prev.filter(i => i.id !== product.id));
