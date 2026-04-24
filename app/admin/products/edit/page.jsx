@@ -19,11 +19,11 @@ const ProductEditPageContent = () => {
     const { data, loading, updateRecord } = useAdminData();
     const brands = data.brands || [];
     const categories = data.categories || [];
-    
+
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('basic');
     const [form, setForm] = useState({
-        name: '', slug: '', tagline: '', subtitle: '', 
+        name: '', slug: '', tagline: '', subtitle: '',
         shortDesc: '', longDesc: '', heritageText: '',
         sku: '', basePrice: '', stock: '',
         brandId: '', categoryId: '', isActive: true,
@@ -32,6 +32,7 @@ const ProductEditPageContent = () => {
         bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
         gradient: '', mistColor: '#f8fafc'
     });
+    const [availableTags, setAvailableTags] = useState([]);
     const [formErrors, setFormErrors] = useState({});
     const [pickerTarget, setPickerTarget] = useState(null);
     const [variantImageModal, setVariantImageModal] = useState(null);
@@ -60,7 +61,9 @@ const ProductEditPageContent = () => {
                     accentColor: p.accentColor || '#6366f1',
                     textColor: p.textColor || '#1e293b',
                     gradient: p.gradient || '',
-                    mistColor: p.mistColor || '#f8fafc'
+                    mistColor: p.mistColor || '#f8fafc',
+                    tagIds: p.tags ? p.tags.map(t => (t.id || t.tagId || t).toString()) : [],
+                    isFeatured: !!p.isFeatured
                 });
             }
         }
@@ -87,6 +90,42 @@ const ProductEditPageContent = () => {
         }
     };
 
+    useEffect(() => {
+        const fetchTags = async () => {
+            const res = await api.getTags();
+            if (res.success) setAvailableTags(res.data);
+        };
+        fetchTags();
+    }, []);
+
+    const handleAddTag = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const value = e.target.value.trim();
+            if (!value) return;
+
+            const existingTag = availableTags.find(t => t.name.toLowerCase() === value.toLowerCase());
+            if (existingTag) {
+                if (!form.tagIds.includes(existingTag.id.toString())) {
+                    setForm(prev => ({
+                        ...prev,
+                        tagIds: [...prev.tagIds, existingTag.id.toString()]
+                    }));
+                }
+            } else {
+                toast.error(`Tag "${value}" not found`);
+            }
+            e.target.value = '';
+        }
+    };
+
+    const removeTag = (index) => {
+        setForm(prev => ({
+            ...prev,
+            tagIds: prev.tagIds.filter((_, i) => i !== index)
+        }));
+    };
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setForm(prev => ({
@@ -98,7 +137,7 @@ const ProductEditPageContent = () => {
     };
 
     const steps = ['basic', 'desc', 'taxonomy', 'theme'];
-    
+
     const validateStep = (step) => {
         const errs = {};
         if (step === 'basic') {
@@ -132,7 +171,7 @@ const ProductEditPageContent = () => {
 
     const handleFinalUpdate = async () => {
         setSubmitting(true);
-        const payload = { 
+        const payload = {
             name: form.name,
             slug: form.slug,
             sku: form.sku,
@@ -152,9 +191,11 @@ const ProductEditPageContent = () => {
             textColor: form.textColor,
             gradient: form.gradient,
             mistColor: form.mistColor,
-            status: form.isActive ? 'active' : 'inactive'
+            status: form.isActive ? 'active' : 'inactive',
+            tagIds: form.tagIds,
+            isFeatured: form.isFeatured
         };
-        
+
         await updateRecord('products', productId, payload, api.updateProduct);
         setSubmitting(false);
         router.push('/admin/products');
@@ -166,7 +207,7 @@ const ProductEditPageContent = () => {
 
     const getButtonText = () => {
         if (submitting) return "Updating Product...";
-        switch(activeTab) {
+        switch (activeTab) {
             case 'basic': return "Update Basic Info (Go to Story)";
             case 'desc': return "Update Story (Go to Taxonomy)";
             case 'taxonomy': return "Update Taxonomy (Go to Visuals)";
@@ -182,174 +223,178 @@ const ProductEditPageContent = () => {
                 subtitle={`Modifying: ${form.name || productId}`}
             />
 
-            <form onSubmit={handleNextStep} className="mt-8 space-y-8">
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                    <div className="flex flex-col md:flex-row min-h-[600px]">
+            <div className="admin-card admin-card-wide">
+                <div className="admin-card-header">
+                    <h3 className="flex items-center gap-2">
+                        <i className="fas fa-edit text-indigo-600"></i>
+                        Edit Product Details
+                    </h3>
+                </div>
+
+                <div className="admin-card-body">
+                    <div className="edit-layout">
                         {/* Sidebar Tabs */}
-                        <div className="w-full md:w-64 bg-gray-50 border-r border-gray-200 p-6 space-y-2">
+                        <div className="edit-sidebar">
                             {[
                                 { id: 'basic', label: 'Basic Info', icon: 'fa-info-circle' },
                                 { id: 'desc', label: 'Story & Copy', icon: 'fa-align-left' },
-                                { id: 'taxonomy', label: 'Taxonomy & Media', icon: 'fa-tags' },
+                                { id: 'taxonomy', label: 'Taxonomy', icon: 'fa-tags' },
                                 { id: 'theme', label: 'Visual Theme', icon: 'fa-palette' }
                             ].map(tab => (
-                                <button 
+                                <button
                                     key={tab.id}
-                                    type="button"
                                     disabled={submitting}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                                        activeTab === tab.id 
-                                        ? 'bg-indigo-600 text-white shadow-md' 
-                                        : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                    className={`nav-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
                                 >
-                                    <i className={`fas ${tab.icon} w-5`}></i>
+                                    <i className={`fas ${tab.icon}`}></i>
                                     {tab.label}
                                 </button>
                             ))}
                         </div>
 
                         {/* Main Form Content */}
-                        <div className="flex-1 p-8">
-                            {activeTab === 'basic' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">Core Specifications</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="md:col-span-2">
-                                            <FormField label="Product Title" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph SE" required error={formErrors.name} />
-                                        </div>
-                                        <FormField label="Base Price" name="basePrice" type="number" value={form.basePrice} onChange={handleChange} placeholder="15999" required error={formErrors.basePrice} />
-                                        <FormField label="Initial Stock Qty" name="stock" type="number" value={form.stock} onChange={handleChange} placeholder="50" />
-                                        <FormField label="SKU / Model Number" name="sku" value={form.sku} onChange={handleChange} placeholder="FY-CHR-001" />
-                                        <FormField label="Publishing Status" name="isActive" type="select" value={form.isActive ? 'active' : 'inactive'} onChange={handleChange} options={[{ value: 'active', label: 'Active (Public)' }, { value: 'inactive', label: 'Inactive (Private)' }]} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'desc' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">Brand Storytelling</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <FormField label="Marketing Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="Legacy of Excellence..." />
-                                        <FormField label="Product Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="Limited Edition / Premium Finish" />
-                                        <div className="md:col-span-2">
-                                            <FormField label="Short Summary (Hover/Card)" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} />
-                                            <FormField label="Main Product Description" name="longDesc" type="textarea" value={form.longDesc} onChange={handleChange} rows={5} />
-                                            <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'taxonomy' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">Classification & Media</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <FormField 
-                                            label="Brand Owner" 
-                                            name="brandId" 
-                                            type="select" 
-                                            value={form.brandId} 
-                                            onChange={handleChange}
-                                            options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b.id.toString(), label: b.name }))]}
-                                            required
-                                            error={formErrors.brandId}
-                                        />
-                                        <FormField 
-                                            label="Primary Category" 
-                                            name="categoryId" 
-                                            type="select" 
-                                            value={form.categoryId} 
-                                            onChange={handleChange}
-                                            options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
-                                            required
-                                            error={formErrors.categoryId}
-                                        />
-                                        
-                                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-3">Primary Image</label>
-                                                <div 
-                                                    onClick={() => setPickerTarget('primary')}
-                                                    className="h-48 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-indigo-400 transition-all shadow-inner"
-                                                >
-                                                    {form.heroImage ? (
-                                                        <img src={getFileUrl(form.heroImage.url)} className="w-full h-full object-contain" alt="Preview" />
-                                                    ) : (
-                                                        <div className="text-center">
-                                                            <i className="fas fa-image text-gray-400 text-2xl mb-2"></i>
-                                                            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Select Image</p>
-                                                        </div>
-                                                    )}
-                                                </div>
+                        <div style={{ flex: 1 }}>
+                            <form onSubmit={handleNextStep} className="space-y-8">
+                                {activeTab === 'basic' && (
+                                    <div className="space-y-6 animate-slide-up">
+                                        <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                                            <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">1</span>
+                                            Core Specifications
+                                        </h4>
+                                        <div className="form-grid-2">
+                                            <div className="col-span-full">
+                                                <FormField label="Product Title" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph SE" required error={formErrors.name} />
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-3">Gallery</label>
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    {form.gallery.map((img, i) => (
-                                                        <div key={i} className="aspect-square rounded-lg border border-gray-200 overflow-hidden relative group">
-                                                            <img src={getFileUrl(img.url)} className="w-full h-full object-cover" alt="Gallery" />
-                                                            <button 
-                                                                type="button"
-                                                                onClick={() => setForm(prev => ({ ...prev, gallery: prev.gallery.filter(g => g.url !== img.url) }))}
-                                                                className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                                                            >
-                                                                <i className="fas fa-times text-[10px]"></i>
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={() => setPickerTarget('gallery')}
-                                                        className="aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400 hover:border-indigo-400 transition-all"
-                                                    >
-                                                        <i className="fas fa-plus"></i>
-                                                    </button>
-                                                </div>
+                                            <FormField label="Base Price" name="basePrice" type="number" value={form.basePrice} onChange={handleChange} placeholder="15999" required error={formErrors.basePrice} />
+                                            <FormField label="Initial Stock Qty" name="stock" type="number" value={form.stock} onChange={handleChange} placeholder="50" />
+                                            <FormField label="SKU / Model Number" name="sku" value={form.sku} onChange={handleChange} placeholder="FY-CHR-001" />
+                                            <FormField label="Publishing Status" name="isActive" type="select" value={form.isActive ? 'active' : 'inactive'} onChange={handleChange} options={[{ value: 'active', label: 'Active (Public)' }, { value: 'inactive', label: 'Inactive (Private)' }]} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'desc' && (
+                                    <div className="space-y-6 animate-slide-up">
+                                        <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                                            <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">2</span>
+                                            Brand Storytelling
+                                        </h4>
+                                        <div className="form-grid-2">
+                                            <FormField label="Marketing Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="Legacy of Excellence..." />
+                                            <FormField label="Product Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="Limited Edition / Premium Finish" />
+                                            <div style={{ gridColumn: '1 / -1' }}>
+                                                <FormField label="Short Summary (Hover/Card)" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} />
+                                                <FormField label="Main Product Description" name="longDesc" type="textarea" value={form.longDesc} onChange={handleChange} rows={5} />
+                                                <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {activeTab === 'theme' && (
-                                <div className="space-y-6 animate-slide-up">
-                                    <h4 className="text-xl font-bold text-gray-900 border-b pb-4">UI Theme Customization</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <FormField label="Page Background" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
-                                        <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
-                                        <FormField label="Interface Text" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
-                                        <FormField label="Surface Tint (Mist)" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
-                                        <div className="md:col-span-2">
-                                            <FormField label="CSS Background Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
+                                {activeTab === 'taxonomy' && (
+                                    <div className="space-y-6 animate-slide-up">
+                                        <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                                            <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">3</span>
+                                            Classification
+                                        </h4>
+                                        <div className="form-grid-2">
+                                            <FormField
+                                                label="Brand Owner"
+                                                name="brandId"
+                                                type="select"
+                                                value={form.brandId}
+                                                onChange={handleChange}
+                                                options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b.id.toString(), label: b.name }))]}
+                                                required
+                                                error={formErrors.brandId}
+                                            />
+                                            <FormField
+                                                label="Primary Category"
+                                                name="categoryId"
+                                                type="select"
+                                                value={form.categoryId}
+                                                onChange={handleChange}
+                                                options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
+                                                required
+                                                error={formErrors.categoryId}
+                                            />
+                                            <div style={{ gridColumn: '1 / -1' }}>
+                                                <FormField label="Primary Display Image URL" name="heroImage" value={form.heroImage} onChange={handleChange} placeholder="https://res.cloudinary.com/..." />
+                                            </div>
+                                            <div style={{ gridColumn: '1 / -1' }}>
+                                                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--admin-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Product Tags</label>
+                                                <div className="tags-input">
+                                                    {form.tagIds.map((id, i) => {
+                                                        const tag = availableTags.find(t => t.id.toString() === id);
+                                                        return (
+                                                            <div key={i} className="tag-chip">
+                                                                {tag ? tag.name : id}
+                                                                <span onClick={() => removeTag(i)}>&times;</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Type tag name and press Enter..."
+                                                        onKeyDown={handleAddTag}
+                                                    />
+                                                </div>
+                                                <p className="text-[10px] text-gray-400 mt-2 italic font-medium">Available tags: {availableTags.map(t => t.name).join(', ')}</p>
+
+                                                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-50">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="isFeatured"
+                                                        name="isFeatured"
+                                                        checked={form.isFeatured}
+                                                        onChange={handleChange}
+                                                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+                                                    />
+                                                    <label htmlFor="isFeatured" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                                                        Mark as Featured Product
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                )}
 
-                    <div className="bg-gray-50 border-t border-gray-200 p-6 flex items-center justify-between">
-                        <div className="text-sm text-gray-500 flex items-center gap-2 font-medium">
-                            <i className="fas fa-save text-indigo-500"></i>
-                            Changes are saved to the master catalog
-                        </div>
-                        <div className="flex gap-4">
-                            <button
-                                type="button"
-                                className="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all shadow-sm"
-                                onClick={() => router.push('/admin/products')}
-                            >
-                                Discard Changes
-                            </button>
-                            <button
-                                type="submit"
-                                className="px-10 py-2.5 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                                disabled={submitting}
-                            >
-                                {submitting ? <><i className="fas fa-spinner fa-spin mr-2"></i> Updating...</> : <><i className={`fas ${activeTab === 'theme' ? 'fa-save' : 'fa-arrow-right'} mr-2`}></i> {getButtonText()}</>}
-                            </button>
+                                {activeTab === 'theme' && (
+                                    <div className="space-y-6 animate-slide-up">
+                                        <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-4">
+                                            <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center text-xs">4</span>
+                                            UI Theme Customization
+                                        </h4>
+                                        <div className="form-grid-2">
+                                            <FormField label="Page Background" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
+                                            <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
+                                            <FormField label="Interface Text" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
+                                            <FormField label="Surface Tint (Mist)" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
+                                            <div style={{ gridColumn: '1 / -1' }}>
+                                                <FormField label="CSS Background Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="admin-modal-footer mt-10">
+                                    <button
+                                        type="submit"
+                                        className="btn-primary"
+                                        disabled={submitting}
+                                    >
+                                        {submitting ? <><i className="fas fa-spinner fa-spin mr-2"></i> Updating...</> : <><i className={`fas ${activeTab === 'theme' ? 'fa-save' : 'fa-arrow-right'} mr-2`}></i> {getButtonText()}</>}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-secondary"
+                                        onClick={() => router.push('/admin/products')}
+                                    >
+                                        Discard Changes
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

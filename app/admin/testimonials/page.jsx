@@ -10,6 +10,7 @@ import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import AdminModal from '@/components/admin/AdminModal';
 import ConfirmModal from '@/components/admin/ui/ConfirmModal';
+import PageHeader from '@/components/admin/ui/PageHeader';
 import { useToast } from '@/context/ToastContext';
 
 const TestimonialList = () => {
@@ -24,7 +25,7 @@ const TestimonialList = () => {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({ name: '', designation: '', rating: 5, message: '', isActive: true });
-  
+
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -41,7 +42,7 @@ const TestimonialList = () => {
     tabulatorRef.current?.destroy();
 
     actionsRef.current = {
-      onEdit: (d) => { 
+      onEdit: (d) => {
         setFormData({
           id: d.id,
           name: d.name,
@@ -49,12 +50,12 @@ const TestimonialList = () => {
           rating: d.rating || 5,
           message: d.message || d.content || '',
           isActive: d.isActive ?? true
-        }); 
-        setShowModal(true); 
+        });
+        setShowModal(true);
       },
       onDelete: (id, name) => setDeleteTarget({ id, name }),
     };
-    
+
 
     tabulatorRef.current = new Tabulator(tableRef.current, {
       data: testimonials,
@@ -105,15 +106,16 @@ const TestimonialList = () => {
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
             if (e.target.closest('.btn-icon-edit')) actionsRef.current.onEdit(d);
-            if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(d.id);
+            if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(d.id, d.name);
           }
         }
       ],
     });
 
-    return () => 
-      { tabulatorRef.current?.destroy(); 
-        tabulatorRef.current = null; };
+    return () => {
+      tabulatorRef.current?.destroy();
+      tabulatorRef.current = null;
+    };
   }, [testimonials, loading.testimonials]);
 
 
@@ -122,9 +124,9 @@ const TestimonialList = () => {
     setSaving(true);
     let success;
     if (formData.id) {
-       success = await updateRecord('testimonials', formData.id, formData, api.updateTestimonial);
+      success = await updateRecord('testimonials', formData.id, formData, api.updateTestimonial);
     } else {
-       success = await addRecord('testimonials', formData, api.createTestimonial);
+      success = await addRecord('testimonials', formData, api.createTestimonial);
     }
     setSaving(false);
     if (success || success === undefined) {
@@ -138,39 +140,48 @@ const TestimonialList = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="page-header">
-        <div>
-          <h2>Testimonials</h2>
-          <p>Client endorsements and collection voices</p>
-        </div>
-        <button className="btn-primary" onClick={handleAdd}><i className="fas fa-plus mr-2"></i>Add Testimonial</button>
-      </div>
+    <div className="w-full px-6 lg:px-10 xl:px-16 py-6">
+      <div className="max-w-[1600px] mx-auto">
+        <PageHeader
+          title="Testimonials"
+          subtitle="Manage client endorsements and brand voices"
+          action={{ label: 'Add Testimonial', icon: 'fas fa-plus', onClick: handleAdd }}
+        />
 
-      <div className="admin-card">
-        <div className="admin-card-header">
-          <h3>All Testimonials</h3>
-          <div className="admin-search" style={{ width: 240 }}>
-            <i className="fas fa-search"></i>
-            <input type="text" placeholder="Search testimonials..." onChange={e => {
-              if (tabulatorRef.current) {
-                if (e.target.value) tabulatorRef.current.setFilter('name', 'like', e.target.value);
-                else tabulatorRef.current.clearFilter();
-              }
-            }} />
-          </div>
-        </div>
-        {loading.testimonials ? (
-          <Loader message="Loading testimonials..." />
-        ) : errors.testimonials ? (
-          <ErrorBanner message={errors.testimonials} onRetry={() => refetch.testimonials()} />
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <div style={{ minWidth: 800 }}>
-              <div ref={tableRef}></div>
+        <div className="mt-8 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <h3 className="text-base font-bold text-gray-900">All Testimonials</h3>
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                <input
+                  type="text"
+                  placeholder="Search testimonials..."
+                  className="pl-10 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-100 focus:bg-white transition-all w-64"
+                  onChange={e => {
+                    if (tabulatorRef.current) {
+                      if (e.target.value) tabulatorRef.current.setFilter('name', 'like', e.target.value);
+                      else tabulatorRef.current.clearFilter();
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
-        )}
+          <div className="p-1">
+            {loading.testimonials ? (
+              <div className="py-24"><Loader message="Loading testimonials..." /></div>
+            ) : errors.testimonials ? (
+              <div className="p-8"><ErrorBanner message={errors.testimonials} onRetry={() => refetch.testimonials()} /></div>
+            ) : (
+              <div className="overflow-x-auto">
+                <div className="min-w-[800px]">
+                  <div ref={tableRef}></div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <AdminModal
@@ -191,16 +202,16 @@ const TestimonialList = () => {
         <div className="space-y-4">
           <div className="form-group">
             <label>Client Name</label>
-            <input type="text" className="form-control" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
+            <input type="text" className="form-control" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. John Doe" />
           </div>
           <div className="form-group">
             <label>Designation / Title</label>
-            <input type="text" className="form-control" value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} placeholder="e.g. Luxury Watch Enthusiast" />
+            <input type="text" className="form-control" value={formData.designation} onChange={e => setFormData({ ...formData, designation: e.target.value })} placeholder="e.g. Luxury Watch Enthusiast" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="form-group">
               <label>Rating</label>
-              <select className="form-control" value={formData.rating} onChange={e => setFormData({...formData, rating: parseInt(e.target.value)})}>
+              <select className="form-control" value={formData.rating} onChange={e => setFormData({ ...formData, rating: parseInt(e.target.value) })}>
                 <option value="5">5 Stars</option>
                 <option value="4">4 Stars</option>
                 <option value="3">3 Stars</option>
@@ -210,7 +221,7 @@ const TestimonialList = () => {
             </div>
             <div className="form-group">
               <label>Status</label>
-              <select className="form-control" value={formData.isActive?.toString()} onChange={e => setFormData({...formData, isActive: e.target.value === 'true'})}>
+              <select className="form-control" value={formData.isActive?.toString()} onChange={e => setFormData({ ...formData, isActive: e.target.value === 'true' })}>
                 <option value="true">Active</option>
                 <option value="false">Inactive</option>
               </select>
@@ -218,7 +229,7 @@ const TestimonialList = () => {
           </div>
           <div className="form-group">
             <label>Testimonial Content</label>
-            <textarea className="form-control" rows="4" value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} placeholder="What the client said about Fylexx..."></textarea>
+            <textarea className="form-control" rows="4" value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} placeholder="What the client said about Fylexx..."></textarea>
           </div>
         </div>
       </AdminModal>

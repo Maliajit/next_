@@ -136,13 +136,13 @@ const OffersPage = () => {
     const { name, value } = e.target;
     // Special validation for discountValue if percentage
     if (name === 'discountValue' && form.offerType === 'percentage') {
-       if (value !== '' && (!/^\d+$/.test(value) || value.length > 2)) return;
-       if (parseInt(value) > 99) return;
+      if (value !== '' && (!/^\d+$/.test(value) || value.length > 2)) return;
+      if (parseInt(value) > 99) return;
     }
-    
-    setForm(prev => ({ 
-      ...prev, 
-      [name]: name === 'isActive' ? value === 'active' : value 
+
+    setForm(prev => ({
+      ...prev,
+      [name]: name === 'isActive' ? value === 'active' : value
     }));
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
   };
@@ -161,8 +161,8 @@ const OffersPage = () => {
     if (Object.keys(errs).length) { setFormErrors(errs); return; }
 
     setSubmitting(true);
-    const payload = { 
-      ...form, 
+    const payload = {
+      ...form,
       discountValue: parseFloat(form.discountValue || 0),
       maxUses: form.maxUses ? parseInt(form.maxUses) : null,
       status: form.isActive ? 1 : 0
@@ -174,7 +174,7 @@ const OffersPage = () => {
     } else {
       success = await addRecord('offers', payload, api.createOffer);
     }
-    
+
     setSubmitting(false);
 
     if (success) {
@@ -202,28 +202,43 @@ const OffersPage = () => {
   };
 
   const handleCategoryToggle = (catId) => {
-      const id = catId.toString();
-      setForm(prev => ({
-          ...prev,
-          categoryIds: prev.categoryIds.includes(id) 
-            ? prev.categoryIds.filter(x => x !== id) 
-            : [...prev.categoryIds, id]
-      }));
+    const id = catId.toString();
+    setForm(prev => ({
+      ...prev,
+      categoryIds: prev.categoryIds.includes(id)
+        ? prev.categoryIds.filter(x => x !== id)
+        : [...prev.categoryIds, id]
+    }));
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <PageHeader
-        title="Promotional Offers"
-        subtitle="Manage discounts, coupons and campaign validity."
-        action={{ label: 'Add New Offer', icon: 'fas fa-plus', onClick: () => setShowForm(true) }}
-      />
+    <div className="w-full px-6 lg:px-10 xl:px-16 py-6">
+      <div className="max-w-[1600px] mx-auto">
+        <PageHeader
+          title="Promotional Offers"
+          subtitle="Manage discounts, coupons and campaign validity."
+          action={{ label: 'Add New Offer', icon: 'fas fa-plus', onClick: () => setShowForm(true) }}
+        />
 
-      <div className="admin-card" style={{ borderRadius: 16, overflow: 'hidden' }}>
-        {loading.offers ? <Loader message="Loading offers..." /> :
-         errors.offers   ? <ErrorBanner message={errors.offers} onRetry={() => refetch.offers()} /> :
-         <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 900 }}><div ref={tableRef}></div></div></div>
-        }
+        <div className="mt-8 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <h3 className="text-base font-bold text-gray-900">Active Campaigns</h3>
+            <div className="text-xs font-medium text-gray-400">
+              <i className="fas fa-info-circle mr-1"></i> Total {offers.length} offers
+            </div>
+          </div>
+          <div className="p-1">
+            {loading.offers ? (
+              <div className="py-24"><Loader message="Loading offers..." /></div>
+            ) : errors.offers ? (
+              <div className="p-8"><ErrorBanner message={errors.offers} onRetry={() => refetch.offers()} /></div>
+            ) : (
+              <div className="overflow-x-auto">
+                <div className="min-w-[900px]"><div ref={tableRef}></div></div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Offer Modal (Create/Edit) */}
@@ -233,14 +248,14 @@ const OffersPage = () => {
             <div style={{ gridColumn: '1 / -1' }}>
               <FormField label="Campaign/Offer Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Festive Flash Sale" required error={formErrors.name} />
             </div>
-            
+
             <FormField label="Coupon Code" name="code" value={form.code} onChange={handleChange} placeholder="e.g. FLASH30" required error={formErrors.code} />
-            
-            <FormField 
-              label="Availability Status" 
-              name="isActive" 
-              type="select" 
-              value={form.isActive ? 'active' : 'inactive'} 
+
+            <FormField
+              label="Availability Status"
+              name="isActive"
+              type="select"
+              value={form.isActive ? 'active' : 'inactive'}
               onChange={handleChange}
               options={[{ value: 'active', label: 'Active (Live)' }, { value: 'inactive', label: 'Inactive (Hidden)' }]}
             />
@@ -253,7 +268,7 @@ const OffersPage = () => {
               onChange={handleChange}
               options={[{ value: 'percentage', label: 'Percentage (%)' }, { value: 'fixed', label: 'Fixed Amount (₹)' }]}
             />
-            
+
             <FormField
               label={form.offerType === 'percentage' ? 'Discount Percentage (%)' : 'Fixed Amount (₹)'}
               name="discountValue"
@@ -269,25 +284,25 @@ const OffersPage = () => {
             <FormField label="Usage Limit (Expires after X uses)" name="maxUses" type="number" value={form.maxUses} onChange={handleChange} placeholder="Unlimited if empty" />
 
             <div className="form-group">
-                <label className="admin-label">Applicable Categories (Optional)</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxHeight: 120, overflowY: 'auto', padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                    {categories.length === 0 ? <span style={{ fontSize: 12, color: '#94a3b8' }}>No categories available</span> : categories.map(cat => (
-                        <button 
-                          key={cat.id} 
-                          type="button"
-                          onClick={() => handleCategoryToggle(cat.id)}
-                          style={{
-                              padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
-                              background: form.categoryIds.includes(cat.id.toString()) ? '#6366f1' : '#fff',
-                              color: form.categoryIds.includes(cat.id.toString()) ? '#fff' : '#475569',
-                              border: '1px solid ' + (form.categoryIds.includes(cat.id.toString()) ? '#6366f1' : '#e2e8f0'),
-                              transition: 'all 0.2s'
-                          }}
-                        >
-                            {cat.name}
-                        </button>
-                    ))}
-                </div>
+              <label className="admin-label">Applicable Categories (Optional)</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxHeight: 120, overflowY: 'auto', padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                {categories.length === 0 ? <span style={{ fontSize: 12, color: '#94a3b8' }}>No categories available</span> : categories.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => handleCategoryToggle(cat.id)}
+                    style={{
+                      padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                      background: form.categoryIds.includes(cat.id.toString()) ? '#6366f1' : '#fff',
+                      color: form.categoryIds.includes(cat.id.toString()) ? '#fff' : '#475569',
+                      border: '1px solid ' + (form.categoryIds.includes(cat.id.toString()) ? '#6366f1' : '#e2e8f0'),
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <FormField label="Launch Date" name="startsAt" type="date" value={form.startsAt} onChange={handleChange} />

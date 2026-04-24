@@ -22,6 +22,7 @@ const UsersPage = () => {
   const tabulatorRef = useRef(null);
 
   const [search, setSearch] = useState('');
+  const [tableBuilt, setTableBuilt] = useState(false);
   const [blockTarget, setBlockTarget] = useState(null); // { id, name, isBlocked }
   const [blocking, setBlocking] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -98,11 +99,13 @@ const UsersPage = () => {
       ],
     });
 
-    return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; };
+    tabulatorRef.current.on("tableBuilt", () => setTableBuilt(true));
+
+    return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; setTableBuilt(false); };
   }, [users, loading.users]);
 
   useEffect(() => {
-    if (!tabulatorRef.current) return;
+    if (!tabulatorRef.current || !tableBuilt) return;
     if (search) {
       tabulatorRef.current.setFilter([
         { field: 'name', type: 'like', value: search },
@@ -111,7 +114,7 @@ const UsersPage = () => {
     } else {
       tabulatorRef.current.clearFilter();
     }
-  }, [search]);
+  }, [search, tableBuilt]);
 
   const handleBlockToggle = async () => {
     if (!blockTarget) return;
@@ -149,8 +152,8 @@ const UsersPage = () => {
 
       <div className="admin-card" style={{ borderRadius: 16, overflow: 'hidden' }}>
         {loading.users ? <Loader message="Loading customers..." /> :
-         errors.users   ? <ErrorBanner message={errors.users} onRetry={() => refetch.users()} /> :
-         <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 900 }}><div ref={tableRef}></div></div></div>
+          errors.users ? <ErrorBanner message={errors.users} onRetry={() => refetch.users()} /> :
+            <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 900 }}><div ref={tableRef}></div></div></div>
         }
       </div>
 
@@ -166,18 +169,18 @@ const UsersPage = () => {
                 <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, fontWeight: 600 }}>{selectedUser.email}</p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-                {[
-                    { label: 'Orders', value: selectedUser._count?.orders ?? 0, icon: 'fa-shopping-bag' },
-                    { label: 'Total Spent', value: `₹${Number(selectedUser.totalSpent || 0).toLocaleString('en-IN')}`, icon: 'fa-wallet' },
-                    { label: 'Joined', value: selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—', icon: 'fa-calendar' },
-                ].map((stat, i) => (
-                    <div key={i} className="admin-card" style={{ padding: '16px', borderRadius: 14, textAlign: 'center', background: '#f8fafc' }}>
-                        <div style={{ color: '#6366f1', fontSize: 14, marginBottom: 8 }}><i className={`fas ${stat.icon}`}></i></div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>{stat.value}</div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginTop: 2 }}>{stat.label}</div>
-                    </div>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                { label: 'Orders', value: selectedUser._count?.orders ?? 0, icon: 'fa-shopping-bag' },
+                { label: 'Total Spent', value: `₹${Number(selectedUser.totalSpent || 0).toLocaleString('en-IN')}`, icon: 'fa-wallet' },
+                { label: 'Joined', value: selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—', icon: 'fa-calendar' },
+              ].map((stat, i) => (
+                <div key={i} className="admin-card" style={{ padding: '16px', borderRadius: 14, textAlign: 'center', background: '#f8fafc' }}>
+                  <div style={{ color: '#6366f1', fontSize: 14, marginBottom: 8 }}><i className={`fas ${stat.icon}`}></i></div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>{stat.value}</div>
+                  <div style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginTop: 2 }}>{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}

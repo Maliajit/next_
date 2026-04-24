@@ -22,6 +22,7 @@ const OrdersPage = () => {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [tableBuilt, setTableBuilt] = useState(false);
 
   const actionsRef = useRef({});
 
@@ -118,12 +119,14 @@ const OrdersPage = () => {
       ],
     });
 
-    return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; };
+    tabulatorRef.current.on("tableBuilt", () => setTableBuilt(true));
+
+    return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; setTableBuilt(false); };
   }, [orders, loading.orders, router]);
 
   // Live filters
   useEffect(() => {
-    if (!tabulatorRef.current) return;
+    if (!tabulatorRef.current || !tableBuilt) return;
     const filters = [];
     if (search) {
       filters.push([
@@ -133,7 +136,7 @@ const OrdersPage = () => {
     }
     if (statusFilter) filters.push({ field: 'status', type: '=', value: statusFilter });
     tabulatorRef.current.setFilter(filters.length ? filters : []);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, tableBuilt]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -174,8 +177,8 @@ const OrdersPage = () => {
       {/* Table */}
       <div className="admin-card" style={{ borderRadius: 16, overflow: 'hidden' }}>
         {loading.orders ? <Loader message="Loading orders..." /> :
-         errors.orders   ? <ErrorBanner message={errors.orders} onRetry={() => refetch.orders()} /> :
-         <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 900 }}><div ref={tableRef}></div></div></div>
+          errors.orders ? <ErrorBanner message={errors.orders} onRetry={() => refetch.orders()} /> :
+            <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 900 }}><div ref={tableRef}></div></div></div>
         }
       </div>
     </div>

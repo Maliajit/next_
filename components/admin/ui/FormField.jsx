@@ -19,7 +19,7 @@ const FormField = ({
   required = false,
   error,
   options = [],         // for type="select": [{ value, label }]
-  rows = 4,             // for type="textarea"
+  rows = 3,             // for type="textarea"
   disabled = false,
   hint,
   accept,               // for type="file"
@@ -30,19 +30,20 @@ const FormField = ({
 }) => {
   const inputStyle = {
     width: '100%',
-    padding: '10px 14px',
+    padding: '0 12px',
+    height: 44,
+    minHeight: 44,
     borderWidth: error ? '1.5px' : '1px',
     borderStyle: 'solid',
     borderColor: error ? 'var(--admin-danger)' : 'var(--admin-border)',
     borderRadius: 'var(--admin-radius)',
-    fontSize: 13,
+    fontSize: 14,
     color: 'var(--admin-text)',
     background: disabled ? '#f8fafc' : '#fff',
     outline: 'none',
     transition: 'all 0.2s ease',
     boxSizing: 'border-box',
     cursor: disabled ? 'not-allowed' : 'auto',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
     ...style,
   };
 
@@ -54,14 +55,14 @@ const FormField = ({
   }
 
   return (
-    <div className={`form-group ${className}`} style={{ marginBottom: 20 }}>
+    <div className={`form-group ${className}`}>
       {label && (
         <label style={{
           display: 'block',
           fontSize: 12,
           fontWeight: 700,
           color: 'var(--admin-text-secondary)',
-          marginBottom: 6,
+          marginBottom: 4,
           textTransform: 'uppercase',
           letterSpacing: '0.04em',
         }}>
@@ -101,7 +102,7 @@ const FormField = ({
           required={required}
           rows={rows}
           className="form-control"
-          style={{ ...inputStyle, resize: 'vertical', minHeight: `${rows * 24}px` }}
+          style={{ ...inputStyle, resize: 'vertical', minHeight: `${Math.max(rows * 28, 80)}px` }}
         />
       ) : (
         <input
