@@ -145,11 +145,8 @@ function DiscoverContent() {
     if (targetVariant) {
         addToCart(targetVariant.id.toString(), 1, { title: product.title });
     } else {
-        if (product.productType === 'simple') {
-            alert('This simple product has no variants configured. Please contact support.');
-        } else {
-            alert('This configuration is currently unavailable.');
-        }
+        // Fallback to adding by productId if no variant exists (Backend handles auto-creation)
+        addToCart(null, 1, { title: product.title }, product.id);
     }
   };
 

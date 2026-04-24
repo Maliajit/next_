@@ -17,11 +17,12 @@ function CartItemRow({ item, index, onQtyChange, onRemove }) {
     return () => clearTimeout(t);
   }, [index]);
 
-  const displayPrice = item.price;
+  const displayPrice = item.priceDisplay;
   const displayName = `${item.title} ${item.titleAccent || ''}`;
   const displayVariant = item.subtitle;
   const displayColor = item.accentColor || '#1C2E4A';
   const displayImage = item.image;
+  const redirectUrl = item.redirectUrl || '#';
 
   return (
     <div
@@ -32,28 +33,30 @@ function CartItemRow({ item, index, onQtyChange, onRemove }) {
         transition: 'opacity 0.55s ease, transform 0.55s ease',
       }}
     >
-      <div className="cart-item-top">
-        <div className="cart-watch-visual" style={{ 
-          background: `linear-gradient(135deg, ${displayColor}15, ${displayColor}25)`,
-          padding: '8px'
-        }}>
-          {displayImage ? (
-            <img 
-              src={displayImage} 
-              alt={displayName} 
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-            />
-          ) : (
-            <div className="cart-placeholder-icon">⌚</div>
-          )}
-        </div>
+      <Link href={redirectUrl} className="cart-item-top-link">
+        <div className="cart-item-top">
+          <div className="cart-watch-visual" style={{ 
+            background: `linear-gradient(135deg, ${displayColor}15, ${displayColor}25)`,
+            padding: '8px'
+          }}>
+            {displayImage ? (
+              <img 
+                src={displayImage} 
+                alt={displayName} 
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+              />
+            ) : (
+              <div className="cart-placeholder-icon">⌚</div>
+            )}
+          </div>
 
-        <div className="cart-item-details">
-          <div className="cart-item-name">{displayName}</div>
-          <div className="cart-item-variant">{displayVariant}</div>
-          <div className="cart-item-price">{displayPrice}</div>
+          <div className="cart-item-details">
+            <div className="cart-item-name">{displayName}</div>
+            <div className="cart-item-variant">{displayVariant}</div>
+            <div className="cart-item-price">{displayPrice}</div>
+          </div>
         </div>
-      </div>
+      </Link>
 
       <div className="cart-item-actions">
         <div className="cart-qty-block">
@@ -102,8 +105,7 @@ export default function Cart() {
   };
 
     const subtotal = items.reduce((s, i) => {
-      const priceStr = String(i.price || '0').replace('₹', '').replace('$', '').replace(/,/g, '');
-      return s + (parseFloat(priceStr) || 0) * (i.qty || 1);
+      return s + (i.unitPrice || 0) * (i.qty || 1);
     }, 0);
     const shipping = subtotal > 150000 ? 0 : 500; // Adjusted for luxury watch pricing
     const total = subtotal + shipping;
@@ -307,6 +309,17 @@ export default function Cart() {
         .cart-item-row:hover {
           box-shadow: 0 8px 36px rgba(28,46,74,0.12);
           transform: translateY(-2px);
+        }
+        .cart-item-top-link {
+          text-decoration: none;
+          color: inherit;
+          display: block;
+          flex: 1;
+        }
+        .cart-item-top {
+          display: flex;
+          align-items: center;
+          gap: 20px;
         }
         .cart-watch-visual {
           width: 80px; height: 96px;

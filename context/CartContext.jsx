@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCart, addToCartApi, removeFromCartApi, updateCartQtyApi } from '../lib/api';
 import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
+import { getFileUrl } from '../lib/utils';
 
 const CartContext = createContext(null);
 
@@ -22,15 +23,43 @@ export function CartProvider({ children }) {
         const data = await fetchCart(userId);
         const cartItems = data?.items || [];
         if (Array.isArray(cartItems)) {
-            const mapped = cartItems.map(item => ({
-                ...item,
-                id: item.id.toString(),
-                title: item.productVariant?.product?.name || 'Watch',
-                subtitle: item.productVariant?.sku || 'Custom Configuration',
-                price: item.unitPrice ? `₹${Number(item.unitPrice).toLocaleString()}` : '₹0',
-                image: item.productVariant?.product?.heroImage || '/assets/fylex-watch-v2/premium.png',
-                qty: item.quantity
-            }));
+            const mapped = cartItems.map(item => {
+                const variant = item.productVariant;
+                const product = variant?.product;
+                
+                // Find variant image
+                const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN')?.media || variant?.variantImages?.[0]?.media;
+                let imgPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+                if (!imgPath) {
+                    imgPath = product?.heroImage || '';
+                }
+
+                // Build redirect URL
+                let redirectUrl = `/discover?watch=${product?.id}`;
+                if (variant?.variantAttributes) {
+                    variant.variantAttributes.forEach(va => {
+                        const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+                        const valLabel = va.attributeValue?.label;
+                        if (attrName && valLabel) {
+                            redirectUrl += `&${attrName}=${encodeURIComponent(valLabel)}`;
+                        }
+                    });
+                }
+
+                return {
+                    ...item,
+                    id: item.id.toString(),
+                    productId: product?.id?.toString(),
+                    variantId: variant?.id?.toString(),
+                    title: product?.name || 'Watch',
+                    subtitle: variant?.sku || 'Custom Configuration',
+                    unitPrice: Number(item.unitPrice || 0),
+                    priceDisplay: item.unitPrice ? `₹${Number(item.unitPrice).toLocaleString()}` : '₹0',
+                    image: getFileUrl(imgPath) || '/assets/fylex-watch-v2/premium.png',
+                    qty: item.quantity,
+                    redirectUrl
+                };
+            });
             setItems(mapped);
         }
       } catch (err) {
@@ -40,26 +69,54 @@ export function CartProvider({ children }) {
     loadCart();
   }, [userId]);
 
-  const addToCart = async (variantId, quantity = 1, productInfo = {}) => {
+  const addToCart = async (variantId, quantity = 1, productInfo = {}, productId = null) => {
     if (!userId) {
       error?.('Please sign in to add items to cart');
       return;
     }
     try {
-      const result = await addToCartApi(userId, variantId, quantity);
-      if (result) {
+      const result = await addToCartApi(userId, variantId, quantity, productId);
+      if (result && !result.error) {
         // Refresh cart after adding
         const data = await fetchCart(userId);
         const cartItems = data?.items || [];
-        const mapped = cartItems.map(item => ({
-            ...item,
-            id: item.id.toString(),
-            title: item.productVariant?.product?.name || 'Watch',
-            subtitle: item.productVariant?.sku || 'Custom Configuration',
-            price: item.unitPrice ? `₹${Number(item.unitPrice).toLocaleString()}` : '₹0',
-            image: item.productVariant?.product?.heroImage || '/assets/fylex-watch-v2/premium.png',
-            qty: item.quantity
-        }));
+        const mapped = cartItems.map(item => {
+            const variant = item.productVariant;
+            const product = variant?.product;
+            
+            // Find variant image
+            const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN')?.media || variant?.variantImages?.[0]?.media;
+            let imgPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+            if (!imgPath) {
+                imgPath = product?.heroImage || '';
+            }
+
+            // Build redirect URL
+            let redirectUrl = `/discover?watch=${product?.id}`;
+            if (variant?.variantAttributes) {
+                variant.variantAttributes.forEach(va => {
+                    const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+                    const valLabel = va.attributeValue?.label;
+                    if (attrName && valLabel) {
+                        redirectUrl += `&${attrName}=${encodeURIComponent(valLabel)}`;
+                    }
+                });
+            }
+
+            return {
+                ...item,
+                id: item.id.toString(),
+                productId: product?.id?.toString(),
+                variantId: variant?.id?.toString(),
+                title: product?.name || 'Watch',
+                subtitle: variant?.sku || 'Custom Configuration',
+                unitPrice: Number(item.unitPrice || 0),
+                priceDisplay: item.unitPrice ? `₹${Number(item.unitPrice).toLocaleString()}` : '₹0',
+                image: getFileUrl(imgPath) || '/assets/fylex-watch-v2/premium.png',
+                qty: item.quantity,
+                redirectUrl
+            };
+        });
         setItems(mapped);
         success?.(`${productInfo.title || 'Item'} added to cart`);
       }
