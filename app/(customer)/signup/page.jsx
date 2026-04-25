@@ -202,8 +202,8 @@ function Step2({ data }) {
         ))}
       </div>
 
-      <label className="sp-terms-label">
-        <input type="checkbox" className="sp-terms-check" />
+      <label className="sp-terms-label" htmlFor="sp-terms-check">
+        <input type="checkbox" className="sp-terms-check" id="sp-terms-check" />
         <span className="sp-terms-custom" />
         <span>
           I agree to Fylexx's{' '}
@@ -225,36 +225,66 @@ export default function Signup() {
   const [loaded, setLoaded] = useState(false);
   const [contentKey, setContentKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const { signup } = useAuth();
   const navigate = useRouter();
+
+  useEffect(() => {
+    setError(''); // Clear error on step change
+  }, [step]);
 
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 80);
     return () => clearTimeout(t);
   }, []);
 
-  const next = () => {
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const next = async () => {
+    setError('');
+    
+    if (step === 0) {
+      if (!data.name.trim()) return setError('Please enter your full name');
+      if (!data.email.trim()) return setError('Please enter your email address');
+      if (!validateEmail(data.email)) return setError('Please enter a valid email address');
+      if (!data.password) return setError('Please enter a password');
+      if (data.password.length < 8) return setError('Password must be at least 8 characters long');
+    }
+
+    if (step === 1) {
+      if (!data.phone.trim()) return setError('Please enter your phone number');
+      if (!data.country.trim()) return setError('Please enter your country');
+    }
+
     if (step < 2) {
       setStep(s => s + 1);
       setContentKey(k => k + 1);
     } else {
+      // Check terms on last step
+      const termsCheck = document.getElementById('sp-terms-check');
+      if (termsCheck && !termsCheck.checked) {
+        return setError('You must agree to the Terms and Conditions');
+      }
+
       setSubmitting(true);
-      setTimeout(() => {
-        setSubmitting(false);
-        // Extract names
-        const names = data.name.split(' ');
-        signup({
+      try {
+        await signup({
+          name: data.name,
           email: data.email,
-          firstName: names[0] || 'Member',
-          lastName: names.slice(1).join(' ') || '',
-          phone: data.phone,
-          country: data.country
+          password: data.password,
+          mobile: data.phone,
         });
         setDone(true);
-        // Auto-redirect after a short delay to show success
         setTimeout(() => navigate.push('/profile'), 2000);
-      }, 2000);
+      } catch (err) {
+        console.error('Signup error:', err);
+        setError(err.message || 'Signup failed. Please check your details and try again.');
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -345,6 +375,15 @@ export default function Signup() {
                   {step === 1 && <Step1 data={data} setData={setData} />}
                   {step === 2 && <Step2 data={data} />}
                 </div>
+
+                {error && (
+                  <div className="sp-error-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <div className="sp-btn-row">
                   {step > 0 && (
@@ -630,6 +669,28 @@ export default function Signup() {
         }
         .sp-terms-link { color: #4a6fa5; text-decoration: none; }
         .sp-terms-link:hover { text-decoration: underline; }
+
+        /* Error box */
+        .sp-error-box {
+          margin-top: 20px;
+          padding: 12px 16px;
+          background: rgba(220, 38, 38, 0.06);
+          border: 1px solid rgba(220, 38, 38, 0.15);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: #dc2626;
+          font-size: 13px;
+          font-weight: 500;
+          animation: spShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes spShake {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
 
         /* Buttons */
         .sp-btn-row {

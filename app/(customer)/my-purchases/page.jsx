@@ -177,17 +177,23 @@ export default function MyPurchases() {
                   <span className="order-date">{order.date}</span>
                 </div>
                 <div className="order-items">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="bought-item">
-                      <div className="bought-img">
-                        <img src={item.image || item.heroImage} alt={item.title} />
+                  {order.items.length > 0 ? (
+                    order.items.map((item, idx) => (
+                      <div key={idx} className="bought-item">
+                        <div className="bought-img">
+                          <img src={item.image || item.heroImage} alt={item.title} />
+                        </div>
+                        <div className="bought-info">
+                          <h3>{item.title} {item.titleAccent || ''}</h3>
+                          <div className="price">{item.price} x {item.qty}</div>
+                        </div>
                       </div>
-                      <div className="bought-info">
-                        <h3>{item.title} {item.titleAccent}</h3>
-                        <div className="price">{item.price} x {item.qty}</div>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="bought-item">
+                      <p className="total-lbl">No items listed for this order.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="order-total-row">
                   <span className="total-lbl">Total Investment</span>

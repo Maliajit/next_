@@ -35,15 +35,15 @@ function CartItemRow({ item, index, onQtyChange, onRemove }) {
     >
       <Link href={redirectUrl} className="cart-item-top-link">
         <div className="cart-item-top">
-          <div className="cart-watch-visual" style={{ 
+          <div className="cart-watch-visual" style={{
             background: `linear-gradient(135deg, ${displayColor}15, ${displayColor}25)`,
             padding: '8px'
           }}>
             {displayImage ? (
-              <img 
-                src={displayImage} 
-                alt={displayName} 
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+              <img
+                src={displayImage}
+                alt={displayName}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             ) : (
               <div className="cart-placeholder-icon">⌚</div>
@@ -104,92 +104,92 @@ export default function Cart() {
     removeFromCart(id);
   };
 
-    const subtotal = items.reduce((s, i) => {
-      return s + (i.unitPrice || 0) * (i.qty || 1);
-    }, 0);
-    const shipping = subtotal > 150000 ? 0 : 500; // Adjusted for luxury watch pricing
-    const total = subtotal + shipping;
+  const subtotal = items.reduce((s, i) => {
+    return s + (i.unitPrice || 0) * (i.qty || 1);
+  }, 0);
+  const shipping = subtotal > 150000 ? 0 : 1; // Adjusted for luxury watch pricing
+  const total = subtotal + shipping;
 
-    return (
-        <div className="cart-page">
-            {/* Ambient bg layers */}
-            <div className="cart-bg-layer cart-bg-1" />
-            <div className="cart-bg-layer cart-bg-2" />
-            <div className="cart-bg-layer cart-bg-3" />
+  return (
+    <div className="cart-page">
+      {/* Ambient bg layers */}
+      <div className="cart-bg-layer cart-bg-1" />
+      <div className="cart-bg-layer cart-bg-2" />
+      <div className="cart-bg-layer cart-bg-3" />
 
-            {/* Hero */}
-            <div
-                className="cart-hero"
-                style={{
-                    opacity: heroVisible ? 1 : 0,
-                    transform: heroVisible ? 'translateY(0)' : 'translateY(-20px)',
-                    transition: 'opacity 0.7s ease, transform 0.7s ease',
-                }}
-            >
-                <span className="cart-hero-label">Your Selection</span>
-                <h1 className="cart-hero-title">Shopping Cart</h1>
-                <p className="cart-hero-sub">{items.length} item{items.length !== 1 ? 's' : ''} curated for you</p>
+      {/* Hero */}
+      <div
+        className="cart-hero"
+        style={{
+          opacity: heroVisible ? 1 : 0,
+          transform: heroVisible ? 'translateY(0)' : 'translateY(-20px)',
+          transition: 'opacity 0.7s ease, transform 0.7s ease',
+        }}
+      >
+        <span className="cart-hero-label">Your Selection</span>
+        <h1 className="cart-hero-title">Shopping Cart</h1>
+        <p className="cart-hero-sub">{items.length} item{items.length !== 1 ? 's' : ''} curated for you</p>
+      </div>
+
+      <div className="cart-layout">
+        {/* Items */}
+        <div className="cart-items-col">
+          {items.length === 0 ? (
+            <div className="cart-empty">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="30" stroke="#1C2E4A" strokeWidth="1.5" opacity="0.2" />
+                <path d="M20 22h24l-3 18H23L20 22z" stroke="#1C2E4A" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+                <circle cx="26" cy="46" r="2" fill="#1C2E4A" opacity="0.4" />
+                <circle cx="38" cy="46" r="2" fill="#1C2E4A" opacity="0.4" />
+              </svg>
+              <p>Your cart is empty</p>
+              <Link href="/products" className="cart-empty-cta">Explore Watches</Link>
             </div>
+          ) : (
+            items.map((item, i) => (
+              <CartItemRow
+                key={item.id}
+                item={item}
+                index={i}
+                onQtyChange={handleQty}
+                onRemove={handleRemove}
+              />
+            ))
+          )}
+        </div>
 
-            <div className="cart-layout">
-                {/* Items */}
-                <div className="cart-items-col">
-                    {items.length === 0 ? (
-                        <div className="cart-empty">
-                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                                <circle cx="32" cy="32" r="30" stroke="#1C2E4A" strokeWidth="1.5" opacity="0.2" />
-                                <path d="M20 22h24l-3 18H23L20 22z" stroke="#1C2E4A" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-                                <circle cx="26" cy="46" r="2" fill="#1C2E4A" opacity="0.4" />
-                                <circle cx="38" cy="46" r="2" fill="#1C2E4A" opacity="0.4" />
-                            </svg>
-                            <p>Your cart is empty</p>
-                            <Link href="/products" className="cart-empty-cta">Explore Watches</Link>
-                        </div>
-                    ) : (
-                        items.map((item, i) => (
-                            <CartItemRow
-                                key={item.id}
-                                item={item}
-                                index={i}
-                                onQtyChange={handleQty}
-                                onRemove={handleRemove}
-                            />
-                        ))
-                    )}
-                </div>
-
-                {/* Summary */}
-                <div
-                    ref={summaryRef}
-                    className="cart-summary-col"
-                    style={{
-                        opacity: summaryVisible ? 1 : 0,
-                        transform: summaryVisible ? 'translateY(0)' : 'translateY(30px)',
-                        transition: 'opacity 0.65s ease 0.2s, transform 0.65s ease 0.2s',
-                    }}
-                >
-                    <div className="cart-summary-card">
-                        <div className="cart-summary-title">Order Summary</div>
-                        <div className="cart-summary-line">
-                            <span>Subtotal</span><span>₹{subtotal.toLocaleString()}</span>
-                        </div>
-                        <div className="cart-summary-line">
-                            <span>Shipping</span>
-                            <span>{shipping === 0 ? <span className="cart-free-tag">Free</span> : `₹${shipping.toLocaleString()}`}</span>
-                        </div>
-                        {shipping > 0 && (
-                            <div className="cart-free-hint">Spend ₹{(150000 - subtotal).toLocaleString()} more for free shipping</div>
-                        )}
-                        <div className="cart-summary-divider" />
-                        <div className="cart-summary-total">
-                            <span>Total</span><span>₹{total.toLocaleString()}</span>
-                        </div>
-                        <button className="cart-checkout-btn" onClick={() => navigate.push('/checkout')}>
-                            <span>Proceed to Checkout</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </button>
+        {/* Summary */}
+        <div
+          ref={summaryRef}
+          className="cart-summary-col"
+          style={{
+            opacity: summaryVisible ? 1 : 0,
+            transform: summaryVisible ? 'translateY(0)' : 'translateY(30px)',
+            transition: 'opacity 0.65s ease 0.2s, transform 0.65s ease 0.2s',
+          }}
+        >
+          <div className="cart-summary-card">
+            <div className="cart-summary-title">Order Summary</div>
+            <div className="cart-summary-line">
+              <span>Subtotal</span><span>₹{subtotal.toLocaleString()}</span>
+            </div>
+            <div className="cart-summary-line">
+              <span>Shipping</span>
+              <span>{shipping === 0 ? <span className="cart-free-tag">Free</span> : `₹${shipping.toLocaleString()}`}</span>
+            </div>
+            {shipping > 0 && (
+              <div className="cart-free-hint">Spend ₹{(150000 - subtotal).toLocaleString()} more for free shipping</div>
+            )}
+            <div className="cart-summary-divider" />
+            <div className="cart-summary-total">
+              <span>Total</span><span>₹{total.toLocaleString()}</span>
+            </div>
+            <button className="cart-checkout-btn" onClick={() => navigate.push('/checkout')}>
+              <span>Proceed to Checkout</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
             <Link href="/products" className="cart-continue-link">← Continue Shopping</Link>
           </div>
 

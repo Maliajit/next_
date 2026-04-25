@@ -54,7 +54,7 @@ export default function Login() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       setShake(true);
@@ -62,12 +62,15 @@ export default function Login() {
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      // Simulate account finding
-      login({ email, firstName: email.split('@')[0], lastName: '' });
+    try {
+      await login({ email, password });
       navigate.push('/profile');
-    }, 1500);
+    } catch (err) {
+      setShake(true);
+      setTimeout(() => setShake(false), 600);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

@@ -74,16 +74,22 @@ const FormField = ({
       {type === 'select' ? (
         <select
           name={name}
-          value={value ?? ''}
+          multiple={multiple}
+          value={value ?? (multiple ? [] : '')}
           onChange={onChange}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           disabled={disabled}
           required={required}
           className="form-control"
-          style={{ ...inputStyle, cursor: disabled ? 'not-allowed' : 'pointer' }}
+          style={{ 
+            ...inputStyle, 
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            height: multiple ? 'auto' : inputStyle.height,
+            padding: multiple ? '8px 12px' : inputStyle.padding
+          }}
         >
-          <option value="">— Select {label} —</option>
+          {!multiple && <option value="">— Select {label} —</option>}
           {options.map((opt) => (
             <option key={opt.value ?? opt.id} value={opt.value ?? opt.id}>
               {opt.label ?? opt.name}
