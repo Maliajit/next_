@@ -1,11 +1,14 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchOrders, createOrderApi } from '../lib/api';
+import { useAuth } from './AuthContext';
 
 const OrderContext = createContext(null);
 
 export function OrderProvider({ children }) {
   const [orders, setOrders] = useState([]);
+  const { user } = useAuth();
+
   const normalizeOrder = (order) => {
     // Determine items array from various possible backend fields
     const rawItems = Array.isArray(order.items) 
@@ -14,18 +17,24 @@ export function OrderProvider({ children }) {
       ? order.products 
       : [];
 
+    const formatCurrency = (val) => {
+      if (typeof val === 'string' && val.startsWith('₹')) return val;
+      const num = Number(val);
+      return isNaN(num) ? '₹0' : `₹${num.toLocaleString()}`;
+    };
+
     return {
       ...order,
-      id: order.id?.toString() || Date.now().toString(),
+      id: order.id?.toString() || order.orderNumber || Date.now().toString(),
       date: order.createdAt 
         ? new Date(order.createdAt).toLocaleDateString() 
         : (order.date || new Date().toLocaleDateString()),
-      total: order.total || (order.amount ? `₹${order.amount.toLocaleString()}` : '₹0'),
+      total: order.total || formatCurrency(order.grandTotal || order.amount || 0),
       items: rawItems.map(item => ({
         ...item,
-        price: item.price || (item.unitPrice ? `₹${item.unitPrice.toLocaleString()}` : '₹0'),
+        price: item.price || formatCurrency(item.unitPrice || 0),
         image: item.product?.heroImage || item.image || '/assets/fylex-watch-v2/premium.png',
-        title: item.title || item.product?.title || 'Luxury Timepiece',
+        title: item.title || item.productName || item.product?.name || 'Luxury Timepiece',
         qty: item.qty || item.quantity || 1
       }))
     };
@@ -34,18 +43,23 @@ export function OrderProvider({ children }) {
   // Initial load from backend
   useEffect(() => {
     const loadOrders = async () => {
+      if (!user?.id) {
+        setOrders([]);
+        return;
+      }
+      
       try {
-        const data = await fetchOrders();
-        // Handle both { orders: [] } and raw array responses
-        const orderList = Array.isArray(data) ? data : (data?.orders || []);
-        const normalized = orderList.map(normalizeOrder);
+        const response = await fetchOrders(user.id);
+        // Handle both { success: true, data: [] }, { orders: [] } and raw array responses
+        const data = response?.data || response?.orders || (Array.isArray(response) ? response : []);
+        const normalized = data.map(normalizeOrder);
         setOrders(normalized);
       } catch (err) {
         console.warn('Order API unavailable, using local data:', err.message);
       }
     };
     loadOrders();
-  }, []);
+  }, [user?.id]);
 
   const addOrder = async (orderData) => {
     try {

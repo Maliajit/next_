@@ -413,10 +413,10 @@ const Dashboard = () => {
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--admin-text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {order.id || order.order_number}
+                        {order.orderNumber || order.order_number || `#${order.id}`}
                       </p>
                       <p style={{ fontSize: 11, color: 'var(--admin-text-muted)', margin: 0, fontWeight: 500 }}>
-                        {order.customer || order.customer_name} · ₹{Number(order.amount || order.grand_total || 0).toLocaleString('en-IN')} · {order.date || order.created_at}
+                        {order.customer?.name || order.customer || order.customer_name} · ₹{Number(order.amount || order.grandTotal || order.grand_total || 0).toLocaleString('en-IN')} · {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : (order.date || order.created_at)}
                       </p>
                     </div>
                   </div>

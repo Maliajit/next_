@@ -43,20 +43,20 @@ const OrdersPage = () => {
       placeholder: 'No orders found',
       columns: [
         {
-          title: 'ORDER #', field: 'order_number', width: 140,
+          title: 'ORDER #', field: 'orderNumber', width: 140,
           formatter: (cell) => {
             const v = cell.getValue() || cell.getRow().getData().id;
             return `<span style="font-family:'SF Mono',monospace;font-size:12px;font-weight:800;color:#6366f1;background:#f5f3ff;padding:5px 12px;border-radius:8px;border:1px solid rgba(99,102,241,0.15)">#${v}</span>`;
           },
         },
         {
-          title: 'CUSTOMER', field: 'customer_name', width: 300,
+          title: 'CUSTOMER', field: 'customer.name', width: 300,
           formatter: (cell) => {
             const d = cell.getRow().getData();
-            const name = d.customer_name || d.customer?.name || 'Guest User';
-            const email = d.customer_email || d.customer?.email || 'no-email@provided.com';
-            const mobile = d.customer_mobile || d.customer?.mobile || '';
-            const letter = name[0].toUpperCase();
+            const name = d.customer?.name || d.customerName || 'Guest User';
+            const email = d.customer?.email || d.customerEmail || 'no-email@provided.com';
+            const mobile = d.customer?.mobile || d.customerMobile || '';
+            const letter = (name[0] || 'G').toUpperCase();
             return `<div style="display:flex;align-items:center;gap:12px;padding:6px 0">
               <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#38bdf8,#0284c7);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0;box-shadow:0 2px 4px rgba(2,132,199,0.2)">${letter}</div>
               <div style="min-width:0">
@@ -67,19 +67,29 @@ const OrdersPage = () => {
           },
         },
         {
-          title: 'ITEMS', field: 'items_count', width: 100, hozAlign: 'center',
-          formatter: (cell) => `<div style="text-align:center"><span style="font-weight:700;color:#1e293b">${cell.getValue() ?? 1}</span><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;font-weight:700">Units</div></div>`,
+          title: 'ITEMS', field: 'itemsCount', width: 100, hozAlign: 'center',
+          formatter: (cell) => {
+            const d = cell.getRow().getData();
+            const count = d.itemsCount ?? (Array.isArray(d.items) ? d.items.length : 1);
+            return `<div style="text-align:center"><span style="font-weight:700;color:#1e293b">${count}</span><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;font-weight:700">Units</div></div>`;
+          },
         },
         {
-          title: 'DATE', field: 'created_at', width: 140,
+          title: 'DATE', field: 'createdAt', width: 140,
           formatter: (cell) => {
-            const d = new Date(cell.getValue());
+            const val = cell.getValue();
+            if (!val) return '—';
+            const d = new Date(val);
+            if (isNaN(d.getTime())) return 'Invalid Date';
             return `<div style="line-height:1.4"><div style="font-weight:700;color:#1e293b;font-size:13px">${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div><div style="font-size:11px;color:#94a3b8;font-weight:600">${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div></div>`;
           },
         },
         {
-          title: 'AMOUNT', field: 'grand_total', width: 140,
-          formatter: (cell) => `<div style="font-weight:800;color:#1e293b;font-size:15px">₹${Number(cell.getValue() || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>`,
+          title: 'AMOUNT', field: 'grandTotal', width: 140,
+          formatter: (cell) => {
+            const val = cell.getValue() || cell.getRow().getData().amount || 0;
+            return `<div style="font-weight:800;color:#1e293b;font-size:15px">₹${Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>`;
+          },
         },
         {
           title: 'STATUS', field: 'status', width: 130, hozAlign: 'center',
@@ -98,7 +108,7 @@ const OrdersPage = () => {
           },
         },
         {
-          title: 'PAYMENT', field: 'payment_status', width: 120, hozAlign: 'center',
+          title: 'PAYMENT', field: 'paymentStatus', width: 120, hozAlign: 'center',
           formatter: (cell) => {
             const v = (cell.getValue() || '').toLowerCase();
             const active = v === 'paid';
@@ -130,8 +140,8 @@ const OrdersPage = () => {
     const filters = [];
     if (search) {
       filters.push([
-        { field: 'order_number', type: 'like', value: search },
-        { field: 'customer_name', type: 'like', value: search },
+        { field: 'orderNumber', type: 'like', value: search },
+        { field: 'customer.name', type: 'like', value: search },
       ]);
     }
     if (statusFilter) filters.push({ field: 'status', type: '=', value: statusFilter });
