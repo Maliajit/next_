@@ -257,10 +257,17 @@ const Profile = () => {
         <aside className="profile-sidebar animate-fade" style={{ animationDelay: '0.1s' }}>
           <div className="user-profile-header">
             <div className="profile-avatar-large">
-              {user.firstName ? user.firstName[0] : (user.email ? user.email[0] : '?')}
+              {user.name ? user.name[0] : (user.email ? user.email[0] : '?')}
             </div>
-            <h2 className="profile-name-title">{user.firstName || 'Member'} {user.lastName || ''}</h2>
-            <span className="profile-tag">Heritage Member</span>
+            <h2 className="profile-name-title">{user.name || 'Member'}</h2>
+            <div className="flex flex-col items-center gap-1">
+              <span className="profile-tag">Heritage Member</span>
+              {user.status === 1 ? (
+                <span className="text-[10px] text-green-600 font-bold uppercase tracking-widest">Active Account</span>
+              ) : (
+                <span className="text-[10px] text-red-600 font-bold uppercase tracking-widest">Status: {user.status}</span>
+              )}
+            </div>
           </div>
 
           <ul className="profile-nav-list">
@@ -406,7 +413,7 @@ const Profile = () => {
                         </div>
                         <div className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
                           <span className="text-[10px] uppercase opacity-50 tracking-widest">Signed By</span>
-                          <p className="text-sm mt-1">{user.firstName} {user.lastName}</p>
+                          <p className="text-sm mt-1">{user.name}</p>
                         </div>
                       </div>
                     </div>
@@ -426,18 +433,24 @@ const Profile = () => {
               <div className="max-w-xl space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">First Distinction</label>
-                    <input type="text" defaultValue={user.firstName} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
+                    <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Full Name</label>
+                    <input type="text" defaultValue={user.name} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Family Name</label>
-                    <input type="text" defaultValue={user.lastName} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
+                    <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Mobile Number</label>
+                    <input type="text" defaultValue={user.mobile} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Digital Address</label>
-                  <input type="email" defaultValue={user.email} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Digital Address</label>
+                    <input type="email" defaultValue={user.email} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" disabled />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Member Since</label>
+                    <input type="text" defaultValue={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'} className="w-full bg-gray-50 p-4 rounded-xl border-none outline-none" disabled />
+                  </div>
                 </div>
 
                 <div className="pt-4">

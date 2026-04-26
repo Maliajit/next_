@@ -9,6 +9,7 @@ import FormField from '@/components/admin/ui/FormField';
 import Loader from '@/components/admin/ui/Loader';
 import { useToast } from '@/context/ToastContext';
 import { getFileUrl } from '@/lib/utils';
+import '@/app/admin/css/custom.css';
 
 const EditProductPage = () => {
     const toast = useToast();
@@ -53,6 +54,30 @@ const EditProductPage = () => {
     const [variants, setVariants] = useState([]);
     const [pickerTarget, setPickerTarget] = useState(null); // 'primary' | 'gallery' | {variantIndex, type}
     const [variantImageModal, setVariantImageModal] = useState(null); // { index, name }
+
+    const moveGalleryImage = (index, direction) => {
+        const newGallery = [...form.gallery];
+        const targetIndex = index + direction;
+        if (targetIndex >= 0 && targetIndex < newGallery.length) {
+            [newGallery[index], newGallery[targetIndex]] = [newGallery[targetIndex], newGallery[index]];
+            setForm(prev => ({ ...prev, gallery: newGallery }));
+        }
+    };
+
+    const moveVariantGalleryImage = (vIdx, gIdx, direction) => {
+        setVariants(prev => {
+            const newVariants = [...prev];
+            const variant = { ...newVariants[vIdx] };
+            const newGallery = [...(variant.gallery || [])];
+            const targetIndex = gIdx + direction;
+            if (targetIndex >= 0 && targetIndex < newGallery.length) {
+                [newGallery[gIdx], newGallery[targetIndex]] = [newGallery[targetIndex], newGallery[gIdx]];
+                variant.gallery = newGallery;
+                newVariants[vIdx] = variant;
+            }
+            return newVariants;
+        });
+    };
 
     const fetchProductDetails = useCallback(async () => {
         if (!productId) return;
@@ -330,16 +355,16 @@ const EditProductPage = () => {
     if (processing || loading.brands || loading.categories) return <Loader />;
 
     return (
-        <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="mb-8">
-                <PageHeader title="Edit Product" subtitle={`Refining details for ${form.name}`} />
+        <div className="!mx-auto !px-1 !py-1">
+            <div className="!mb-1">
+                <PageHeader title="Edit Product" />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="!space-y-2">
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div className="flex flex-col md:flex-row min-h-[600px]">
                         {/* Sidebar Tabs */}
-                        <div className="w-full md:w-64 bg-gray-50 border-r border-gray-200 p-6 space-y-2">
+                        <div className="w-full md:w-50 bg-gray-50 border-r border-gray-200 !px-2">
                             {[
                                 { id: 'basic', label: 'Basic Info', icon: 'fa-info-circle' },
                                 { id: 'story', label: 'Story & Copy', icon: 'fa-align-left' },
@@ -351,11 +376,10 @@ const EditProductPage = () => {
                                     key={tab.id}
                                     type="button"
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                                        activeTab === tab.id 
-                                        ? 'bg-indigo-600 text-white shadow-md' 
+                                    className={`w-full flex items-center gap-3 !px-2 !py-5 rounded-lg text-sm font-semibold transition-all ${activeTab === tab.id
+                                        ? 'bg-indigo-600 text-white shadow-md'
                                         : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                        }`}
                                 >
                                     <i className={`fas ${tab.icon} w-5`}></i>
                                     {tab.label}
@@ -364,44 +388,103 @@ const EditProductPage = () => {
                         </div>
 
                         {/* Tab Content */}
-                        <div className="flex-1 p-8">
+                        <div className="flex-1 !p-2">
+                            {/* 1. Basic Information */}
                             {activeTab === 'basic' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Core Specifications</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Core Specifications</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="md:col-span-2">
                                             <FormField label="Product Name *" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph X" required />
                                         </div>
                                         <FormField label="Slug" name="slug" value={form.slug} onChange={handleChange} placeholder="fylex-chronograph-x" />
-                                        <FormField label="Product Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="e.g. Luxury Collection" />
-                                        <FormField label="Product Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="e.g. A Legacy of Precision" />
                                         <FormField label="Product Code" name="productCode" value={form.productCode} onChange={handleChange} placeholder="FY-CHR-001" />
-                                        <FormField label="Base SKU" name="sku" value={form.sku} onChange={handleChange} placeholder="FY-001" />
-                                        
                                         <FormField label="Status" name="status" type="select" value={form.status} onChange={handleChange} options={[
                                             { value: 'active', label: 'Active' },
                                             { value: 'inactive', label: 'Inactive' },
                                             { value: 'draft', label: 'Draft' }
                                         ]} />
-                                        
                                         <FormField label="Product Type" name="productType" type="select" value={form.productType} onChange={handleChange} options={[
                                             { value: 'simple', label: 'Simple Product' },
                                             { value: 'configurable', label: 'Configurable (Variants)' }
                                         ]} />
-
                                         {form.productType === 'simple' && (
                                             <>
-                                                <FormField label="Base Price (₹) *" name="price" type="number" value={form.price} onChange={handleChange} placeholder="0.00" required />
-                                                <FormField label="Stock Quantity *" name="qty" type="number" value={form.qty} onChange={handleChange} placeholder="0" required />
+                                                <FormField label="Base Price *" name="price" type="number" value={form.price} onChange={handleChange} placeholder="0.00" required />
+                                                <FormField label="Inventory (Qty) *" name="qty" type="number" value={form.qty} onChange={handleChange} placeholder="0" required />
                                             </>
                                         )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 2. Story & Copy */}
+                            {activeTab === 'story' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Brand Storytelling</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <FormField label="Marketing Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="e.g. A Legacy of Distinction" />
+                                        <FormField label="Product Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="e.g. Exceptional Timepieces" />
+                                        <div className="md:col-span-2">
+                                            <FormField label="Short Description" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={1} />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <FormField label="Full Description" name="description" type="textarea" value={form.description} onChange={handleChange} rows={4} />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <FormField label="Video Showcase URL" name="videoUrl" value={form.videoUrl} onChange={handleChange} placeholder="e.g. /assets/videos/watch-promo.mp4 or direct MP4 link" />
+                                            <p className="mt-2 text-[10px] text-gray-400 font-medium italic">Leave empty to hide the video section on the storefront.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 3. Taxonomy & Media */}
+                            {activeTab === 'taxonomy' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Classification & Media</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <FormField label="Main Category *" name="categoryId" type="select" value={form.categoryId} onChange={handleCategoryChange} options={[
+                                            { value: '', label: 'Select Category' },
+                                            ...categories.map(c => ({ value: c.id.toString(), label: c.name }))
+                                        ]} required />
+                                        <FormField label="Brand" name="brandId" type="select" value={form.brandId} onChange={handleChange} options={[
+                                            { value: '', label: 'Select Brand' },
+                                            ...brands.map(b => ({ value: b.id.toString(), label: b.name }))
+                                        ]} />
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 !mb-2">Tags</label>
+                                            <div className=" flex flex-wrap gap-2 !px-3 bg-gray-50  border border-gray-200 !min-h-[50px]">
+                                                {tags.map(tag => (
+                                                    <button
+                                                        key={tag.id}
+                                                        type="button"
+                                                        onClick={() => setForm(prev => ({
+                                                            ...prev,
+                                                            tagIds: prev.tagIds.includes(tag.id.toString())
+                                                                ? prev.tagIds.filter(id => id !== tag.id.toString())
+                                                                : [...prev.tagIds, tag.id.toString()]
+                                                        }))}
+                                                        className={`!px-3  rounded-lg text-xs font-medium transition-all ${form.tagIds.includes(tag.id.toString())
+                                                            ? 'bg-indigo-600 text-white'
+                                                            : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-400'
+                                                            }`}
+                                                    >
+                                                        {tag.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
 
                                         {/* Media for Simple Product */}
                                         {form.productType === 'simple' && (
                                             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-3">Primary Image</label>
-                                                    <div 
+                                                    <div
                                                         onClick={() => setPickerTarget('primary')}
                                                         className="h-48 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-indigo-400 transition-all shadow-inner"
                                                     >
@@ -421,7 +504,7 @@ const EditProductPage = () => {
                                                         {form.gallery.map((img, i) => (
                                                             <div key={i} className="aspect-square rounded-lg border border-gray-200 overflow-hidden relative group">
                                                                 <img src={getFileUrl(img.url)} className="w-full h-full object-cover" alt="Gallery" />
-                                                                <button 
+                                                                <button
                                                                     type="button"
                                                                     onClick={() => setForm(prev => ({ ...prev, gallery: prev.gallery.filter(g => g.id !== img.id) }))}
                                                                     className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"
@@ -430,8 +513,8 @@ const EditProductPage = () => {
                                                                 </button>
                                                             </div>
                                                         ))}
-                                                        <button 
-                                                            type="button" 
+                                                        <button
+                                                            type="button"
                                                             onClick={() => setPickerTarget('gallery')}
                                                             className="aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400 hover:border-indigo-400 transition-all"
                                                         >
@@ -442,96 +525,49 @@ const EditProductPage = () => {
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                            )}
 
-                            {activeTab === 'story' && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Marketing & Content</h3>
-                                    <div className="space-y-6">
-                                        <FormField label="Short Description" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} placeholder="A brief summary for listings..." />
-                                        <FormField label="Full Description" name="description" type="textarea" value={form.description} onChange={handleChange} rows={6} placeholder="Detailed product storytelling..." />
-                                        <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={4} placeholder="The legacy and craftsmanship behind this piece..." />
-                                        <FormField label="Video Showcase URL" name="videoUrl" value={form.videoUrl} onChange={handleChange} placeholder="e.g. /assets/videos/watch-promo.mp4 or direct MP4 link" />
-                                        <p className="mt-2 text-xs text-gray-400 font-medium italic">Leave empty to hide the video section on the storefront.</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'taxonomy' && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Classification</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <FormField label="Brand" name="brandId" type="select" value={form.brandId} onChange={handleChange} options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b.id.toString(), label: b.name }))]} />
-                                        <FormField label="Main Category *" name="categoryId" type="select" value={form.categoryId} onChange={handleCategoryChange} options={[{ value: '', label: 'Select Category' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]} required />
-                                        <FormField label="Tax Class" name="taxClassId" type="select" value={form.taxClassId} onChange={handleChange} options={[{ value: '', label: 'Select Tax Class' }, ...taxClasses.map(t => ({ value: t.id.toString(), label: t.name }))]} />
-                                        
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-3">Product Tags</label>
-                                            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                                {tags.map(tag => (
-                                                    <button
-                                                        key={tag.id}
-                                                        type="button"
-                                                        onClick={() => setForm(prev => ({
-                                                            ...prev,
-                                                            tagIds: prev.tagIds.includes(tag.id.toString()) 
-                                                                ? prev.tagIds.filter(id => id !== tag.id.toString())
-                                                                : [...prev.tagIds, tag.id.toString()]
-                                                        }))}
-                                                        className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                                                            form.tagIds.includes(tag.id.toString()) 
-                                                            ? 'bg-indigo-600 text-white shadow-sm' 
-                                                            : 'bg-white text-gray-500 border border-gray-200 hover:border-indigo-400'
-                                                        }`}
-                                                    >
-                                                        {tag.name}
-                                                    </button>
-                                                ))}
+                                    {/* Specifications */}
+                                    {categoryDetails && (
+                                        <div className="mt-8 border-t pt-8">
+                                            <h4 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                                <i className="fas fa-list-ul text-indigo-600"></i> Technical Specifications
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {categoryDetails.specGroups?.map((group) =>
+                                                    group.specGroup.specifications?.map((spec, sIdx) => {
+                                                        const s = spec.specification;
+                                                        return (
+                                                            <div key={sIdx}>
+                                                                {s.type === 'select' ? (
+                                                                    <FormField
+                                                                        label={s.name}
+                                                                        type="select"
+                                                                        value={form.specifications[s.id.toString()] || ''}
+                                                                        onChange={(e) => handleSpecChange(s.id.toString(), e.target.value)}
+                                                                        options={[{ value: '', label: `Select ${s.name}` }, ...s.values.map(v => ({ value: v.id.toString(), label: v.label || v.value }))]}
+                                                                    />
+                                                                ) : (
+                                                                    <FormField
+                                                                        label={s.name}
+                                                                        value={form.specifications[s.id.toString()] || ''}
+                                                                        onChange={(e) => handleSpecChange(s.id.toString(), e.target.value)}
+                                                                        placeholder={s.name}
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
                                             </div>
                                         </div>
-
-                                        {categoryDetails && (
-                                            <div className="md:col-span-2 mt-4 border-t pt-8">
-                                                <h4 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                                    <i className="fas fa-list-ul text-indigo-600"></i> Technical Specifications
-                                                </h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    {categoryDetails.specGroups?.map((group) => 
-                                                        group.specGroup.specifications?.map((spec, sIdx) => {
-                                                            const s = spec.specification;
-                                                            return (
-                                                                <div key={sIdx}>
-                                                                    {s.type === 'select' ? (
-                                                                        <FormField 
-                                                                            label={s.name} 
-                                                                            type="select" 
-                                                                            value={form.specifications[s.id.toString()] || ''} 
-                                                                            onChange={(e) => handleSpecChange(s.id.toString(), e.target.value)}
-                                                                            options={[{ value: '', label: `Select ${s.name}` }, ...s.values.map(v => ({ value: v.id.toString(), label: v.label || v.value }))]}
-                                                                        />
-                                                                    ) : (
-                                                                        <FormField 
-                                                                            label={s.name} 
-                                                                            value={form.specifications[s.id.toString()] || ''} 
-                                                                            onChange={(e) => handleSpecChange(s.id.toString(), e.target.value)}
-                                                                            placeholder={s.name}
-                                                                        />
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
                             )}
 
+                            {/* 4. Visual Theme */}
                             {activeTab === 'theme' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">UI Theme Customization</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">UI Theme Customization</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <FormField label="Page Background" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
                                         <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
@@ -539,14 +575,16 @@ const EditProductPage = () => {
                                         <FormField label="Surface Tint (Mist)" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
                                         <div className="md:col-span-2">
                                             <FormField label="CSS Background Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
+                                            <p className="mt-2 text-xs text-gray-500">Advanced: Paste a CSS linear or radial gradient to create unique lighting effects.</p>
                                         </div>
                                     </div>
                                 </div>
                             )}
 
+                            {/* 5. Variants */}
                             {activeTab === 'variants' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Product Variants</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Product Variants</h3>
                                     {form.productType === 'configurable' && categoryDetails ? (
                                         <div className="space-y-6">
                                             <div className="grid grid-cols-1 gap-4">
@@ -561,11 +599,10 @@ const EditProductPage = () => {
                                                                         key={val.id}
                                                                         type="button"
                                                                         onClick={() => toggleAttributeValue(attr.id, val.id)}
-                                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
-                                                                            selectedAttributeValues[attr.id.toString()]?.includes(val.id.toString())
+                                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${selectedAttributeValues[attr.id.toString()]?.includes(val.id.toString())
                                                                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
                                                                             : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-400'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {val.label || val.value}
                                                                     </button>
@@ -575,8 +612,8 @@ const EditProductPage = () => {
                                                     );
                                                 })}
                                             </div>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 onClick={generateVariants}
                                                 className="px-6 py-3 bg-gray-900 text-white rounded-lg font-bold hover:bg-black transition-all shadow-lg flex items-center gap-2"
                                             >
@@ -610,25 +647,7 @@ const EditProductPage = () => {
                                                                         <input type="number" value={variant.stock} onChange={(e) => updateVariantField(vIdx, 'stock', e.target.value)} className="w-16 bg-white border border-gray-200 rounded px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
                                                                     </td>
                                                                     <td className="px-4 py-4">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <div className="flex -space-x-2">
-                                                                                {variant.heroImage ? (
-                                                                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden shadow-sm">
-                                                                                        <img src={getFileUrl(variant.heroImage.url)} className="w-full h-full object-cover" />
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-50 flex items-center justify-center text-slate-300 shadow-sm">
-                                                                                        <i className="fas fa-image text-[10px]"></i>
-                                                                                    </div>
-                                                                                )}
-                                                                                {variant.gallery?.length > 0 && (
-                                                                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-indigo-50 flex items-center justify-center text-indigo-600 text-[8px] font-bold shadow-sm">
-                                                                                        +{variant.gallery.length}
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                            <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded text-[9px] font-bold uppercase hover:bg-indigo-600 hover:text-white transition-all">Manage</button>
-                                                                        </div>
+                                                                        <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white transition-all">Manage</button>
                                                                     </td>
                                                                     <td className="px-4 py-4 text-right">
                                                                         <button type="button" onClick={() => removeVariant(vIdx)} className="text-gray-300 hover:text-red-500 transition-colors"><i className="fas fa-trash-alt"></i></button>
@@ -645,9 +664,9 @@ const EditProductPage = () => {
                                             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-4">
                                                 <i className="fas fa-cubes text-2xl"></i>
                                             </div>
-                                            <h4 className="text-lg font-bold text-gray-900">Simple Product Mode</h4>
+                                            <h4 className="text-lg font-bold text-gray-900">Configuration Required</h4>
                                             <p className="text-sm text-gray-500 max-w-xs mx-auto mt-2">
-                                                Switch to "Configurable" in Basic Info to manage variations like Size, Color, or Material.
+                                                Select "Configurable" in Basic Info and choose a category with attributes to manage variants.
                                             </p>
                                         </div>
                                     )}
@@ -656,87 +675,128 @@ const EditProductPage = () => {
                         </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="bg-gray-50 border-t border-gray-200 p-6 flex items-center justify-between">
+                    {/* Form Footer */}
+                    <div className="bg-gray-50 border-t border-gray-200 !px-2 flex items-center justify-between">
                         <div className="text-sm text-gray-500 flex items-center gap-2 font-medium">
                             <i className="fas fa-shield-alt text-indigo-500"></i>
-                            Modifying existing products updates all store listings instantly
+                            All luxury details will be saved securely
                         </div>
                         <div className="flex gap-4">
                             <button
                                 type="button"
                                 onClick={() => router.push('/admin/products')}
-                                className="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all shadow-sm"
+                                className="!px-8 !py-4 bg-white text-gray-700 border border-gray-300 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all shadow-sm"
                             >
                                 Discard
                             </button>
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="px-10 py-2.5 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 flex items-center gap-2"
+                                className="!px-8 !py-4 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                {submitting ? <><i className="fas fa-spinner fa-spin"></i> Processing...</> : <><i className="fas fa-check-circle"></i> Update Product</>}
+                                {submitting ? <><i className="fas fa-spinner fa-spin"></i> Processing...</> : <><i className="fas fa-check-circle"></i> Finalize Changes</>}
                             </button>
                         </div>
                     </div>
                 </div>
             </form>
 
-            <MediaPickerModal 
-                isOpen={!!pickerTarget} 
+            <MediaPickerModal
+                isOpen={!!pickerTarget}
                 onClose={() => setPickerTarget(null)}
                 onSelect={handleMediaSelect}
                 multiple={pickerTarget === 'gallery' || (pickerTarget && typeof pickerTarget === 'object' && pickerTarget.type === 'gallery')}
             />
 
-            {variantImageModal !== null && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            {/* Variant Image Type Selection Modal */}
+            {variantImageModal && (
+                <div className="fixed inset-0 z-[100] flex items-end justify-center pb-48 p-4 bg-black/50" onClick={() => setVariantImageModal(null)}>
+                    <div
+                        className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                             <div>
-                                <h3 className="font-bold text-gray-900">Manage Variant Media</h3>
-                                <p className="text-xs text-gray-500 mt-1">{variantImageModal.name}</p>
+                                <h4 className="text-lg font-bold text-gray-900">Manage Variant Images</h4>
+                                <p className="text-xs text-gray-500 mt-0.5">Configure media for <span className="text-indigo-600 font-semibold">{variantImageModal.name}</span></p>
                             </div>
-                            <button onClick={() => setVariantImageModal(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-400 transition-all">
+                            <button type="button" onClick={() => setVariantImageModal(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
-                        
-                        <div className="p-8 overflow-y-auto space-y-8">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Primary Image</label>
-                                <div onClick={() => setPickerTarget({ variantIndex: variantImageModal.index, type: 'primary' })} className="h-48 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-indigo-400 transition-all">
-                                    {variants[variantImageModal.index].heroImage ? (
-                                        <img src={getFileUrl(variants[variantImageModal.index].heroImage.url)} className="w-full h-full object-contain" alt="Variant Hero" />
-                                    ) : (
-                                        <div className="text-center">
-                                            <i className="fas fa-plus text-gray-300 text-xl mb-2"></i>
-                                            <p className="text-gray-400 text-[10px] font-bold uppercase">Add Main Image</p>
-                                        </div>
-                                    )}
+                        <div className="p-6 space-y-4">
+                            {/* Variant Gallery Preview & Reorder */}
+                            {variants[variantImageModal.index]?.gallery?.length > 0 && (
+                                <div className="mb-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Display Order</label>
+                                    <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-thin">
+                                        {variants[variantImageModal.index].gallery.map((img, gIdx) => (
+                                            <div key={gIdx} className="relative flex-none w-16 h-16 rounded-xl border border-gray-200 overflow-hidden group/item shadow-sm">
+                                                <img src={getFileUrl(img.url)} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-indigo-900/40 opacity-0 group-hover/item:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5">
+                                                    <div className="flex gap-1.5">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, -1)}
+                                                            disabled={gIdx === 0}
+                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-left text-[10px]"></i></button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, 1)}
+                                                            disabled={gIdx === variants[variantImageModal.index].gallery.length - 1}
+                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-right text-[10px]"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
-                            <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Gallery Images</label>
-                                <div className="grid grid-cols-4 gap-4">
-                                    {variants[variantImageModal.index].gallery?.map((img, i) => (
-                                        <div key={i} className="aspect-square rounded-xl border border-gray-100 overflow-hidden relative group">
-                                            <img src={getFileUrl(img.url)} className="w-full h-full object-cover" alt="Gallery" />
-                                            <button type="button" onClick={() => removeVariantImage(variantImageModal.index, img.id)} className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                                <i className="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <button type="button" onClick={() => setPickerTarget({ variantIndex: variantImageModal.index, type: 'gallery' })} className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 hover:border-indigo-400 hover:text-indigo-500 transition-all">
-                                        <i className="fas fa-plus"></i>
-                                    </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPickerTarget({ variantIndex: variantImageModal.index, type: 'primary' });
+                                    setVariantImageModal(null);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group/btn cursor-pointer"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover/btn:bg-indigo-600 group-hover/btn:text-white transition-all">
+                                    <i className="fas fa-star text-lg"></i>
                                 </div>
-                            </div>
+                                <div className="text-left">
+                                    <div className="font-bold text-gray-900">Primary Image</div>
+                                    <div className="text-xs text-gray-500">Main image for this variant</div>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPickerTarget({ variantIndex: variantImageModal.index, type: 'gallery' });
+                                    setVariantImageModal(null);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-purple-400 hover:bg-purple-50/50 transition-all group/btn cursor-pointer"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover/btn:bg-purple-600 group-hover/btn:text-white transition-all">
+                                    <i className="fas fa-images text-lg"></i>
+                                </div>
+                                <div className="text-left">
+                                    <div className="font-bold text-gray-900">Add to Gallery</div>
+                                    <div className="text-xs text-gray-500">Upload lifestyle or angle shots</div>
+                                </div>
+                            </button>
                         </div>
-
-                        <div className="p-6 bg-gray-50 border-t border-gray-100 text-right">
-                            <button onClick={() => setVariantImageModal(null)} className="px-8 py-2 bg-gray-900 text-white rounded-lg font-bold text-sm hover:bg-black transition-all">Save Media</button>
+                        <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-center">
+                            <button
+                                type="button"
+                                onClick={() => setVariantImageModal(null)}
+                                className="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest cursor-pointer"
+                            >
+                                Close Settings
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -746,3 +806,4 @@ const EditProductPage = () => {
 };
 
 export default EditProductPage;
+;

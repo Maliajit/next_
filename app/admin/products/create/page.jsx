@@ -23,7 +23,7 @@ const AddProductPage = () => {
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('basic');
     const [form, setForm] = useState({
-        name: '', slug: '', tagline: '', subtitle: '', 
+        name: '', slug: '', tagline: '', subtitle: '',
         shortDesc: '', description: '', heritageText: '',
         status: 'draft', productType: 'simple',
         brandId: '', categoryId: '', taxClassId: '',
@@ -32,7 +32,7 @@ const AddProductPage = () => {
         tagIds: [],
         specifications: {},
         price: '', qty: '',
-        bgColor: '#ffffff', accentColor: '#c4a35a', textColor: '#1a1a1a', 
+        bgColor: '#ffffff', accentColor: '#c4a35a', textColor: '#1a1a1a',
         gradient: '', mistColor: '#f8fafc', videoUrl: ''
     });
 
@@ -64,7 +64,7 @@ const AddProductPage = () => {
         setForm(prev => ({ ...prev, categoryId: catId, specifications: {} }));
         setSelectedAttributeValues({});
         setVariants([]);
-        
+
         if (catId) {
             const res = await api.getCategory(catId);
             if (res.success) {
@@ -168,9 +168,9 @@ const AddProductPage = () => {
                 sku: `${form.sku || 'SKU'}-${skuSuffix}`,
                 price: '',
                 stock: '0',
-                attributeValues: combo.map(c => ({ 
-                    attributeId: c.attrId, 
-                    attributeValueId: c.valId 
+                attributeValues: combo.map(c => ({
+                    attributeId: c.attrId,
+                    attributeValueId: c.valId
                 })),
                 heroImage: null,
                 gallery: [],
@@ -207,10 +207,10 @@ const AddProductPage = () => {
             shortDescription: form.shortDesc,
             mainCategoryId: form.categoryId,
             sku: form.sku || form.productCode || `SKU-${Date.now()}`,
-            price: variants.length > 0 
+            price: variants.length > 0
                 ? Math.min(...variants.map(v => parseFloat(v.price) || Infinity)).toString()
                 : (parseFloat(form.price) || 0).toString(),
-            qty: variants.length > 0 
+            qty: variants.length > 0
                 ? variants.reduce((acc, v) => acc + (parseInt(v.stock) || 0), 0)
                 : (parseInt(form.qty) || 0),
             tagIds: form.tagIds,
@@ -256,16 +256,17 @@ const AddProductPage = () => {
     if (loading.brands || loading.categories) return <Loader />;
 
     return (
-        <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="mb-8">
-                <PageHeader title="Add New Product" subtitle="Create unique items for your premium catalog" />
+        <div className="!mx-auto !px-1 !py-1 ">
+            <div className="!mb-1">
+                <PageHeader title="Add New Product" />
+                {/* <PageHeader title="Add New Product" subtitle="Create unique items for your premium catalog" /> */}
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="!space-y-2">
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
                     <div className="flex flex-col md:flex-row min-h-[600px]">
                         {/* Sidebar Tabs */}
-                        <div className="w-full md:w-64 bg-gray-50 border-r border-gray-200 p-6 space-y-2">
+                        <div className="w-full md:w-50 bg-gray-50 border-r border-gray-200 !px-2">
                             {[
                                 { id: 'basic', label: 'Basic Info', icon: 'fa-info-circle' },
                                 { id: 'story', label: 'Story & Copy', icon: 'fa-align-left' },
@@ -277,11 +278,10 @@ const AddProductPage = () => {
                                     key={tab.id}
                                     type="button"
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
-                                        activeTab === tab.id 
-                                        ? 'bg-indigo-600 text-white shadow-md' 
+                                    className={`w-full flex items-center gap-3 !px-2 !py-5 rounded-lg text-sm font-semibold transition-all ${activeTab === tab.id
+                                        ? 'bg-indigo-600 text-white shadow-md'
                                         : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                        }`}
                                 >
                                     <i className={`fas ${tab.icon} w-5`}></i>
                                     {tab.label}
@@ -290,11 +290,11 @@ const AddProductPage = () => {
                         </div>
 
                         {/* Tab Content */}
-                        <div className="flex-1 p-8">
+                        <div className="flex-1 !p-2">
                             {/* 1. Basic Information */}
                             {activeTab === 'basic' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Core Specifications</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Core Specifications</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="md:col-span-2">
                                             <FormField label="Product Name *" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fylex Chronograph X" required />
@@ -323,15 +323,15 @@ const AddProductPage = () => {
                             {/* 2. Story & Copy */}
                             {activeTab === 'story' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Brand Storytelling</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Brand Storytelling</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <FormField label="Marketing Tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="e.g. A Legacy of Distinction" />
                                         <FormField label="Product Subtitle" name="subtitle" value={form.subtitle} onChange={handleChange} placeholder="e.g. Exceptional Timepieces" />
                                         <div className="md:col-span-2">
-                                            <FormField label="Short Description" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={2} />
+                                            <FormField label="Short Description" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={1} />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <FormField label="Full Description" name="description" type="textarea" value={form.description} onChange={handleChange} rows={5} />
+                                            <FormField label="Full Description" name="description" type="textarea" value={form.description} onChange={handleChange} rows={4} />
                                         </div>
                                         <div className="md:col-span-2">
                                             <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
@@ -347,7 +347,7 @@ const AddProductPage = () => {
                             {/* 3. Taxonomy & Media */}
                             {activeTab === 'taxonomy' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Classification & Media</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Classification & Media</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <FormField label="Main Category *" name="categoryId" type="select" value={form.categoryId} onChange={handleCategoryChange} options={[
                                             { value: '', label: 'Select Category' },
@@ -358,36 +358,35 @@ const AddProductPage = () => {
                                             ...brands.map(b => ({ value: b.id.toString(), label: b.name }))
                                         ]} />
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                                            <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 min-h-[50px]">
+                                            <label className="block text-sm font-medium text-gray-700 !mb-2">Tags</label>
+                                            <div className=" flex flex-wrap gap-2 !px-3 bg-gray-50  border border-gray-200 !min-h-[50px]">
                                                 {tags.map(tag => (
                                                     <button
                                                         key={tag.id}
                                                         type="button"
                                                         onClick={() => setForm(prev => ({
                                                             ...prev,
-                                                            tagIds: prev.tagIds.includes(tag.id.toString()) 
+                                                            tagIds: prev.tagIds.includes(tag.id.toString())
                                                                 ? prev.tagIds.filter(id => id !== tag.id.toString())
                                                                 : [...prev.tagIds, tag.id.toString()]
                                                         }))}
-                                                        className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                                                            form.tagIds.includes(tag.id.toString()) 
-                                                            ? 'bg-indigo-600 text-white' 
+                                                        className={`!px-3  rounded-lg text-xs font-medium transition-all ${form.tagIds.includes(tag.id.toString())
+                                                            ? 'bg-indigo-600 text-white'
                                                             : 'bg-white text-gray-600 border border-gray-200 hover:border-indigo-400'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {tag.name}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
-                                        
+
                                         {/* Media for Simple Product */}
                                         {form.productType === 'simple' && (
                                             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-3">Primary Image</label>
-                                                    <div 
+                                                    <div
                                                         onClick={() => setPickerTarget('primary')}
                                                         className="h-48 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-indigo-400 transition-all shadow-inner"
                                                     >
@@ -407,7 +406,7 @@ const AddProductPage = () => {
                                                         {form.gallery.map((img, i) => (
                                                             <div key={i} className="aspect-square rounded-lg border border-gray-200 overflow-hidden relative group">
                                                                 <img src={getFileUrl(img.url)} className="w-full h-full object-cover" alt="Gallery" />
-                                                                <button 
+                                                                <button
                                                                     type="button"
                                                                     onClick={() => setForm(prev => ({ ...prev, gallery: prev.gallery.filter(g => g.id !== img.id) }))}
                                                                     className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"
@@ -416,8 +415,8 @@ const AddProductPage = () => {
                                                                 </button>
                                                             </div>
                                                         ))}
-                                                        <button 
-                                                            type="button" 
+                                                        <button
+                                                            type="button"
                                                             onClick={() => setPickerTarget('gallery')}
                                                             className="aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400 hover:border-indigo-400 transition-all"
                                                         >
@@ -436,23 +435,23 @@ const AddProductPage = () => {
                                                 <i className="fas fa-list-ul text-indigo-600"></i> Technical Specifications
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {categoryDetails.specGroups?.map((group) => 
+                                                {categoryDetails.specGroups?.map((group) =>
                                                     group.specGroup.specifications?.map((spec, sIdx) => {
                                                         const s = spec.specification;
                                                         return (
                                                             <div key={sIdx}>
                                                                 {s.type === 'select' ? (
-                                                                    <FormField 
-                                                                        label={s.name} 
-                                                                        type="select" 
-                                                                        value={form.specifications[s.id] || ''} 
+                                                                    <FormField
+                                                                        label={s.name}
+                                                                        type="select"
+                                                                        value={form.specifications[s.id] || ''}
                                                                         onChange={(e) => handleSpecChange(s.id, e.target.value)}
                                                                         options={[{ value: '', label: `Select ${s.name}` }, ...s.values.map(v => ({ value: v.id.toString(), label: v.label || v.value }))]}
                                                                     />
                                                                 ) : (
-                                                                    <FormField 
-                                                                        label={s.name} 
-                                                                        value={form.specifications[s.id] || ''} 
+                                                                    <FormField
+                                                                        label={s.name}
+                                                                        value={form.specifications[s.id] || ''}
                                                                         onChange={(e) => handleSpecChange(s.id, e.target.value)}
                                                                         placeholder={s.name}
                                                                     />
@@ -470,7 +469,7 @@ const AddProductPage = () => {
                             {/* 4. Visual Theme */}
                             {activeTab === 'theme' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">UI Theme Customization</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">UI Theme Customization</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <FormField label="Page Background" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
                                         <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
@@ -487,7 +486,7 @@ const AddProductPage = () => {
                             {/* 5. Variants */}
                             {activeTab === 'variants' && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b pb-4">Product Variants</h3>
+                                    <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Product Variants</h3>
                                     {form.productType === 'configurable' && categoryDetails ? (
                                         <div className="space-y-6">
                                             <div className="grid grid-cols-1 gap-4">
@@ -502,11 +501,10 @@ const AddProductPage = () => {
                                                                         key={val.id}
                                                                         type="button"
                                                                         onClick={() => toggleAttributeValue(attr.id, val.id)}
-                                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
-                                                                            selectedAttributeValues[attr.id]?.includes(val.id)
+                                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${selectedAttributeValues[attr.id]?.includes(val.id)
                                                                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
                                                                             : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-400'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {val.label || val.value}
                                                                     </button>
@@ -516,8 +514,8 @@ const AddProductPage = () => {
                                                     );
                                                 })}
                                             </div>
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 onClick={generateVariants}
                                                 className="px-6 py-3 bg-gray-900 text-white rounded-lg font-bold hover:bg-black transition-all shadow-lg flex items-center gap-2"
                                             >
@@ -580,7 +578,7 @@ const AddProductPage = () => {
                     </div>
 
                     {/* Form Footer */}
-                    <div className="bg-gray-50 border-t border-gray-200 p-6 flex items-center justify-between">
+                    <div className="bg-gray-50 border-t border-gray-200 !px-2 flex items-center justify-between">
                         <div className="text-sm text-gray-500 flex items-center gap-2 font-medium">
                             <i className="fas fa-shield-alt text-indigo-500"></i>
                             All luxury details will be saved securely
@@ -589,25 +587,25 @@ const AddProductPage = () => {
                             <button
                                 type="button"
                                 onClick={() => router.push('/admin/products')}
-                                className="px-6 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all shadow-sm"
+                                className="!px-8 !py-4 bg-white text-gray-700 border border-gray-300 rounded-lg font-bold text-sm hover:bg-gray-50 transition-all shadow-sm"
                             >
                                 Discard
                             </button>
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="px-10 py-2.5 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="!px-8 !py-4 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                {submitting ? <><i className="fas fa-spinner fa-spin"></i> Processing...</> : <><i className="fas fa-plus"></i> Finalize Product</>}
+                                {submitting ? <><i className="fas fa-spinner fa-spin"></i> Processing...</> : <><i className="fas fa-plus"></i> Finalize Products</>}
                             </button>
                         </div>
                     </div>
                 </div>
             </form>
 
-            <MediaPickerModal 
-                isOpen={!!pickerTarget} 
-                onClose={() => setPickerTarget(null)} 
+            <MediaPickerModal
+                isOpen={!!pickerTarget}
+                onClose={() => setPickerTarget(null)}
                 onSelect={handleMediaSelect}
                 multiple={pickerTarget === 'gallery' || (pickerTarget && typeof pickerTarget === 'object' && pickerTarget.type === 'gallery')}
             />
@@ -615,8 +613,8 @@ const AddProductPage = () => {
             {/* Variant Image Type Selection Modal */}
             {variantImageModal && (
                 <div className="fixed inset-0 z-[100] flex items-end justify-center pb-48 p-4 bg-black/50" onClick={() => setVariantImageModal(null)}>
-                    <div 
-                        className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+                    <div
+                        className="bg-white rounded-xl shadow-2xl w-full overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
@@ -639,13 +637,13 @@ const AddProductPage = () => {
                                                 <img src={getFileUrl(img.url)} className="w-full h-full object-cover" />
                                                 <div className="absolute inset-0 bg-indigo-900/40 opacity-0 group-hover/item:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5">
                                                     <div className="flex gap-1.5">
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, -1)}
                                                             disabled={gIdx === 0}
                                                             className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
                                                         ><i className="fas fa-chevron-left text-[10px]"></i></button>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, 1)}
                                                             disabled={gIdx === variants[variantImageModal.index].gallery.length - 1}
@@ -659,7 +657,7 @@ const AddProductPage = () => {
                                 </div>
                             )}
 
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => {
                                     setPickerTarget({ variantIndex: variantImageModal.index, type: 'primary' });
@@ -676,7 +674,7 @@ const AddProductPage = () => {
                                 </div>
                             </button>
 
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => {
                                     setPickerTarget({ variantIndex: variantImageModal.index, type: 'gallery' });
@@ -694,7 +692,7 @@ const AddProductPage = () => {
                             </button>
                         </div>
                         <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-center">
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => setVariantImageModal(null)}
                                 className="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest cursor-pointer"

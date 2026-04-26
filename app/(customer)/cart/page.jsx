@@ -107,8 +107,9 @@ export default function Cart() {
   const subtotal = items.reduce((s, i) => {
     return s + (i.unitPrice || 0) * (i.qty || 1);
   }, 0);
-  const shipping = subtotal > 150000 ? 0 : 1; // Adjusted for luxury watch pricing
-  const total = subtotal + shipping;
+  const shippingPlaceholder = subtotal > 150000 ? 0 : 500;
+  // In cart, we show the total without dynamic shipping to avoid confusion
+  const total = subtotal;
 
   return (
     <div className="cart-page">
@@ -175,14 +176,18 @@ export default function Cart() {
             </div>
             <div className="cart-summary-line">
               <span>Shipping</span>
-              <span>{shipping === 0 ? <span className="cart-free-tag">Free</span> : `₹${shipping.toLocaleString()}`}</span>
+              <span>{shippingPlaceholder === 0 ? <span className="cart-free-tag">Free</span> : (subtotal > 0 ? "Calculated at checkout" : "₹0")}</span>
             </div>
-            {shipping > 0 && (
+            {shippingPlaceholder > 0 && (
               <div className="cart-free-hint">Spend ₹{(150000 - subtotal).toLocaleString()} more for free shipping</div>
             )}
             <div className="cart-summary-divider" />
             <div className="cart-summary-total">
-              <span>Total</span><span>₹{total.toLocaleString()}</span>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span>Total</span>
+                {shippingPlaceholder > 0 && <span style={{ fontSize: '10px', fontWeight: '400', color: '#94a3b8' }}>Excl. shipping</span>}
+              </div>
+              <span>₹{total.toLocaleString()}</span>
             </div>
             <button className="cart-checkout-btn" onClick={() => navigate.push('/checkout')}>
               <span>Proceed to Checkout</span>

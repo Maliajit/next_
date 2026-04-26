@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useOrder } from '@/context/OrderContext';
 import { useAuth } from '@/context/AuthContext';
-import { addAddressApi, initiatePaymentApi, verifyPaymentApi } from '@/lib/api';
+import { addAddressApi, initiatePaymentApi, verifyPaymentApi, calculateShippingApi } from '@/lib/api';
 import { useToast } from '@/context/ToastContext';
 
 const Checkout = () => {
@@ -17,6 +17,11 @@ const Checkout = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [shipping, setShipping] = useState(null);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  const [isServiceable, setIsServiceable] = useState(true); // true, false, or null (for fallback)
+  const [isCodAvailable, setIsCodAvailable] = useState(true);
+  const [shippingMessage, setShippingMessage] = useState('');
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -56,6 +61,44 @@ const Checkout = () => {
     };
   }, [user]);
 
+  useEffect(() => {
+    const updateShipping = async () => {
+      if (formData.postalCode.length < 6) {
+        setIsServiceable(true);
+        setIsCodAvailable(true);
+        setShipping(null);
+        setShippingMessage('');
+        return;
+      }
+      
+      if (formData.postalCode.length === 6) {
+        setIsCalculatingShipping(true);
+        try {
+          const res = await calculateShippingApi(
+            user?.id, 
+            formData.postalCode
+          );
+          if (res) {
+            setIsServiceable(res.serviceable);
+            setIsCodAvailable(res.codAvailable !== false);
+            setShipping(res.rate);
+            setShippingMessage(res.message || '');
+            
+            // Auto-switch from COD if it's no longer available
+            if (res.codAvailable === false && formData.paymentMethod === 'cod') {
+                setFormData(prev => ({ ...prev, paymentMethod: 'razorpay' }));
+            }
+          }
+        } catch (err) {
+          console.error('Shipping calculation error:', err);
+        } finally {
+          setIsCalculatingShipping(false);
+        }
+      }
+    };
+    updateShipping();
+  }, [formData.postalCode, user?.id]);
+
   const steps = [
     { id: 1, name: 'Shipping' },
     { id: 2, name: 'Payment' },
@@ -63,7 +106,6 @@ const Checkout = () => {
   ];
 
   const subtotal = items.reduce((s, i) => s + (Number(i.unitPrice) || 0) * (i.qty || 1), 0);
-  const shipping = subtotal > 150000 ? 0 : 1;
   const total = subtotal + shipping;
 
   const validateStep = (step) => {
@@ -93,6 +135,11 @@ const Checkout = () => {
   const handleNext = async () => {
     if (!validateStep(activeStep)) {
       error?.('Please fill in all required fields');
+      return;
+    }
+
+    if (!isServiceable) {
+      error?.('Delivery is not available for this location');
       return;
     }
 
@@ -326,6 +373,28 @@ const Checkout = () => {
                       {validationErrors.phone && <span className="error-msg">{validationErrors.phone}</span>}
                     </div>
                   </div>
+
+                  {!isServiceable && isServiceable !== null && !isCalculatingShipping && formData.postalCode.length === 6 && (
+                    <div className="shipping-error-notice">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      <span><b>Delivery Unavailable:</b> Sorry, we cannot deliver to pincode <b>{formData.postalCode}</b> at this time.</span>
+                    </div>
+                  )}
+
+                  {isServiceable === null && !isCalculatingShipping && formData.postalCode.length === 6 && (
+                    <div className="shipping-warning-notice">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                      </svg>
+                      <span><b>Technical Notice:</b> Shipping is estimated and <b>COD is temporarily disabled</b>. Final charges will be confirmed after order processing.</span>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -346,20 +415,28 @@ const Checkout = () => {
                       </div>
                       <div className="card-radio" />
                     </div>
-                    <div
-                      className={`payment-card ${formData.paymentMethod === 'cod' ? 'selected' : ''}`}
-                      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cod' }))}
-                    >
-                      <div className="card-info">
-                        <div className="card-icon">🚚</div>
-                        <div>
-                          <div className="card-type">Cash on Delivery</div>
-                          <div className="card-desc">Pay when you receive the product</div>
+                    {isCodAvailable && (
+                      <div
+                        className={`payment-card ${formData.paymentMethod === 'cod' ? 'selected' : ''}`}
+                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cod' }))}
+                      >
+                        <div className="card-info">
+                          <div className="card-icon">🚚</div>
+                          <div>
+                            <div className="card-type">Cash on Delivery</div>
+                            <div className="card-desc">Pay when you receive the product</div>
+                          </div>
                         </div>
+                        <div className="card-radio" />
                       </div>
-                      <div className="card-radio" />
-                    </div>
+                    )}
                   </div>
+
+                  {!isCodAvailable && formData.postalCode.length === 6 && (
+                    <div className="cod-unavailable-hint">
+                       Note: Cash on Delivery is not available for your location (<b>{formData.postalCode}</b>).
+                    </div>
+                  )}
 
                   {formData.paymentMethod === 'razorpay' && (
                     <div className="payment-notice">
@@ -392,9 +469,9 @@ const Checkout = () => {
 
               <div className="checkout-footer-actions">
                 <button
-                  className={`primary-btn ${isProcessing ? 'disabled' : 'pulse'}`}
+                  className={`primary-btn ${isProcessing || isCalculatingShipping || (isServiceable === false) ? 'disabled' : 'pulse'}`}
                   onClick={handleNext}
-                  disabled={isProcessing}
+                  disabled={isProcessing || isCalculatingShipping || (isServiceable === false)}
                 >
                   {isProcessing ? 'Processing...' : (activeStep === 3 ? 'Place Order' : 'Continue')}
                 </button>
@@ -427,7 +504,9 @@ const Checkout = () => {
                 </div>
                 <div className="summary-line">
                   <span>Shipping</span>
-                  <span className={shipping === 0 ? 'free-tag' : ''}>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
+                  <span className={shipping === 0 ? 'free-tag' : ''}>
+                    {isCalculatingShipping ? 'Calculating...' : (shipping === null ? '--' : (shipping === 0 ? 'Free' : `₹${shipping.toLocaleString()}`))}
+                  </span>
                 </div>
                 <div className="summary-line total">
                   <span>Total</span>
@@ -612,6 +691,20 @@ const Checkout = () => {
           0% { box-shadow: 0 0 0 0 rgba(30, 41, 59, 0.4); } 
           70% { box-shadow: 0 0 0 10px rgba(30, 41, 59, 0); } 
           100% { box-shadow: 0 0 0 0 rgba(30, 41, 59, 0); } 
+        }
+
+        .shipping-error-notice {
+          margin-top: 24px; padding: 16px; border-radius: 12px;
+          background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2;
+          display: flex; align-items: center; gap: 12px; font-size: 13px;
+        }
+        .shipping-warning-notice {
+          margin-top: 24px; padding: 16px; border-radius: 12px;
+          background: #fffbeb; color: #92400e; border: 1px solid #fef3c7;
+          display: flex; align-items: center; gap: 12px; font-size: 13px;
+        }
+        .cod-unavailable-hint {
+          margin-top: 12px; font-size: 11px; color: #64748b; font-weight: 500;
         }
 
         @media (max-width: 860px) {
