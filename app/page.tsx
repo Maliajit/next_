@@ -206,6 +206,17 @@ import productsData from '@/data/productsData';
 import { ProductSkeleton } from '@/components/ui/Skeleton';
 
 // ─── MAIN HOME COMPONENT ──────────────────────────────────────────────────────
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+
+const getImageUrl = (path: string) => {
+  if (!path) return undefined;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  if (path.startsWith('/assets/')) return path; // Standard assets
+  if (path.startsWith('/uploads/')) return `${API_BASE_URL}${path}`;
+  // If it's just a filename, assume it's in uploads
+  if (!path.startsWith('/')) return `${API_BASE_URL}/uploads/${path}`;
+  return path;
+};
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -803,12 +814,19 @@ const Home = () => {
             </>
           ) : (
             featuredProducts.slice(0, 4).map((p) => (
-              <div className="featured-item-v2" key={p.id} style={{ background: p.gradient }}>
-                <img src={p.heroImage} alt={p.title} />
-                <div className="featured-content" style={{ color: p.textColor }}>
-                  <div className="f-label" style={{ color: p.accentColor }}>{p.subtitle}</div>
-                  <div className="f-title">{p.title} <em>{p.titleAccent}</em></div>
-                  <Link href={`/discover?watch=${p.id}`} className="f-shop-btn" style={{ background: 'transparent', color: p.textColor, border: `1px solid ${p.textColor}` }}>Shop</Link>
+              <div className="featured-item-v2" key={p.id} style={{ background: p.gradient || p.bgColor || '#f5f5f5' }}>
+                {getImageUrl(p.heroImage) && <img src={getImageUrl(p.heroImage) as string} alt={p.name || p.title} />}
+                <div className="featured-content" style={{ color: p.textColor || '#111' }}>
+                  <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
+                  <div className="f-title">{p.name || p.title} <em>{p.titleAccent || ''}</em></div>
+                  <div className="f-price" style={{ margin: '10px 0 20px', fontSize: '1.2rem', fontWeight: 600 }}>
+                    {p.productType === 'configurable' ? 'From ' : ''}₹{parseFloat(p.price || p.sellingPrice || '0').toLocaleString()}
+                  </div>
+                  <Link href={`/discover?watch=${p.id}`} className="f-shop-btn" style={{ 
+                    background: 'transparent', 
+                    color: p.textColor || '#111', 
+                    border: `1px solid ${p.textColor || '#111'}` 
+                  }}>Shop</Link>
                 </div>
               </div>
             ))

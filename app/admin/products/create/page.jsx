@@ -33,7 +33,8 @@ const AddProductPage = () => {
         specifications: {},
         price: '', qty: '',
         bgColor: '#ffffff', accentColor: '#c4a35a', textColor: '#1a1a1a',
-        gradient: '', mistColor: '#f8fafc', videoUrl: ''
+        gradient: '', mistColor: '#f8fafc', videoUrl: '',
+        isFeatured: false
     });
 
     const [categoryDetails, setCategoryDetails] = useState(null);
@@ -225,6 +226,7 @@ const AddProductPage = () => {
             gradient: form.gradient,
             mistColor: form.mistColor,
             videoUrl: form.videoUrl,
+            isFeatured: form.isFeatured,
             specifications: Object.entries(form.specifications).map(([id, val]) => {
                 const specItem = categoryDetails?.specGroups?.flatMap(sg => sg.specGroup.specifications).find(s => s.specification.id.toString() === id);
                 const isDropdown = specItem?.specification.type === 'select';
@@ -316,6 +318,19 @@ const AddProductPage = () => {
                                                 <FormField label="Inventory (Qty) *" name="qty" type="number" value={form.qty} onChange={handleChange} placeholder="0" required />
                                             </>
                                         )}
+                                        <div className="md:col-span-2 flex items-center gap-2 bg-indigo-50/50 !p-4 rounded-xl border border-indigo-100">
+                                            <input 
+                                                type="checkbox" 
+                                                id="isFeatured" 
+                                                name="isFeatured" 
+                                                checked={form.isFeatured} 
+                                                onChange={handleChange} 
+                                                className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                            />
+                                            <label htmlFor="isFeatured" className="text-sm font-bold text-indigo-900 cursor-pointer">
+                                                Featured Product (Show on Homepage)
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -488,20 +503,20 @@ const AddProductPage = () => {
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                     <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">Product Variants</h3>
                                     {form.productType === 'configurable' && categoryDetails ? (
-                                        <div className="space-y-6">
-                                            <div className="grid grid-cols-1 gap-4">
+                                        <div className="!space-y-2">
+                                            <div className="grid grid-cols-1 !gap-4 ">
                                                 {categoryDetails.attributes?.map((attrWrapper, idx) => {
                                                     const attr = attrWrapper.attribute;
                                                     return (
-                                                        <div key={idx} className="p-4 rounded-lg border border-gray-200 bg-white">
-                                                            <label className="font-bold text-gray-700 mb-3 block">{attr.name}</label>
+                                                        <div key={idx} className="!p-4 rounded-lg border border-gray-200 bg-white">
+                                                            <label className="font-bold text-gray-700 !mb-3 block">{attr.name}</label>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {attr.values?.map(val => (
                                                                     <button
                                                                         key={val.id}
                                                                         type="button"
                                                                         onClick={() => toggleAttributeValue(attr.id, val.id)}
-                                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${selectedAttributeValues[attr.id]?.includes(val.id)
+                                                                        className={`!px-4 !py-2 rounded-lg text-xs font-bold transition-all border ${selectedAttributeValues[attr.id]?.includes(val.id)
                                                                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
                                                                             : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-400'
                                                                             }`}
@@ -517,41 +532,41 @@ const AddProductPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={generateVariants}
-                                                className="px-6 py-3 bg-gray-900 text-white rounded-lg font-bold hover:bg-black transition-all shadow-lg flex items-center gap-2"
+                                                className="!px-6 !py-3 bg-gray-900 text-white rounded-lg font-bold hover:bg-black transition-all shadow-lg flex items-center gap-2"
                                             >
                                                 <i className="fas fa-magic"></i> Generate Configurations
                                             </button>
 
                                             {variants.length > 0 && (
-                                                <div className="mt-8 overflow-x-auto rounded-xl border border-gray-100">
+                                                <div className="!mt-8 overflow-x-auto rounded-xl border border-gray-100">
                                                     <table className="w-full border-collapse">
                                                         <thead>
                                                             <tr className="bg-gray-50 border-b border-gray-100">
-                                                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Variant</th>
-                                                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">SKU</th>
-                                                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</th>
-                                                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
-                                                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Media</th>
-                                                                <th className="px-4 py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest"></th>
+                                                                <th className="!px-4 !py-3 !text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Variant</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">SKU</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Media</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest"></th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-gray-50">
                                                             {variants.map((variant, vIdx) => (
                                                                 <tr key={vIdx} className="hover:bg-gray-50 transition-colors">
-                                                                    <td className="px-4 py-4 text-sm font-bold text-gray-900">{variant.name}</td>
-                                                                    <td className="px-4 py-4">
-                                                                        <input type="text" value={variant.sku} onChange={(e) => updateVariantField(vIdx, 'sku', e.target.value)} className="w-full bg-white border border-gray-200 rounded px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                                                    <td className="!px-4 !py-4 text-sm font-bold text-gray-900">{variant.name}</td>
+                                                                    <td className="!px-4 !py-4">
+                                                                        <input type="text" value={variant.sku} onChange={(e) => updateVariantField(vIdx, 'sku', e.target.value)} className="w-full bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
                                                                     </td>
-                                                                    <td className="px-4 py-4">
-                                                                        <input type="number" value={variant.price} onChange={(e) => updateVariantField(vIdx, 'price', e.target.value)} className="w-20 bg-white border border-gray-200 rounded px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                                                    <td className="!px-4 !py-4">
+                                                                        <input type="number" value={variant.price} onChange={(e) => updateVariantField(vIdx, 'price', e.target.value)} className="w-20 bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
                                                                     </td>
-                                                                    <td className="px-4 py-4">
-                                                                        <input type="number" value={variant.stock} onChange={(e) => updateVariantField(vIdx, 'stock', e.target.value)} className="w-16 bg-white border border-gray-200 rounded px-2 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                                                    <td className="!px-4 !py-4">
+                                                                        <input type="number" value={variant.stock} onChange={(e) => updateVariantField(vIdx, 'stock', e.target.value)} className="w-16 bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
                                                                     </td>
-                                                                    <td className="px-4 py-4">
+                                                                    <td className="!px-4 !py-4">
                                                                         <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white transition-all">Manage</button>
                                                                     </td>
-                                                                    <td className="px-4 py-4 text-right">
+                                                                    <td className="!px-4 !py-4 text-right">
                                                                         <button type="button" onClick={() => removeVariant(vIdx)} className="text-gray-300 hover:text-red-500 transition-colors"><i className="fas fa-trash-alt"></i></button>
                                                                     </td>
                                                                 </tr>
