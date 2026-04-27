@@ -293,7 +293,7 @@ const Header = () => {
             <div className="nav-link-group">
               <Link href="/products" className="primary" onClick={closeAll}>Fylex Watches</Link>
               <Link href="/my-purchases" className="primary" onClick={closeAll}>Your Collection</Link>
-              <Link href="/shop" className="primary" onClick={closeAll}>About Us</Link>
+              <Link href="/shop" className="primary" onClick={closeAll}>Explore Shop</Link>
               <Link href="/#gallery" className="primary" onClick={(e) => handleLinkClick(e, 'gallery')}>Community</Link>
             </div>
             <div className="nav-link-group" style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px', width: '100%', paddingBottom: '20px' }}>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useWishlist } from '@/context/WishlistContext';
 import { fetchProducts } from '../../../lib/api';
 import { getFileUrl } from '@/lib/utils';
+import cmsService from '@/services/cms.service';
 
 const Products = () => {
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -13,6 +14,7 @@ const Products = () => {
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [videoSettings, setVideoSettings] = useState({});
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -80,6 +82,15 @@ const Products = () => {
             };
         });
         setCollections(mapped);
+
+        const { data: settings } = await cmsService.getVideoSettings();
+        if (settings) {
+          const videoMap = {};
+          settings.forEach(s => {
+            if (s.group === 'video') videoMap[s.key] = s.value;
+          });
+          setVideoSettings(videoMap);
+        }
     } catch (err) {
         console.error('Failed to load products:', err);
         setError(err.message || 'An unexpected error occurred');
@@ -862,7 +873,7 @@ const Products = () => {
       <section className="products-hero">
         <div className="video-container">
           <video
-            src="/assets/Fylex.mp4"
+            src={getFileUrl(videoSettings.products_hero_video) || "/assets/Fylex.mp4"}
             autoPlay
             muted
             loop
@@ -871,8 +882,8 @@ const Products = () => {
           />
         </div>
         <div className="products-hero-content">
-          <span className="hero-eyebrow">A Legacy of Distinction</span>
-          <h1>Exceptional Timepieces</h1>
+          <span className="hero-eyebrow">{videoSettings.products_hero_video_subtitle || "A Legacy of Distinction"}</span>
+          <h1>{videoSettings.products_hero_video_title || "Exceptional Timepieces"}</h1>
         </div>
       </section>
 

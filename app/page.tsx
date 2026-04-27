@@ -4,6 +4,8 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
 import { fetchFeaturedProducts } from '@/lib/api';
+import cmsService from '@/services/cms.service';
+import { getFileUrl } from '@/lib/utils';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -205,18 +207,11 @@ const GalleryCarousel = () => {
 import productsData from '@/data/productsData';
 import { ProductSkeleton } from '@/components/ui/Skeleton';
 
-// ─── MAIN HOME COMPONENT ──────────────────────────────────────────────────────
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
 
-const getImageUrl = (path: string) => {
-  if (!path) return undefined;
-  if (path.startsWith('http') || path.startsWith('data:')) return path;
-  if (path.startsWith('/assets/')) return path; // Standard assets
-  if (path.startsWith('/uploads/')) return `${API_BASE_URL}${path}`;
-  // If it's just a filename, assume it's in uploads
-  if (!path.startsWith('/')) return `${API_BASE_URL}/uploads/${path}`;
-  return path;
-};
+// ─── MAIN HOME COMPONENT ──────────────────────────────────────────────────────
+
+// getImageUrl removed in favor of centralized getFileUrl
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -226,15 +221,29 @@ const Home = () => {
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false
   );
+  const [videoSettings, setVideoSettings] = useState<any>({});
 
   useEffect(() => {
-    const loadFeatured = async () => {
+    const loadData = async () => {
       const res = await fetchFeaturedProducts();
       const data = res.data || res || [];
       setFeaturedProducts(Array.isArray(data) ? data : []);
       setLoadingFeatured(false);
+
+      try {
+        const { data: settings } = await cmsService.getVideoSettings();
+        if (settings) {
+          const videoMap = {};
+          settings.forEach((s: any) => {
+            if (s.group === 'video') videoMap[s.key] = s.value;
+          });
+          setVideoSettings(videoMap);
+        }
+      } catch (err) {
+        console.error("Failed to load video settings", err);
+      }
     };
-    loadFeatured();
+    loadData();
 
   }, []);
 
@@ -339,8 +348,8 @@ const Home = () => {
         .section {
           height: 100svh; min-height: 500px; width: 100%;
           background-attachment: fixed; background-size: cover; background-position: center;
-          display: flex; align-items: center; justify-content: flex-start;
-          padding-left: clamp(40px, 8vw, 120px);
+          display: flex; align-items: center; justify-content: center;
+          padding-left: 0;
           position: relative; overflow: hidden;
         }
         .section::before { content: ''; position: absolute; inset: 0; z-index: 0; }
@@ -348,7 +357,7 @@ const Home = () => {
         .s2::before { background: linear-gradient(160deg, rgba(6,4,1,0), rgba(22,14,4,0)); }
         .s1::after, .s4::after {
           content: ''; position: absolute; inset: 0;
-          background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0));
+          background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
           z-index: 1;
         }
 
@@ -503,12 +512,13 @@ const Home = () => {
 
         /* ── Story cards ── */
         .card {
-          position: relative; z-index: 1; text-align: left;
-          padding: clamp(32px, 6vw, 64px) 0;
+          position: relative; z-index: 1; text-align: center;
+          padding: clamp(32px, 6vw, 64px) 24px;
           max-width: min(640px, 92vw); width: 100%;
           opacity: 0; transform: translateX(-30px);
           transition: opacity 0.7s cubic-bezier(0.2,0,0.2,1),
                       transform 0.7s cubic-bezier(0.2,0,0.2,1);
+          margin: 0 auto;
         }
         .card.in { opacity: 1; transform: translateX(0); }
         .card h1 {
@@ -727,17 +737,22 @@ const Home = () => {
       <div className="section s1" ref={el => { sectionsRef.current[0] = el; }}>
         <div className="video-container">
           <video
-            src="/assets/Fylexxx.mp4"
+            src={getFileUrl(videoSettings.home_hero_video) || "/assets/Fylexxx.mp4"}
             autoPlay muted loop playsInline
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </div>
         <div className="hero-center">
-          <h1 className="hero-title">The <em>Fylex</em></h1>
-          <p className="hero-subtitle">A Legacy of Precision</p>
-          <Link href="/products">
-            <button className="cta-button">Explore Products</button>
-          </Link>
+          <h1 className="hero-title">{videoSettings.home_hero_video_title || "The Fylex"}</h1>
+          <p className="hero-subtitle">{videoSettings.home_hero_video_subtitle || "A Legacy of Precision"}</p>
+          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+            <Link href="/products">
+              <button className="cta-button">Explore Products</button>
+            </Link>
+            <Link href="/shop">
+              <button className="cta-button" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}>Discover Shop</button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -775,29 +790,18 @@ const Home = () => {
       <div className="section s4" ref={el => { sectionsRef.current[3] = el; }}>
         <div className="video-container">
           <video
-            src="/assets/Fylexx.mp4"
+            src={getFileUrl(videoSettings.home_legacy_video) || "/assets/Fylexx.mp4"}
             autoPlay muted loop playsInline
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </div>
-      </div>
-
-      {/* ── Hero Section 5 (Legacy) ── */}
-      <div
-        className="section s6"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1434056886845-dac89ffe9b56?auto=format&fit=crop&q=80&w=1920')" }}
-        ref={el => { sectionsRef.current[4] = el; }}
-      >
-        <div className="card">
-          <div className="label">V · Legacy</div>
-          <h1>Beyond <em>Generations</em></h1>
-          <div className="divider"></div>
-          <p>
-            A Fylex is not owned — it is entrusted.<br />
-            Passed from one steady wrist to the next.
-          </p>
+        <div className="card" style={{ zIndex: 10 }}>
+          <h1 dangerouslySetInnerHTML={{ __html: videoSettings.home_legacy_video_title ? videoSettings.home_legacy_video_title.replace('Generations', '<em>Generations</em>') : "Beyond <em>Generations</em>" }}></h1>
+          <p className="legacy-text">{videoSettings.home_legacy_video_subtitle || "A Fylex is not owned — it is entrusted."}</p>
         </div>
       </div>
+
+
 
       {/* ── Hero Section 6 (Featured Grid) ── */}
       <div className="section featured-grid-wrap s5" ref={el => { sectionsRef.current[5] = el; }}>
@@ -815,7 +819,7 @@ const Home = () => {
           ) : (
             featuredProducts.slice(0, 4).map((p) => (
               <div className="featured-item-v2" key={p.id} style={{ background: p.gradient || p.bgColor || '#f5f5f5' }}>
-                {getImageUrl(p.heroImage) && <img src={getImageUrl(p.heroImage) as string} alt={p.name || p.title} />}
+                {getFileUrl(p.heroImage) && <img src={getFileUrl(p.heroImage) as string} alt={p.name || p.title} />}
                 <div className="featured-content" style={{ color: p.textColor || '#111' }}>
                   <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
                   <div className="f-title">{p.name || p.title} <em>{p.titleAccent || ''}</em></div>

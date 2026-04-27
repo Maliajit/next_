@@ -731,23 +731,23 @@ const EditProductPage = () => {
                         className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                        <div className="!px-6 !py-5 border-b border-gray-100 flex items-center justify-between">
                             <div>
                                 <h4 className="text-lg font-bold text-gray-900">Manage Variant Images</h4>
                                 <p className="text-xs text-gray-500 mt-0.5">Configure media for <span className="text-indigo-600 font-semibold">{variantImageModal.name}</span></p>
                             </div>
-                            <button type="button" onClick={() => setVariantImageModal(null)} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">
+                            <button type="button" onClick={() => setVariantImageModal(null)} className="!w-8 !h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400">
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
                             {/* Variant Gallery Preview & Reorder */}
                             {variants[variantImageModal.index]?.gallery?.length > 0 && (
-                                <div className="mb-2">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Display Order</label>
+                                <div className="!mb-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest !mb-3 block">Display Order</label>
                                     <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-thin">
                                         {variants[variantImageModal.index].gallery.map((img, gIdx) => (
-                                            <div key={gIdx} className="relative flex-none w-16 h-16 rounded-xl border border-gray-200 overflow-hidden group/item shadow-sm">
+                                            <div key={gIdx} className="relative flex-none !w-16 !h-16 rounded-xl border border-gray-200 overflow-hidden group/item shadow-sm">
                                                 <img src={getFileUrl(img.url)} className="w-full h-full object-cover" />
                                                 <div className="absolute inset-0 bg-indigo-900/40 opacity-0 group-hover/item:opacity-100 transition-all flex flex-col items-center justify-center gap-1.5">
                                                     <div className="flex gap-1.5">
@@ -755,13 +755,13 @@ const EditProductPage = () => {
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, -1)}
                                                             disabled={gIdx === 0}
-                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                            className="!w-6 !h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
                                                         ><i className="fas fa-chevron-left text-[10px]"></i></button>
                                                         <button
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, 1)}
                                                             disabled={gIdx === variants[variantImageModal.index].gallery.length - 1}
-                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                            className="!w-6 !h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
                                                         ><i className="fas fa-chevron-right text-[10px]"></i></button>
                                                     </div>
                                                 </div>
@@ -777,9 +777,9 @@ const EditProductPage = () => {
                                     setPickerTarget({ variantIndex: variantImageModal.index, type: 'primary' });
                                     setVariantImageModal(null);
                                 }}
-                                className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group/btn cursor-pointer"
+                                className="w-full flex items-center gap-4 !p-4 rounded-xl border border-gray-100 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group/btn cursor-pointer"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover/btn:bg-indigo-600 group-hover/btn:text-white transition-all">
+                                <div className="!w-12 !h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover/btn:bg-indigo-600 group-hover/btn:text-white transition-all">
                                     <i className="fas fa-star text-lg"></i>
                                 </div>
                                 <div className="text-left">
@@ -794,9 +794,9 @@ const EditProductPage = () => {
                                     setPickerTarget({ variantIndex: variantImageModal.index, type: 'gallery' });
                                     setVariantImageModal(null);
                                 }}
-                                className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-purple-400 hover:bg-purple-50/50 transition-all group/btn cursor-pointer"
+                                className="w-full flex items-center gap-4 !p-4 rounded-xl border border-gray-100 hover:border-purple-400 hover:bg-purple-50/50 transition-all group/btn cursor-pointer"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover/btn:bg-purple-600 group-hover/btn:text-white transition-all">
+                                <div className="!w-12 !h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover/btn:bg-purple-600 group-hover/btn:text-white transition-all">
                                     <i className="fas fa-images text-lg"></i>
                                 </div>
                                 <div className="text-left">
@@ -805,7 +805,7 @@ const EditProductPage = () => {
                                 </div>
                             </button>
                         </div>
-                        <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex justify-center">
+                        <div className="!p-4 bg-gray-50/80 border-t border-gray-100 flex justify-center">
                             <button
                                 type="button"
                                 onClick={() => setVariantImageModal(null)}

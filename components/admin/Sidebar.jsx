@@ -88,6 +88,7 @@ const navItems = [
     submenu: [
       { title: 'Sliders', path: '/admin/crm/banners' },
       { title: 'Home Page', path: '/admin/crm/home-sections' },
+      { title: 'Video Settings', path: '/admin/settings/videos' },
     ],
   },
   {

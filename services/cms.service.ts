@@ -3,6 +3,7 @@ import api from './api';
 export const getBanners = (position?: string) => api.get(`/cms/banners${position ? `?position=${position}` : ''}`);
 export const getActivePopups = () => api.get('/cms/popups');
 export const getPage = (slug: string) => api.get(`/cms/pages/${slug}`);
+export const getVideoSettings = () => api.get('/system/settings');
 
 // Pages
 export const getPages = () => api.get('/cms/pages');
@@ -30,6 +31,7 @@ const cmsService = {
   createTestimonial,
   updateTestimonial,
   deleteTestimonial,
+  getVideoSettings,
 };
 
 export default cmsService;

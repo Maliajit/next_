@@ -7,6 +7,8 @@ import { useGSAP } from '@gsap/react';
 import Lenis from 'lenis';
 import Link from 'next/link';
 import { fetchProducts } from '../../../lib/api';
+import cmsService from '@/services/cms.service';
+import { getFileUrl } from '@/lib/utils';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,12 +20,14 @@ export default function Shop() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeWatchIndex, setActiveWatchIndex] = useState(0);
+  const [videoSettings, setVideoSettings] = useState({});
 
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
         const res = await fetchProducts();
         const rawData = res.data || (Array.isArray(res) ? res : []);
+        // ... (hexToRgb logic)
         const hexToRgb = (hex) => {
           if (!hex) return '196, 163, 90';
           const cleanHex = hex.replace('#', '');
@@ -40,13 +44,22 @@ export default function Shop() {
           gradient: p.gradient || ''
         }));
         setProducts(mapped);
+        
+        const { data: settings } = await cmsService.getVideoSettings();
+        if (settings) {
+          const videoMap = {};
+          settings.forEach(s => {
+            if (s.group === 'video') videoMap[s.key] = s.value;
+          });
+          setVideoSettings(videoMap);
+        }
       } catch (err) {
-        console.error('Failed to load shop products:', err);
+        console.error('Failed to load shop data:', err);
       } finally {
         setLoading(false);
       }
     };
-    loadProducts();
+    loadData();
   }, []);
 
   const displayProducts = products.length > 0 ? products : [
@@ -456,12 +469,15 @@ export default function Shop() {
 
       <section id="hero">
         <div className="yt-bg-wrap">
-          <video className="hvideo" src="/Watch-iframe-3.mp4" autoPlay loop muted playsInline></video>
+          <video className="hvideo" src={getFileUrl(videoSettings.shop_hero_video) || "/Watch-iframe-3.mp4"} autoPlay loop muted playsInline></video>
         </div>
         <div className="hov" style={{ background: 'linear-gradient(100deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 40%, transparent 100%)' }}></div>
-        <div className="video-overlay" style={{ alignItems: 'flex-start', textAlign: 'left', paddingLeft: '8%', paddingBottom: '5%' }}>
-          <h1 className="r-hero">The Master of <br /><em>Nautical Precision</em></h1>
-          <p className="r-hero">Discover the heritage of the seas, <br />where every second is a journey <br />crafted for those who command <br />the infinite horizon.</p>
+        <div className="video-overlay">
+          <span className="eyebrow" style={{ color: 'var(--fyl-gold)', letterSpacing: '0.2em', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600, marginBottom: '16px', display: 'block' }}>
+            {videoSettings.shop_hero_video_subtitle || "Exclusive Collection"}
+          </span>
+          <h1 className="r-hero" dangerouslySetInnerHTML={{ __html: videoSettings.shop_hero_video_title ? videoSettings.shop_hero_video_title.replace('Nautical Precision', '<em>Nautical Precision</em>') : "The Master of <br /><em>Nautical Precision</em>" }}></h1>
+          <button className="bf" style={{ color: '#fff', borderColor: '#fff' }} onClick={() => document.querySelector('#rot').scrollIntoView({ behavior: 'smooth' })}>Discover More</button>
         </div>
       </section>
 
@@ -514,12 +530,12 @@ export default function Shop() {
 
       <section id="dial-video" style={{ height: '120vh', position: 'relative', overflow: 'hidden', background: '#000' }}>
         <div className="yt-bg-wrap">
-          <video className="hvideo" src="/Watch-iframe-2.mp4" autoPlay loop muted playsInline></video>
+          <video className="hvideo" src={getFileUrl(videoSettings.shop_deepsea_video) || "/Watch-iframe-2.mp4"} autoPlay loop muted playsInline></video>
         </div>
         <div className="hov" style={{ background: 'rgba(0,0,0,0.35)' }}></div>
         <div className="video-overlay">
-          <h2 className="r-dial">Deep Sea <br /><em>Chronometry</em></h2>
-          <p className="r-dial">Engineered for the abyss, <br />where pressure defines excellence. <br />A tribute to the pioneers <br />of underwater exploration <br />since the golden age.</p>
+          <h2 className="r-dial" dangerouslySetInnerHTML={{ __html: videoSettings.shop_deepsea_video_title ? videoSettings.shop_deepsea_video_title.replace('Chronometry', '<em>Chronometry</em>') : "Deep Sea <br /><em>Chronometry</em>" }}></h2>
+          <p className="r-dial">{videoSettings.shop_deepsea_video_subtitle || "Engineered for the abyss, where pressure defines excellence."}</p>
         </div>
       </section>
 
@@ -562,12 +578,12 @@ export default function Shop() {
 
       <section id="heritage-2-video" style={{ height: '120vh', position: 'relative', overflow: 'hidden', background: '#000' }}>
         <div className="yt-bg-wrap">
-          <video className="hvideo" src="/Watch_Iframe_1.mp4" autoPlay loop muted playsInline></video>
+          <video className="hvideo" src={getFileUrl(videoSettings.shop_precision_video) || "/Watch_Iframe_1.mp4"} autoPlay loop muted playsInline></video>
         </div>
         <div className="hov" style={{ background: 'rgba(0,0,0,0.35)' }}></div>
         <div className="video-overlay">
-          <h2 className="r-hero">The Art of <em>Precision</em></h2>
-          <p className="r-hero">Every Fylex timepiece is born from a relentless pursuit of perfection. From the initial sketch to the final assembly, our master watchmakers combine centuries-old techniques with pioneering technology. We believe that true luxury lies in the details—the invisible gears, the hand-polished surfaces, and the unwavering commitment to chronometric excellence that defines our heritage.</p>
+          <h2 className="r-hero" dangerouslySetInnerHTML={{ __html: videoSettings.shop_precision_video_title ? videoSettings.shop_precision_video_title.replace('Precision', '<em>Precision</em>') : "The Art of <em>Precision</em>" }}></h2>
+          <p className="r-hero">{videoSettings.shop_precision_video_subtitle || "Every Fylex timepiece is born from a relentless pursuit of perfection."}</p>
         </div>
       </section>
 
