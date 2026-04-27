@@ -11,9 +11,11 @@ import PageHeader from '@/components/admin/ui/PageHeader';
 import Loader from '@/components/admin/ui/Loader';
 import FormField from '@/components/admin/ui/FormField';
 import ConfirmModal from '@/components/admin/ui/ConfirmModal';
+import { useToast } from '@/context/ToastContext';
 
 const SpecificationManagement = () => {
-  const { data, loading, addRecord, updateRecord, deleteRecord } = useAdminData();
+  const toast = useToast();
+  const { data, loading, refetch, addRecord, updateRecord, deleteRecord } = useAdminData();
   const specifications = data.specifications || [];
   const groups = data.specificationGroups || [];
   
@@ -245,7 +247,11 @@ const SpecificationManagement = () => {
         },
         { 
           title: "Created", field: "createdAt", width: 180, 
-          formatter: (cell) => `<span class="date-text">${new Date(cell.getValue()).toLocaleString('en-US', { dateStyle: 'medium' })}</span>`
+          formatter: (cell) => {
+             const val = cell.getValue();
+             if (!val) return '<span class="date-text text-slate-400">N/A</span>';
+             return `<span class="date-text">${new Date(val).toLocaleString('en-US', { dateStyle: 'medium' })}</span>`;
+          }
         },
         {
           title: "Actions", width: 110, headerSort: false, hozAlign: "right",
@@ -305,16 +311,47 @@ const SpecificationManagement = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteTarget) return;
     setDeleting(true);
-    let success = false;
-    if (deleteTarget.type === 'specs') success = await deleteRecord('specifications', deleteTarget.id, api.deleteSpecification);
-    else if (deleteTarget.type === 'groups') success = await deleteRecord('specificationGroups', deleteTarget.id, api.deleteSpecificationGroup);
-    else if (deleteTarget.type === 'values') {
-        const { error } = await api.deleteSpecificationValue(deleteTarget.id);
-        if (!error) { fetchValues(selectedSpec.id); success = true; }
+    
+    try {
+        let success = false;
+        let errorMsg = '';
+        
+        // Direct API calls for faster UX sequence
+        if (deleteTarget.type === 'specs') {
+            const res = await api.deleteSpecification(deleteTarget.id);
+            success = res.success;
+            errorMsg = res.error;
+        } else if (deleteTarget.type === 'groups') {
+            const res = await api.deleteSpecificationGroup(deleteTarget.id);
+            success = res.success;
+            errorMsg = res.error;
+        } else if (deleteTarget.type === 'values') {
+            const res = await api.deleteSpecificationValue(deleteTarget.id);
+            success = res.success;
+            errorMsg = res.error;
+        }
+        
+        if (success) {
+            // 1. Close Modal Immediately
+            setDeleteTarget(null);
+            
+            // 2. Show Toast
+            toast?.success(`Deleted successfully`);
+            
+            // 3. Refresh Table in Background
+            if (deleteTarget.type === 'specs') refetch.specifications();
+            else if (deleteTarget.type === 'groups') refetch.specificationGroups();
+            else if (deleteTarget.type === 'values') fetchValues(selectedSpec.id);
+        } else {
+            toast?.error(errorMsg || `Failed to delete`);
+        }
+    } catch (err) {
+        toast?.error('An unexpected error occurred');
+    } finally {
+        setDeleting(false);
     }
-    setDeleting(false);
-    if (success) setDeleteTarget(null);
   };
 
   const closeModal = () => {
@@ -332,7 +369,7 @@ const SpecificationManagement = () => {
   };
 
   return (
-    <div className="admin-page-container p-6 lg:p-8 space-y-8 animate-fade-in bg-[#fdfdff] min-h-screen">
+    <div className="admin-page-container !p-6 lg:p-8 space-y-8 animate-fade-in bg-[#fdfdff] min-h-screen">
       <PageHeader
         title={activeTab === 'values' ? `${selectedSpec?.name} Values` : (activeTab === 'groups' ? 'Specification Groups' : 'Specifications')}
         subtitle="Manage technical characteristics, categorized sets, and global options"
@@ -350,7 +387,7 @@ const SpecificationManagement = () => {
 
       {/* Navigation Tabs - Modern Glass style */}
       <div className="flex items-center justify-between gap-4">
-        <div className="inline-flex p-1.5 bg-slate-200/50 backdrop-blur-md rounded-2xl border border-white shadow-soft-sm">
+        <div className="inline-flex !p-1.5 bg-slate-200/50 backdrop-blur-md rounded-2xl border border-white shadow-soft-sm">
           {[
             { k: 'specs', l: 'Specifications', i: 'fa-list-check' }, 
             { k: 'groups', l: 'Groups', i: 'fa-layer-group' }, 
@@ -359,7 +396,7 @@ const SpecificationManagement = () => {
             <button 
               key={t.k} 
               onClick={() => (t.k !== 'values' || selectedSpec) && setActiveTab(t.k)} 
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-3 transition-all duration-300 ${
+              className={`!px-6 !py-2.5 !rounded-xl text-sm font-bold flex items-center gap-3 transition-all duration-300 ${
                 activeTab === t.k 
                   ? 'bg-white text-indigo-600 shadow-sm border border-slate-100 scale-105' 
                   : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
@@ -406,18 +443,17 @@ const SpecificationManagement = () => {
 
       {/* Main Table Container */}
       <div className="bg-white rounded-[24px] shadow-soft-lg border border-slate-100/80 overflow-hidden">
-        <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+        <div className="!p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
            <div className="relative group max-w-sm w-full">
-             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm group-focus-within:text-indigo-500 transition-colors"></i>
              <input 
                type="text" 
                placeholder={`Search for ${activeTab}...`} 
-               className="w-full pl-11 pr-5 py-3 bg-white border border-slate-200 rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-50/50 focus:border-indigo-300 transition-all shadow-sm" 
+               className="w-full pl-11 !pr-5 !py-3 !bg-white !border !border-slate-200 !rounded-2xl text-sm outline-none focus:ring-4 focus:ring-indigo-50/50 focus:border-indigo-300 transition-all shadow-sm" 
              />
            </div>
            <div className="flex gap-2">
-              <button className="p-3 text-slate-400 hover:text-indigo-500 hover:bg-slate-100 rounded-xl transition-all"><i className="fas fa-arrows-rotate"></i></button>
-              <button className="p-3 text-slate-400 hover:text-indigo-500 hover:bg-slate-100 rounded-xl transition-all"><i className="fas fa-ellipsis-v"></i></button>
+              <button className="!p-3 !text-slate-400 hover:text-indigo-500 hover:bg-slate-100 rounded-xl transition-all"><i className="fas fa-arrows-rotate"></i></button>
+              <button className="!p-3 !text-slate-400 hover:text-indigo-500 hover:bg-slate-100 rounded-xl transition-all"><i className="fas fa-ellipsis-v"></i></button>
            </div>
         </div>
         
@@ -428,7 +464,7 @@ const SpecificationManagement = () => {
 
       {/* Spec Modal */}
       <AdminModal isOpen={showForm} onClose={closeModal} title={editingRecord ? "Edit Specification" : "Add New Specification"} maxWidth={550}>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="!space-y-6">
           <FormField 
             label="Name" 
             name="name" 
@@ -449,9 +485,9 @@ const SpecificationManagement = () => {
           
           <div className="grid grid-cols-2 gap-6">
             <div className="form-group flex flex-col">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Input Control</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest !mb-2">Input Control</label>
                 <select 
-                  className="w-full p-3 bg-slate-50 border rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-indigo-50 border-slate-200 focus:border-indigo-400 transition-all" 
+                  className="w-full !p-3 bg-slate-50 border rounded-2xl text-sm font-semibold outline-none focus:ring-4 focus:ring-indigo-50 border-slate-200 focus:border-indigo-400 transition-all" 
                   value={form.type} 
                   onChange={e => setForm({...form, type: e.target.value})}
                 >
@@ -471,8 +507,8 @@ const SpecificationManagement = () => {
             />
           </div>
 
-          <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 space-y-4">
-            <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2">Configuration</h4>
+          <div className="bg-slate-50/50 !p-6 rounded-2xl border border-slate-100 space-y-4">
+            <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] !mb-2">Configuration</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[ 
                 { k: 'isRequired', l: 'Mandatory', d: 'Required for products' }, 
@@ -497,7 +533,7 @@ const SpecificationManagement = () => {
 
           <div className="flex justify-end gap-3 pt-6">
             <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-2xl transition-all">Cancel</button>
-            <button type="submit" className="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2" disabled={submitting}>
+            <button type="submit" className="!px-10 !py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2" disabled={submitting}>
                {submitting ? <Loader size="xs" /> : <i className="fas fa-circle-check"></i>}
                {editingRecord ? 'Update Changes' : 'Create Specification'}
             </button>
@@ -512,9 +548,9 @@ const SpecificationManagement = () => {
             
             <div className="form-group">
                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Specifications Registry</label>
-               <div className="border border-slate-200 rounded-[20px] p-3 bg-slate-50/30 max-h-56 overflow-y-auto space-y-2 custom-scrollbar">
+               <div className="border border-slate-200 rounded-[20px] p-3 bg-slate-50/30  overflow-y-auto space-y-2 custom-scrollbar">
                   {specifications.map(s => (
-                    <label key={s.id} className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl hover:border-indigo-200 cursor-pointer transition-all hover:bg-indigo-50/20 group">
+                    <label key={s.id} className="flex items-center gap-3 !p-3 bg-white border border-slate-100 rounded-xl hover:border-indigo-200 cursor-pointer transition-all hover:bg-indigo-50/20 group">
                         <input 
                           type="checkbox" 
                           checked={groupForm.specificationIds.includes(s.id.toString())} 
@@ -524,7 +560,7 @@ const SpecificationManagement = () => {
                               : groupForm.specificationIds.filter(id => id !== s.id.toString());
                             setGroupForm({...groupForm, specificationIds: ids});
                           }} 
-                          className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-200 border-slate-300"
+                          className="w-4 h-4 ed text-indigo-600 focus:ring-indigo-200 border-slate-300"
                         />
                         <div className="flex flex-col">
                           <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">{s.name}</span>
@@ -538,7 +574,7 @@ const SpecificationManagement = () => {
             <div className="grid grid-cols-2 gap-6 pt-2">
                 <FormField label="Sort Rank" type="number" value={isNaN(groupForm.sortOrder) ? '' : groupForm.sortOrder} onChange={handleSortOrderChange(setGroupForm, 'sortOrder')} />
                 <div className="flex items-center pt-6">
-                   <label className="flex items-center gap-3 p-3 bg-indigo-50/30 rounded-xl border border-indigo-100/50 cursor-pointer">
+                   <label className="flex items-center gap-3 !p-3 bg-indigo-50/30 rounded-xl border border-indigo-100/50 cursor-pointer">
                      <i className="fas fa-check-circle text-indigo-500"></i>
                      <span className="text-sm font-bold text-indigo-700">Group Active</span>
                    </label>
@@ -547,7 +583,7 @@ const SpecificationManagement = () => {
 
             <div className="flex justify-end gap-3 pt-6 border-t border-slate-50">
               <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-2xl transition-all">Cancel</button>
-              <button type="submit" className="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
+              <button type="submit" className="!px-10 !py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
                  {submitting ? <Loader size="xs" /> : <i className="fas fa-layer-group"></i>}
                  {editingRecord ? 'Push Updates' : 'Confirm Group'}
               </button>
@@ -560,12 +596,12 @@ const SpecificationManagement = () => {
          <form onSubmit={handleValueSubmit} className="space-y-6">
             <FormField label="Label / Value" value={valueForm.value} onChange={e => setValueForm({...valueForm, value: e.target.value})} required placeholder="e.g. 18K Yellow Gold" />
             
-            <div className="space-y-3 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-               <label className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-2">Smart Templates</label>
+            <div className="space-y-3 bg-slate-50 !p-6 rounded-2xl border border-slate-100">
+               <label className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block !mb-2">Smart Templates</label>
                <div className="flex flex-wrap gap-2">
                   {commonValues.map(v => (
                     <button key={v.label} type="button" onClick={() => setValueForm({...valueForm, value: v.label})}
-                      className="px-4 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+                      className="!px-4 !py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:border-indigo-400 hover:text-indigo-600 hover:scale-105 transition-all shadow-sm flex items-center gap-2"
                     >
                       <i className="fas fa-plus-circle text-indigo-300"></i> {v.label}
                     </button>
@@ -580,7 +616,7 @@ const SpecificationManagement = () => {
                   <label className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer group">
                     <input 
                       type="checkbox" 
-                      className="w-5 h-5 rounded-lg text-indigo-600" 
+                      className="!w-5 !h-5 rounded-lg text-indigo-600" 
                       checked={valueForm.status === 1} 
                       onChange={e => setValueForm({...valueForm, status: e.target.checked ? 1 : 0})} 
                     />
@@ -589,9 +625,9 @@ const SpecificationManagement = () => {
                </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-6">
+            <div className="flex justify-end gap-3 !pt-6">
               <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-2xl transition-all">Cancel</button>
-              <button type="submit" className="px-10 py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
+              <button type="submit" className="!px-10 !py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
                  <i className="fas fa-bolt"></i> Register Value
               </button>
             </div>
@@ -600,18 +636,18 @@ const SpecificationManagement = () => {
 
       {/* Group View Modal (Detail Spec List) */}
       <AdminModal isOpen={showGroupView} onClose={closeModal} title={`${selectedGroup?.name}`} maxWidth={650}>
-         <div className="p-2 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between px-3 py-2 bg-indigo-50 border border-indigo-100 rounded-xl mb-6">
+         <div className="!p-2 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between !px-3 !py-2 bg-indigo-50 border border-indigo-100 rounded-xl mb-6">
                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Enrolled Specifications</span>
-               <span className="bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">{selectedGroup?.specs_count}</span>
+               <span className="bg-indigo-600 text-white text-[10px] font-bold !px-2.5 !py-1 !rounded-lg">{selectedGroup?.specs_count}</span>
             </div>
             {selectedGroup?.items?.map(item => (
-                <div key={item.id} className="p-5 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4 group">
+                <div key={item.id} className="!p-5 bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4 group">
                     <div className="flex items-start justify-between">
                         <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center !gap-2">
                                 <h3 className="text-base font-black text-slate-800">{item.name}</h3>
-                                <code className="text-[10px] font-bold text-indigo-400 px-2 py-0.5 bg-indigo-50 rounded-md">#{item.code}</code>
+                                <code className="text-[10px] font-bold text-indigo-400 !px-2 !py-0.5 bg-indigo-50 rounded-md">#{item.code}</code>
                             </div>
                             <div className="flex items-center gap-2 mt-1 text-slate-400">
                                <i className="fas fa-font text-[10px]"></i>
@@ -619,10 +655,10 @@ const SpecificationManagement = () => {
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <span className={`px-3 py-1 rounded-xl text-[10px] font-black tracking-tighter uppercase ${item.isRequired ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-slate-50 text-slate-400 border'}`}>
+                            <span className={`!px-3 !py-1 rounded-xl text-[10px] font-black tracking-tighter uppercase ${item.isRequired ? 'bg-red-50 text-red-500 border border-red-100' : 'bg-slate-50 text-slate-400 border'}`}>
                                 {item.isRequired ? 'Required' : 'Optional'}
                             </span>
-                            <span className={`px-3 py-1 rounded-xl text-[10px] font-black tracking-tighter uppercase ${item.isFilterable ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-slate-50 text-slate-400 border'}`}>
+                            <span className={`!px-3 !py-1 rounded-xl text-[10px] font-black tracking-tighter uppercase ${item.isFilterable ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-slate-50 text-slate-400 border'}`}>
                                 {item.isFilterable ? 'Filterable' : 'No Filter'}
                             </span>
                         </div>
@@ -637,7 +673,7 @@ const SpecificationManagement = () => {
             )}
          </div>
          <div className="flex justify-center pt-10 border-t border-slate-50 mt-6">
-            <button onClick={closeModal} className="px-10 py-3 bg-slate-800 text-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl">Close Registry</button>
+            <button onClick={closeModal} className="!px-10 !py-3 bg-slate-800 text-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl">Close Registry</button>
          </div>
       </AdminModal>
 

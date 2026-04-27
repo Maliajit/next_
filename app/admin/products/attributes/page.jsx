@@ -220,17 +220,38 @@ const AttributeList = () => {
     if (!deleteTarget) return;
     setDeleting(true);
     
-    let success;
-    if (deleteTarget.type === 'attribute') {
-        success = await deleteRecord('attributes', deleteTarget.id, api.deleteAttribute);
-    } else {
-        const res = await api.deleteAttributeValue(deleteTarget.id);
-        success = res.success;
-        if (success) refetch.attributes();
+    try {
+        let success = false;
+        let errorMsg = '';
+        
+        // Direct API calls for faster UX sequence
+        if (deleteTarget.type === 'attribute') {
+            const res = await api.deleteAttribute(deleteTarget.id);
+            success = res.success;
+            errorMsg = res.error;
+        } else {
+            const res = await api.deleteAttributeValue(deleteTarget.id);
+            success = res.success;
+            errorMsg = res.error;
+        }
+        
+        if (success) {
+            // 1. Close Modal Immediately
+            setDeleteTarget(null);
+            
+            // 2. Show Toast
+            toast?.success(`${deleteTarget.type === 'attribute' ? 'Attribute' : 'Option'} deleted successfully`);
+            
+            // 3. Refresh Table in Background
+            refetch.attributes();
+        } else {
+            toast?.error(errorMsg || `Failed to delete ${deleteTarget.type}`);
+        }
+    } catch (err) {
+        toast?.error('An unexpected error occurred');
+    } finally {
+        setDeleting(false);
     }
-    
-    setDeleting(false);
-    if (success) setDeleteTarget(null);
   };
 
   const handleChange = (e) => {

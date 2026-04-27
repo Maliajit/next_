@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectFade, EffectCoverflow, Navigation, Pagination, FreeMode } from 'swiper/modules';
 import 'swiper/css';
@@ -17,6 +17,7 @@ import localProductsData from '../../../data/productsData';
 
 function DiscoverContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { addToCart } = useCart();
   const watchId = searchParams.get('watch');
   const mode = searchParams.get('mode');
@@ -89,7 +90,11 @@ function DiscoverContent() {
                     return {
                         id: v.id.toString(),
                         name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-                        img: getFileUrl(vPath) || getFileUrl(rawHero) || '/assets/fylex-watch-v2/Olive-green-dial.png'
+                        img: getFileUrl(vPath) || getFileUrl(rawHero) || '/assets/fylex-watch-v2/Olive-green-dial.png',
+                        attributes: v.variantAttributes?.map(va => ({
+                            name: va.attributeValue?.attribute?.name?.toLowerCase(),
+                            value: va.attributeValue?.label
+                        })) || []
                     };
                 })
             };
@@ -121,6 +126,20 @@ function DiscoverContent() {
     setActiveModalData({ ...p, combinations: templates });
   };
   const closeInfoModal = () => setActiveModalData(null);
+  
+  const handleComboClick = (combo) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (activeModalData?.id) {
+        params.set('watch', activeModalData.id);
+    }
+    (combo.attributes || []).forEach(attr => {
+        if (attr.name && attr.value) {
+            params.set(attr.name, attr.value);
+        }
+    });
+    router.push(`?${params.toString()}`);
+    closeInfoModal();
+  };
   
   const handleBookNow = () => {
     // Find matching variant based on current configuration
@@ -812,6 +831,7 @@ function DiscoverContent() {
           padding: 24px 30px;
           border-bottom: 1px solid #f0f0f0;
           transition: background 0.3s;
+          cursor: pointer;
         }
         .cfg-combo-item:hover {
           background: #fdfdfc;
@@ -1108,34 +1128,36 @@ function DiscoverContent() {
           </section>
         )}
 
-        <section className="cfg-swiper-section">
-          <h2 className="cfg-swiper-title">The Gallery</h2>
-          <div className="cfg-swiper-container">
-            <Swiper
-              modules={[EffectCoverflow, Pagination, FreeMode]}
-              effect="coverflow"
-              grabCursor={true}
-              centeredSlides={true}
-              slidesPerView="auto"
-              coverflowEffect={{
-                rotate: 0,
-                stretch: 0,
-                depth: 120,
-                modifier: 2.5,
-                slideShadows: false,
-              }}
-              pagination={{ clickable: true }}
-              loop={true}
-              freeMode={true}
-            >
-              {product.galleryImages?.map((img, i) => (
-                <SwiperSlide key={i}>
-                  <img src={img} alt={`${product.title} Gallery ${i + 1}`} className="cfg-slide-img" />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
-        </section>
+        {(product.productType === 'simple' || hasConfig) && product.galleryImages?.length > 0 && (
+          <section className="cfg-swiper-section">
+            <h2 className="cfg-swiper-title">The Gallery</h2>
+            <div className="cfg-swiper-container">
+              <Swiper
+                modules={[EffectCoverflow, Pagination, FreeMode]}
+                effect="coverflow"
+                grabCursor={true}
+                centeredSlides={true}
+                slidesPerView="auto"
+                coverflowEffect={{
+                  rotate: 0,
+                  stretch: 0,
+                  depth: 120,
+                  modifier: 2.5,
+                  slideShadows: false,
+                }}
+                pagination={{ clickable: true }}
+                loop={true}
+                freeMode={true}
+              >
+                {product.galleryImages.map((img, i) => (
+                  <SwiperSlide key={i}>
+                    <img src={img} alt={`${product.title} Gallery ${i + 1}`} className="cfg-slide-img" />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          </section>
+        )}
 
         <section className="cfg-heritage-section">
           <div className="cfg-heritage-left">
@@ -1164,8 +1186,7 @@ function DiscoverContent() {
           <div className="cfg-modal-content" data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
             {activeModalData?.combinations?.length > 0 ? (
               activeModalData.combinations.map((combo) => (
-                <div key={combo.id} className="cfg-combo-item">
-                  <span className="cfg-combo-num">#{combo.id}</span>
+                <div key={combo.id} className="cfg-combo-item" onClick={() => handleComboClick(combo)}>
                   <div className="cfg-combo-img-wrap">
                     <img src={combo.img} alt={`Combo ${combo.id}`} />
                   </div>

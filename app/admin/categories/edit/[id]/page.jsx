@@ -1,23 +1,27 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAdminData } from '@/context/AdminDataContext';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import * as api from '@/services/adminApi';
-import PageHeader from '@/components/admin/ui/PageHeader';
 import FormField from '@/components/admin/ui/FormField';
 import Loader from '@/components/admin/ui/Loader';
 import { useToast } from '@/context/ToastContext';
 
-const AddCategoryPage = () => {
+const EditCategoryPage = () => {
     const toast = useToast();
     const router = useRouter();
-    const { data, loading, refetch, addRecord } = useAdminData();
+    const params = useParams();
+    const categoryId = params.id;
+
+    const { data, loading, updateRecord } = useAdminData();
     const categories = data.categories || [];
     const allAttributes = data.attributes || [];
     const allSpecGroups = data.specificationGroups || [];
 
+    const [fetching, setFetching] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    
     const [form, setForm] = useState({
         name: '', slug: '', description: '',
         parentId: '', imageId: '', image: '',
@@ -36,6 +40,49 @@ const AddCategoryPage = () => {
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const [showSEO, setShowSEO] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        if (!categoryId) return;
+        const loadCategory = async () => {
+            const res = await api.getCategory(categoryId);
+            if (res.success && res.data) {
+                const cat = res.data;
+                setForm({
+                    name: cat.name || '',
+                    slug: cat.slug || '',
+                    description: cat.description || '',
+                    parentId: cat.parentId ? cat.parentId.toString() : '',
+                    imageId: cat.imageId || '',
+                    image: cat.image || cat.image_url || '',
+                    metaTitle: cat.metaTitle || '',
+                    metaDescription: cat.metaDescription || '',
+                    metaKeywords: cat.metaKeywords || '',
+                    sortOrder: cat.sortOrder || 0,
+                    status: cat.status !== undefined ? cat.status : (cat.isActive ? 1 : 0),
+                    featured: cat.featured ? 1 : 0,
+                    showInNav: cat.showInNav !== undefined ? cat.showInNav : 1
+                });
+                
+                if (cat.specificationGroups) {
+                    setSelectedSpecGroups(cat.specificationGroups.map(g => g.id));
+                }
+                
+                if (cat.attributes) {
+                    setSelectedAttributes(cat.attributes.map(a => ({
+                        attributeId: a.attributeId || a.id,
+                        isRequired: !!a.isRequired,
+                        isFilterable: !!a.isFilterable,
+                        sortOrder: a.sortOrder || 0
+                    })));
+                }
+            } else {
+                toast.error("Failed to load category details");
+                router.push('/admin/categories');
+            }
+            setFetching(false);
+        };
+        loadCategory();
+    }, [categoryId, router, toast]);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 150);
@@ -100,7 +147,7 @@ const AddCategoryPage = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e?.preventDefault();
         if (!form.name.trim()) {
             toast.error("Category name is required");
             return;
@@ -122,15 +169,16 @@ const AddCategoryPage = () => {
                 }))
         };
 
-        const success = await addRecord('categories', payload, api.createCategory);
+        const success = await updateRecord('categories', categoryId, payload, api.updateCategory);
         setSubmitting(false);
 
         if (success) {
+            toast.success("Category updated successfully");
             router.push('/admin/categories');
         }
     };
 
-    if (loading.categories || loading.attributes || loading.specificationGroups) {
+    if (fetching || loading.categories || loading.attributes || loading.specificationGroups) {
         return <Loader message="Accessing taxonomy catalog..." />;
     }
 
@@ -140,11 +188,11 @@ const AddCategoryPage = () => {
             <div className={`fixed top-0 left-0 right-0 z-[60] bg-white/90 backdrop-blur-xl border-b border-slate-200 py-3 px-8 transform transition-all duration-300 hidden xl:flex items-center justify-between shadow-sm ${scrolled ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                        <i className="fas fa-folder-plus"></i>
+                        <i className="fas fa-folder-open"></i>
                     </div>
                     <div>
-                        <h4 className="text-sm font-black text-slate-800 leading-none mb-1">{form.name || 'New Category'}</h4>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Drafting Category</p>
+                        <h4 className="text-sm font-black text-slate-800 leading-none mb-1">{form.name || 'Edit Category'}</h4>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Editing Category</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -157,7 +205,7 @@ const AddCategoryPage = () => {
                         className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
                     >
                         {submitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
-                        Save Category (Ctrl+S)
+                        Update Category (Ctrl+S)
                     </button>
                 </div>
             </div>
@@ -177,8 +225,8 @@ const AddCategoryPage = () => {
                             <i className="fas fa-chevron-right text-[10px] opacity-50"></i>
                             <span className="text-slate-900">Categories</span>
                         </div>
-                        <h1 className="text-2xl font-black text-slate-800 tracking-tight">Create New Category</h1>
-                        <p className="text-slate-500 text-sm font-medium">Add a new category to organize your products</p>
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight">Edit Category</h1>
+                        <p className="text-slate-500 text-sm font-medium">Update category details and taxonomy structure</p>
                     </div>
                 </div>
                 <button onClick={() => router.push('/admin/categories')} className="btn-secondary rounded-xl">
@@ -207,7 +255,7 @@ const AddCategoryPage = () => {
                                     type="select"
                                     value={form.parentId}
                                     onChange={handleChange}
-                                    options={[{ value: '', label: 'No Parent (Main Category)' }, ...categories.map(c => ({ value: c.id.toString(), label: c.name }))]}
+                                    options={[{ value: '', label: 'No Parent (Main Category)' }, ...categories.filter(c => c.id.toString() !== categoryId.toString()).map(c => ({ value: c.id.toString(), label: c.name }))]}
                                 />
                             </div>
                             <div className="md:col-span-2">
@@ -443,7 +491,7 @@ const AddCategoryPage = () => {
                             >
                                 {form.image ? (
                                     <>
-                                        <img src={form.image} alt="Preview" className="w-full h-full object-cover" />
+                                        <img src={form.image.url || form.image} alt="Preview" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
                                             <span className="text-white font-bold text-sm bg-indigo-500 px-4 py-2 rounded-xl">Change Image</span>
                                         </div>
@@ -534,7 +582,7 @@ const AddCategoryPage = () => {
                             <h3 className="text-lg font-bold text-slate-800 !mb-6">Publish</h3>
                             <div className="!p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-medium !mb-6 flex gap-3">
                                 <i className="fas fa-info-circle mt-0.5"></i>
-                                <span>Review all information before saving</span>
+                                <span>Review all information before updating</span>
                             </div>
                             <div className="flex gap-4">
                                 <button
@@ -550,10 +598,10 @@ const AddCategoryPage = () => {
                                     className="flex-[1.5] !py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
                                 >
                                     {submitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save font-light"></i>}
-                                    Save Category
+                                    Update Category
                                 </button>
                             </div>
-                            <p className="text-center text-[10px] text-slate-400 font-bold !mt-4 uppercase">Click "Save Category" to create this category</p>
+                            <p className="text-center text-[10px] text-slate-400 font-bold !mt-4 uppercase">Click "Update Category" to save changes</p>
                         </div>
                     </div>
                 </div>
@@ -568,7 +616,7 @@ const AddCategoryPage = () => {
                     className="w-full py-4 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
                 >
                     {submitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save font-light"></i>}
-                    Save Category
+                    Update Category
                 </button>
             </div>
 
@@ -576,10 +624,11 @@ const AddCategoryPage = () => {
                 isOpen={isPickerOpen}
                 onClose={() => setIsPickerOpen(false)}
                 onSelect={(selection) => {
+                    const sel = Array.isArray(selection) ? selection[0] : selection;
                     setForm(prev => ({
                         ...prev,
-                        image: Array.isArray(selection) ? selection[0] : selection,
-                        imageId: '' // If the selection is just URL, we leave imageId empty. If selection is objects, we'd take id.
+                        image: sel.url || sel,
+                        imageId: sel.id || '' 
                     }));
                 }}
             />
@@ -587,4 +636,4 @@ const AddCategoryPage = () => {
     );
 };
 
-export default AddCategoryPage;
+export default EditCategoryPage;

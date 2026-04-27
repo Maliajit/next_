@@ -281,7 +281,7 @@ const InventoryList = () => {
                         {log.changeType} {log.quantity}
                       </span>
                       <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>
-                        {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {log.createdAt ? `${new Date(log.createdAt).toLocaleDateString()} ${new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'N/A'}
                       </span>
                     </div>
                     <div style={{ fontSize: 12, color: '#475569', fontWeight: 500, lineHeight: 1.4 }}>{log.notes || 'No notes provided'}</div>

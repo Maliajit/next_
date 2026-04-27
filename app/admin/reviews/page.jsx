@@ -148,7 +148,7 @@ const ReviewsPage = () => {
                             <div>
                                 <StarRating rating={selectedReview.rating} />
                                 <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginTop: 4 }}>
-                                    {new Date(selectedReview.createdAt).toLocaleDateString()} · {selectedReview.customer?.name}
+                                    {selectedReview.createdAt ? new Date(selectedReview.createdAt).toLocaleDateString() : 'N/A'} · {selectedReview.customer?.name}
                                 </div>
                             </div>
                             <div className={`status-pill ${selectedReview.isActive ? 'pill-active' : 'pill-inactive'}`}>

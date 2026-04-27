@@ -25,14 +25,9 @@ const CategoriesPage = () => {
   const tabulatorRef = useRef(null);
   const actionsRef = useRef({});
 
-  const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [editingRecord, setEditingRecord] = useState(null);
-
-  const [form, setForm] = useState({ name: '', slug: '', description: '', isActive: true, parentId: '' });
-  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     if (!tableRef.current || loading.categories) return;
@@ -40,15 +35,7 @@ const CategoriesPage = () => {
 
     actionsRef.current = {
       onEdit: (rec) => {
-        setEditingRecord(rec);
-        setForm({
-          name: rec.name || '',
-          slug: rec.slug || '',
-          description: rec.description || '',
-          isActive: rec.isActive === true || rec.isActive === 1,
-          parentId: rec.parentId?.toString() || ''
-        });
-        setShowForm(true);
+        router.push(`/admin/categories/edit/${rec.id}`);
       },
       onDelete: (id, name) => setDeleteTarget({ id, name })
     };
@@ -119,7 +106,7 @@ const CategoriesPage = () => {
     });
 
     return () => { tabulatorRef.current?.destroy(); tabulatorRef.current = null; };
-  }, [categories, loading.categories]);
+  }, [categories, loading.categories, router]);
 
   const searchParams = useSearchParams();
 
@@ -129,54 +116,6 @@ const CategoriesPage = () => {
     }
   }, [searchParams, router]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: name === 'isActive' ? value === 'active' : value,
-      ...(name === 'name' ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {}),
-    }));
-    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.name.trim()) errs.name = 'Category name is required';
-    return errs;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
-
-    setSubmitting(true);
-    const payload = {
-      name: form.name,
-      slug: form.slug,
-      description: form.description,
-      parentId: form.parentId || null,
-      status: form.isActive ? 1 : 0
-    };
-
-    let success;
-    if (editingRecord) {
-      success = await updateRecord('categories', editingRecord.id, payload, api.updateCategory);
-    } else {
-      success = await addRecord('categories', payload, api.createCategory);
-    }
-
-    setSubmitting(false);
-    if (success) closeModal();
-  };
-
-  const closeModal = () => {
-    setShowForm(false);
-    setEditingRecord(null);
-    setForm({ name: '', slug: '', description: '', isActive: true, parentId: '' });
-    setFormErrors({});
-  };
-
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -184,13 +123,6 @@ const CategoriesPage = () => {
     setDeleting(false);
     if (success) setDeleteTarget(null);
   };
-
-  const parentOptions = [
-    { value: '', label: 'None (Main Category)' },
-    ...categories
-      .filter(c => !editingRecord || c.id !== editingRecord.id)
-      .map(c => ({ value: c.id.toString(), label: c.name }))
-  ];
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -206,49 +138,6 @@ const CategoriesPage = () => {
             <div style={{ overflowX: 'auto' }}><div style={{ minWidth: 850 }}><div ref={tableRef}></div></div></div>
         }
       </div>
-
-      <AdminModal isOpen={showForm} onClose={closeModal} title={editingRecord ? "Edit Category" : "Create New Category"} maxWidth={520}>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <FormField label="Category Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Smartwatches" required error={formErrors.name} />
-            </div>
-
-            <FormField label="Slug / URL Key" name="slug" value={form.slug} onChange={handleChange} placeholder="e.g. smartwatches" hint="Unique identifier" />
-
-            <FormField
-              label="Availability"
-              name="isActive"
-              type="select"
-              value={form.isActive ? 'active' : 'inactive'}
-              onChange={handleChange}
-              options={[{ value: 'active', label: 'Active (Live)' }, { value: 'inactive', label: 'Hidden' }]}
-            />
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <FormField
-                label="Parent Category (Optional)"
-                name="parentId"
-                type="select"
-                value={form.parentId}
-                onChange={handleChange}
-                options={parentOptions}
-              />
-            </div>
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <FormField label="Description" name="description" type="textarea" value={form.description} onChange={handleChange} placeholder="Optional category summary..." rows={3} />
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--admin-border-light)' }}>
-            <button type="button" className="btn-secondary" onClick={closeModal} style={{ borderRadius: 12, padding: '10px 20px' }}>Cancel</button>
-            <button type="submit" className="btn-primary" disabled={submitting} style={{ borderRadius: 12, padding: '10px 24px' }}>
-              {submitting ? <><i className="fas fa-spinner fa-spin mr-2"></i> Processing...</> : <><i className={editingRecord ? "fas fa-save mr-2" : "fas fa-plus mr-2"}></i> {editingRecord ? 'Update Category' : 'Create Category'}</>}
-            </button>
-          </div>
-        </form>
-      </AdminModal>
 
       <ConfirmModal
         isOpen={!!deleteTarget}

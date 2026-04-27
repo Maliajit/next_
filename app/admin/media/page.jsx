@@ -192,7 +192,7 @@ const MediaList = () => {
                                                 </span>
                                             </td>
                                             <td style={{ textAlign: 'center', fontWeight: 500, fontSize: 13, color: '#475569' }}>{formatSize(f.fileSize)}</td>
-                                            <td style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8' }}>{new Date(f.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                                            <td style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8' }}>{f.createdAt ? new Date(f.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                                             <td style={{ textAlign: 'right', paddingRight: 32 }}>
                                                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                                                     <a href={`${API_URL}/uploads/${f.fileName}`} target="_blank" rel="noreferrer" className="btn-icon" style={{ color: '#64748b' }} title="View Original"><i className="fas fa-external-link-alt"></i></a>

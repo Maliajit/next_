@@ -663,7 +663,18 @@ const EditProductPage = () => {
                                                                         <input type="number" value={variant.stock} onChange={(e) => updateVariantField(vIdx, 'stock', e.target.value)} className="w-16 bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
                                                                     </td>
                                                                     <td className="!px-4 !py-4">
-                                                                        <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="!px-3 !py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white transition-all">Manage</button>
+                                                                        <div className="flex items-center gap-3">
+                                                                            {variant.heroImage ? (
+                                                                                <div className="w-8 h-8 rounded border border-gray-200 overflow-hidden shrink-0">
+                                                                                    <img src={getFileUrl(variant.heroImage.url || variant.heroImage)} className="w-full h-full object-cover" />
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className="w-8 h-8 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 shrink-0">
+                                                                                    <i className="fas fa-image text-xs"></i>
+                                                                                </div>
+                                                                            )}
+                                                                            <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="!px-3 !py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white transition-all whitespace-nowrap">Manage</button>
+                                                                        </div>
                                                                     </td>
                                                                     <td className="!px-4 !py-4 text-right">
                                                                         <button type="button" onClick={() => removeVariant(vIdx)} className="text-gray-300 hover:text-red-500 transition-colors"><i className="fas fa-trash-alt"></i></button>
@@ -741,6 +752,19 @@ const EditProductPage = () => {
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
+                            {/* Primary Image Preview */}
+                            {variants[variantImageModal.index]?.heroImage && (
+                                <div className="!mb-4">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest !mb-2 block">Primary Image</label>
+                                    <div className="flex gap-2.5">
+                                        <div className="relative flex-none !w-24 !h-24 rounded-xl border-2 border-indigo-200 overflow-hidden shadow-sm">
+                                            <img src={getFileUrl(variants[variantImageModal.index].heroImage.url || variants[variantImageModal.index].heroImage)} className="w-full h-full object-cover" />
+                                            <div className="absolute top-1 right-1 bg-indigo-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">MAIN</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Variant Gallery Preview & Reorder */}
                             {variants[variantImageModal.index]?.gallery?.length > 0 && (
                                 <div className="!mb-2">
