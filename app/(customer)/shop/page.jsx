@@ -37,12 +37,24 @@ export default function Shop() {
           return `${r}, ${g}, ${b}`;
         };
 
-        const mapped = rawData.map(p => ({
-          ...p,
-          accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
-          mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
-          gradient: p.gradient || ''
-        }));
+        const mapped = rawData.map(p => {
+          let rawHero = p.heroImage || (p.images && p.images[0]);
+          if (!rawHero && p.variants?.length > 0) {
+            const vImg = p.variants[0].variantImages?.find(vi => vi.type === 'MAIN')?.media || p.variants[0].variantImages?.[0]?.media;
+            rawHero = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+          }
+          if (rawHero && !rawHero.startsWith('http') && !rawHero.startsWith('/') && !rawHero.startsWith('data:')) {
+            rawHero = `/uploads/${rawHero}`;
+          }
+
+          return {
+            ...p,
+            heroImage: getFileUrl(rawHero) || '/assets/fylex-watch-v2/premium.png',
+            accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
+            mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
+            gradient: p.gradient || ''
+          };
+        });
         setProducts(mapped);
         
         const { data: settings } = await cmsService.getVideoSettings();
@@ -68,7 +80,10 @@ export default function Shop() {
     { id: '3', name: 'Master Noir', subtitle: 'DLC Coated · Meteorite Dial · Rubber Strap', price: '22,400', heroImage: '/assets/fylex-watch-v2/olive-green.png', slug: 'master-noir', bgColor: '#f0fdf4', mistRgb: '220, 252, 231' }
   ];
 
-  const watchImages = displayProducts.map(p => p.heroImage || (p.images && p.images[0]) || '/assets/fylex-watch-v2/premium.png');
+  const watchImages = displayProducts.map(p => {
+    const img = p.heroImage || (p.images && p.images[0]) || '/assets/fylex-watch-v2/premium.png';
+    return getFileUrl(img);
+  });
 
   // Lenis Smooth Scroll
   useEffect(() => {
@@ -521,9 +536,13 @@ export default function Shop() {
             <Link href="/discover" className="bf">Discover our watches</Link>
           </div>
           <div className="rpag" id="rpag">
-            <div className={`rdot ${activeWatchIndex === 0 ? 'active' : ''}`} onClick={() => handleWatchChange(0)}></div>
-            <div className={`rdot ${activeWatchIndex === 1 ? 'active' : ''}`} onClick={() => handleWatchChange(1)}></div>
-            <div className={`rdot ${activeWatchIndex === 2 ? 'active' : ''}`} onClick={() => handleWatchChange(2)}></div>
+            {displayProducts.map((_, idx) => (
+              <div 
+                key={idx} 
+                className={`rdot ${activeWatchIndex === idx ? 'active' : ''}`} 
+                onClick={() => handleWatchChange(idx)}
+              ></div>
+            ))}
           </div>
         </div>
       </section>
@@ -657,7 +676,7 @@ export default function Shop() {
               {idx === 1 && <div className="vbdg">Best Seller</div>}
               <div className="vcimg">
                 <img 
-                  src={p.heroImage || (p.images && p.images[0]) || 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=700&q=84'} 
+                  src={getFileUrl(p.heroImage) || getFileUrl(p.images && p.images[0]) || 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=700&q=84'} 
                   alt={p.name} 
                   loading="lazy" 
                 />
