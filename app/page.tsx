@@ -6,6 +6,10 @@ import Link from 'next/link';
 import { fetchFeaturedProducts } from '@/lib/api';
 import cmsService from '@/services/cms.service';
 import { getFileUrl } from '@/lib/utils';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -376,9 +380,11 @@ const Home = () => {
           width: 100%;
           max-width: 1920px;
           height: 100vh;
+          min-height: 800px;
           border-radius: 0;
           overflow: hidden;
           box-sizing: border-box;
+          background: #fff;
         }
         .featured-grid-header { 
           padding: 0 4% 1rem; 
@@ -386,14 +392,21 @@ const Home = () => {
           width: 100%;
         }
         .featured-container {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          grid-template-rows: 1fr 1fr;
-          gap: 0; width: 100%; flex: 1;
+          width: 100%;
+          flex: 1;
+          display: block;
+          position: relative;
+          overflow: hidden;
+        }
+        .featured-swiper {
+          width: 100%;
+          height: 100%;
         }
         .featured-item-v2 {
           position: relative; overflow: hidden;
-          background: #f5f5f5; border-radius: 0;
+          background: #f5f5f5;
+          height: 100%;
+          width: 100%;
         }
         .featured-item-v2 img {
           position: absolute; top: 0; left: 0;
@@ -410,25 +423,25 @@ const Home = () => {
         }
 
         .featured-content {
-          position: absolute; bottom: 48px; left: 48px;
+          position: absolute; bottom: 80px; left: 48px;
           z-index: 2; color: #fff;
           max-width: 80%;
         }
         .f-label {
           font-family: 'Inter', sans-serif; font-size: 0.85rem;
-          font-weight: 500; margin-bottom: 8px;
+          font-weight: 500;
           opacity: 0.9;
         }
         .f-title {
           font-family: 'Inter', sans-serif; font-size: 2rem;
-          font-weight: 600; margin-bottom: 24px;
+          font-weight: 600;
           line-height: 1.2;
         }
         .f-shop-btn {
-          background: #fff; color: #000 !important;
+          background: #1a1a1a; color: #fff !important;
           padding: 8px 16px; border-radius: 999px;
           font-size: 10px; font-weight: 700;
-          text-decoration: none; border: 1px solid #fff; cursor: pointer;
+          text-decoration: none; border: 1px solid #1a1a1a; cursor: pointer;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           display: inline-block;
           letter-spacing: 0.15em;
@@ -444,21 +457,48 @@ const Home = () => {
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
+        /* Custom Swiper Pagination */
+        .featured-swiper .swiper-pagination {
+          position: absolute !important;
+          bottom: 20px !important;
+          left: 50% !important;
+          transform: translateX(-50%) !important;
+          width: auto !important;
+          z-index: 10;
+          display: flex !important;
+          justify-content: center;
+          gap: 12px;
+        }
+        .featured-swiper .swiper-pagination-bullet {
+          width: 40px;
+          height: 4px;
+          background: #d1d5db; /* gray-300 */
+          border-radius: 2px;
+          opacity: 1;
+          margin: 0 !important;
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .featured-swiper .swiper-pagination-bullet-active {
+          width: 100px;
+          background: #1a1a1a;
+        }
+
         /* Featured Grid mobile overrides */
         @media (max-width: 768px) {
           .featured-grid-wrap { 
             padding: 0 !important; 
             margin: 0 !important; 
             width: 100%; height: auto;
+            min-height: 60vh;
             border-radius: 0;
           }
           .featured-grid-header { padding: 40px 24px 24px; }
           .featured-title { font-size: 1.25rem; margin-bottom: 1rem; }
-          .featured-container { grid-template-columns: 1fr; gap: 0; }
+          .featured-container { display: block; }
           .featured-item-v2 { height: 60vh; border-radius: 0; }
-          .featured-content { bottom: 32px; }
-          .f-title { font-size: 1.6rem; }
-          .f-shop-btn { padding: 10px 24px; font-size: 0.85rem; }
+          .featured-content { bottom: 80px; left: 24px; }
+          .featured-swiper .swiper-pagination { bottom: 20px !important; }
+          
         }
 
         .s3 { background-image: url('/Watch_1.png'); }
@@ -504,7 +544,7 @@ const Home = () => {
           margin-bottom: 2.5rem; line-height: 1;
         }
         .cta-button {
-          background: rgba(0, 0, 0, 0.6);
+          background: #1a1a1a;
           backdrop-filter: blur(15px);
           -webkit-backdrop-filter: blur(15px);
           color: #fff; padding: 8px 16px;
@@ -761,10 +801,7 @@ const Home = () => {
           <p className="hero-subtitle">{videoSettings.home_hero_video_subtitle || "A Legacy of Precision"}</p>
           <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
             <Link href="/products">
-              <button className="cta-button">Explore Products</button>
-            </Link>
-            <Link href="/shop">
-              <button className="cta-button" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff' }}>Discover Shop</button>
+              <button className="cta-button">Explore</button>
             </Link>
           </div>
         </div>
@@ -824,30 +861,61 @@ const Home = () => {
         </div>
         <div className="featured-container">
           {loadingFeatured ? (
-            <>
-              <ProductSkeleton />
-              <ProductSkeleton />
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', height: '100%', width: '100%' }}>
               <ProductSkeleton />
               {!isMobile && <ProductSkeleton />}
-            </>
+            </div>
           ) : (
-            featuredProducts.slice(0, 4).map((p) => (
-              <div className="featured-item-v2" key={p.id} style={{ background: p.gradient || p.bgColor || '#f5f5f5' }}>
-                {getFileUrl(p.heroImage) && <img src={getFileUrl(p.heroImage) as string} alt={p.name || p.title} />}
-                <div className="featured-content" style={{ color: p.textColor || '#111' }}>
-                  <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
-                  <div className="f-title">{p.name || p.title} <em>{p.titleAccent || ''}</em></div>
-                  <div className="f-price" style={{ margin: '10px 0 20px', fontSize: '1.2rem', fontWeight: 600 }}>
-                    {p.productType === 'configurable' ? 'From ' : ''}₹{parseFloat(p.price || p.sellingPrice || '0').toLocaleString()}
-                  </div>
-                  <Link href={`/discover?watch=${p.id}`} className="f-shop-btn" style={{ 
-                    background: 'transparent', 
-                    color: p.textColor || '#111', 
-                    border: `1px solid ${p.textColor || '#111'}` 
-                  }}>Shop</Link>
-                </div>
-              </div>
-            ))
+            <>
+              <Swiper
+                modules={[Autoplay, Pagination]}
+                spaceBetween={0}
+                slidesPerView={isMobile ? 1 : 2}
+                autoplay={{ delay: 5000, disableOnInteraction: false }}
+                pagination={{ 
+                  clickable: true,
+                  dynamicBullets: false
+                }}
+                loop={featuredProducts.length >= (isMobile ? 1 : 2)}
+                className="featured-swiper"
+              >
+                  {featuredProducts.map((p) => {
+                    // Logic to find the lowest priced variant's image if heroImage is missing
+                    let displayImage = p.heroImage;
+                    if (!displayImage && p.variants && p.variants.length > 0) {
+                      const sortedVariants = [...p.variants].sort((a, b) => 
+                        parseFloat(a.sellingPrice || a.price) - parseFloat(b.sellingPrice || b.price)
+                      );
+                      const lowestVariant = sortedVariants[0];
+                      if (lowestVariant.variantImages && lowestVariant.variantImages.length > 0) {
+                        displayImage = lowestVariant.variantImages[0].media?.filePath || lowestVariant.variantImages[0].media?.fileName;
+                      }
+                    }
+
+                    return (
+                      <SwiperSlide key={p.id}>
+                        <div className="featured-item-v2" style={{ background: p.gradient || p.bgColor || '#f5f5f5' }}>
+                          {getFileUrl(displayImage) && (
+                            <img 
+                              src={getFileUrl(displayImage) as string} 
+                              alt={p.name || p.title} 
+                              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
+                            />
+                          )}
+                          <div className="featured-content" style={{ color: p.textColor || '#111', zIndex: 2 }}>
+                            <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
+                            <div className="f-title" style={{ color: 'inherit' }}>{p.name || p.title} <em>{p.titleAccent || ''}</em></div>
+                            <div className="f-price" style={{ margin: '10px 0 20px', fontSize: '1.2rem', fontWeight: 500 }}>
+                              {p.productType === 'configurable' ? 'From ' : ''}₹{parseFloat(p.price || p.sellingPrice || '0').toLocaleString()}
+                            </div>
+                            <Link href={`/discover?watch=${p.id}`} className="f-shop-btn">Shop</Link>
+                          </div>
+                        </div>
+                      </SwiperSlide>
+                    );
+                  })}
+              </Swiper>
+            </>
           )}
         </div>
       </div>
