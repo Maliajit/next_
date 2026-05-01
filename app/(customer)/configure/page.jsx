@@ -295,7 +295,8 @@ function ConfigureContent() {
         .opt.active { color: #008767; }
         .nav-buttons-row { display: flex; align-items: center; gap: 20px; margin-top: 10px; }
         .btn-circular-back { width: 50px; height: 50px; border-radius: 50%; background: #1a1a1a; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .btn-pill-next { background: #1a1a1a; color: #fff; font-size: 11px; font-weight: 700; padding: 12px 32px; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .btn-pill-next { background: #1a1a1a; color: #fff; font-size: 10px; font-weight: 700; padding: 8px 16px; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 999px; border: 1px solid #1a1a1a; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-pill-next:hover, .btn-pill-next:active { background: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
         .c-summary-footer { background: #fff; padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); }
         .f-title { font-size: 22px; font-weight: 700; color: #111; margin: 0; }
         .f-price { font-size: 16px; font-weight: 600; color: #111; }
@@ -306,7 +307,8 @@ function ConfigureContent() {
         .alert-content-grid { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 450px; padding-top: 40px; }
         .alert-watch-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; }
         .alert-watch-preview { width: 100%; max-width: 320px; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.12)); }
-        .alert-footer-btn { margin-top: 40px; padding: 14px 40px; background: #1a1a1a; color: #fff; border-radius: 999px; cursor: pointer; font-weight: 700; }
+        .alert-footer-btn { margin-top: 40px; padding: 8px 16px; background: #1a1a1a; color: #fff; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; border: 1px solid #1a1a1a; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .alert-footer-btn:hover, .alert-footer-btn:active { background: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
       `}</style>
 
       <section id="configurator" ref={configuratorRef}>

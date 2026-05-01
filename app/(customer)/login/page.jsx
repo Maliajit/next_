@@ -439,28 +439,25 @@ export default function Login() {
         .lp-forgot:hover { color: #1C2E4A; }
 
         .lp-submit-btn {
-          width: 100%; padding: 16px 24px;
-          background: linear-gradient(120deg, #1C2E4A 0%, #4a6fa5 60%, #764ba2 100%);
-          color: white; border: none; border-radius: 14px;
-          font-size: 12px; letter-spacing: 0.18em;
+          width: 100%; padding: 8px 16px;
+          background: #1a1a1a;
+          color: white; border: 1px solid #1a1a1a; border-radius: 999px;
+          font-size: 10px; letter-spacing: 0.15em;
           text-transform: uppercase; font-weight: 700;
           cursor: pointer;
           display: flex; align-items: center; justify-content: center; gap: 10px;
-          transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           margin-top: 4px;
           position: relative; overflow: hidden;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .lp-submit-btn::before {
-          content: '';
-          position: absolute; inset: 0;
-          background: linear-gradient(120deg, #4a6fa5, #764ba2, #1C2E4A);
-          opacity: 0;
-          transition: opacity 0.4s;
-        }
-        .lp-submit-btn:hover::before { opacity: 1; }
-        .lp-submit-btn:hover {
+        .lp-submit-btn:hover, .lp-submit-btn:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-2px);
-          box-shadow: 0 14px 36px rgba(28,46,74,0.3);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         .lp-submit-btn:disabled { opacity: 0.75; cursor: not-allowed; }
         .lp-submit-btn > * { position: relative; z-index: 1; }

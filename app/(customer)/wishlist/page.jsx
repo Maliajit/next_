@@ -122,33 +122,43 @@ export default function Wishlist() {
           justify-content: center;
         }
         .wishlist-btn {
-          padding: 12px 24px;
-          border-radius: 30px;
+          padding: 8px 16px;
+          border-radius: 999px;
           text-decoration: none;
-          font-weight: 600;
-          font-size: 0.85rem;
+          font-weight: 700;
+          font-size: 10px;
           text-transform: uppercase;
-          letter-spacing: 0.1em;
-          transition: all 0.3s;
+          letter-spacing: 0.15em;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .btn-cart {
-          background: #c4a35a;
+          background: #1a1a1a;
           color: #fff;
-          border: none;
+          border: 1px solid #1a1a1a;
           cursor: pointer;
           font-family: 'Inter', sans-serif;
         }
-        .btn-cart:hover {
-          background: #1a1a1a;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        .btn-cart:hover, .btn-cart:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         .btn-config {
           background: #1a1a1a;
           color: #fff;
+          border: 1px solid #1a1a1a;
         }
-        .btn-config:hover {
-          background: #c4a35a;
-          box-shadow: 0 8px 20px rgba(196, 163, 90, 0.25);
+        .btn-config:hover, .btn-config:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         .wishlist-empty {
@@ -166,17 +176,26 @@ export default function Wishlist() {
         }
         .wishlist-empty-cta {
           display: inline-block;
-          padding: 16px 40px;
+          padding: 8px 16px;
           background: #1a1a1a;
           color: #fff;
           text-decoration: none;
-          border-radius: 40px;
-          font-weight: 600;
-          transition: all 0.3s;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.15em;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          border: 1px solid #1a1a1a;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .wishlist-empty-cta:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        .wishlist-empty-cta:hover, .wishlist-empty-cta:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         @media (max-width: 768px) {

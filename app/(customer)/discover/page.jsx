@@ -378,12 +378,12 @@ function DiscoverContent() {
         }
         .cfg-cta-pill {
           display: inline-block;
-          padding: 10px 24px;
+          padding: 8px 16px;
           background: #1a1a1a;
           color: #fff;
           text-decoration: none;
           font-weight: 700;
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: 0.15em;
           text-transform: uppercase;
           border-radius: 999px;
@@ -392,11 +392,39 @@ function DiscoverContent() {
           border: 1px solid #1a1a1a;
           pointer-events: auto;
         }
-        .cfg-cta-pill:hover {
-          background: #c4a35a;
-          border-color: #c4a35a;
+        .cfg-cta-pill:hover, .cfg-cta-pill:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(196, 163, 90, 0.2);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .cfg-book-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 16px;
+          background: #1a1a1a;
+          color: #fff;
+          border: 1px solid #1a1a1a;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .cfg-book-btn:hover, .cfg-book-btn:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         /* ═══ HERO SECTION ═══ */

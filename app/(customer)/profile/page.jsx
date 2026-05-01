@@ -454,7 +454,7 @@ const Profile = () => {
                 </div>
 
                 <div className="pt-4">
-                  <button className="bg-[#1C2E4A] text-white px-10 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#c4a35a] transition-colors duration-500">
+                  <button className="bg-[#1C2E4A] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:bg-opacity-10 hover:backdrop-blur-md border border-[#1C2E4A] hover:border-white hover:border-opacity-20 transition-all duration-500 shadow-lg hover:shadow-2xl">
                     Update Registry
                   </button>
                 </div>

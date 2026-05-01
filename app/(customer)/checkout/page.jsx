@@ -655,12 +655,20 @@ const Checkout = () => {
           display: flex; justify-content: flex-end;
         }
         .primary-btn {
-          padding: 14px 48px; border-radius: 14px; border: none;
-          background: #1e293b; color: white; font-weight: 600;
-          text-transform: uppercase; letter-spacing: 0.1em;
-          font-size: 12px; cursor: pointer; transition: all 0.3s;
+          padding: 8px 16px; border-radius: 999px; border: 1px solid #1a1a1a;
+          background: #1a1a1a; color: white; font-weight: 700;
+          text-transform: uppercase; letter-spacing: 0.15em;
+          font-size: 10px; cursor: pointer; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .primary-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(30, 41, 59, 0.15); }
+        .primary-btn:hover:not(:disabled), .primary-btn:active:not(:disabled) { 
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px); 
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
+        }
         .primary-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .order-summary-card { padding: 24px; position: sticky; top: 40px; }

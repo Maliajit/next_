@@ -310,27 +310,29 @@ export default function Shop() {
         .rtxt .rule { background: var(--fyl-gold); width: 40px; height: 2px; margin-bottom: 24px; }
         .bf { 
           display: inline-block; 
-          padding: 13px 40px; 
+          padding: 8px 16px; 
           text-align: center; 
-          font-size: 12px; 
-          letter-spacing: .25em; 
+          font-size: 10px; 
+          letter-spacing: .15em; 
           text-transform: uppercase; 
-          font-family: 'Jost', sans-serif; 
+          font-family: 'Inter', sans-serif; 
           font-weight: 700; 
-          background: transparent; 
-          border: 1.5px solid var(--navy); 
-          color: var(--navy); 
+          background: #1a1a1a; 
+          border: 1px solid #1a1a1a; 
+          color: #fff; 
           cursor: pointer; 
           transition: all .4s cubic-bezier(0.23, 1, 0.32, 1); 
           border-radius: 999px; 
           text-decoration: none; 
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .bf:hover { 
-          background: #c4a35a; 
-          color: #fff; 
-          border-color: #c4a35a;
-          box-shadow: 0 10px 25px rgba(196, 163, 90, 0.25); 
-          transform: translateY(-2px); 
+        .bf:hover, .bf:active { 
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         .rbtn-wrap { position: absolute; top: auto; bottom: 5vh; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; z-index: 5; }
         .rpag { position: absolute; bottom: 12vh; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; z-index: 10; }
@@ -398,32 +400,34 @@ export default function Shop() {
         .vbtn { 
           display: block; 
           width: 100%; 
-          padding: 12px; 
+          padding: 8px 16px; 
           text-align: center; 
-          font-size: 11px; 
-          letter-spacing: .2em; 
+          font-size: 10px; 
+          letter-spacing: .15em; 
           text-transform: uppercase; 
-          font-family: 'Jost', sans-serif; 
+          font-family: 'Inter', sans-serif; 
           font-weight: 700; 
           background: #1a1a1a; 
-          border: 1.5px solid #1a1a1a; 
+          border: 1px solid #1a1a1a; 
           color: #fff; 
           cursor: pointer; 
           transition: all .4s cubic-bezier(0.23, 1, 0.32, 1); 
           border-radius: 999px; 
           text-decoration: none; 
           margin-top: 20px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .vbtn:hover { 
-          background: #c4a35a; 
-          border-color: #c4a35a; 
-          color: #fff;
+        .vbtn:hover, .vbtn:active { 
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(196, 163, 90, 0.2);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
-        .vc:hover .vbtn { background: #c4a35a; color: #fff; border-color: #c4a35a; }
+        .vc:hover .vbtn { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
         .vc.feat .vbtn { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-        .vc.feat:hover .vbtn { background: #c4a35a; color: #fff; border-color: #c4a35a; }
+        .vc.feat:hover .vbtn { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
         #cta { position: relative; width: 100vw; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .ctaph { width: 100%; height: auto; object-fit: cover; filter: grayscale(1); display: block; }
         .shop-bt { color: #2c3e50; line-height: 1.85; letter-spacing: 0.02em; font-size: 16px; font-weight: 400; }

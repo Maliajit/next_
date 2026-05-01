@@ -131,21 +131,57 @@ body {
 
 /* Common Buttons */
 .cta-v1 {
-  font-size: .65rem;
-  font-weight: 600;
-  letter-spacing: .22em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .15em;
   text-transform: uppercase;
-  color: var(--dark);
-  background: var(--gold);
-  padding: 11px 26px;
+  color: var(--fyl-white);
+  background: #1a1a1a;
+  padding: 8px 16px;
   text-decoration: none;
-  transition: background .3s, transform 0.3s;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   cursor: pointer;
-  border: none;
+  border: 1px solid #1a1a1a;
   display: inline-block;
+  border-radius: 999px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.cta-v1:hover {
-  background: var(--gold-light);
+.cta-v1:hover, .cta-v1:active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
   transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Glassmorphism Button Utility */
+.btn-glass {
+  padding: 8px 16px;
+  background: #1a1a1a;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  border: 1px solid #1a1a1a;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-glass:hover, .btn-glass:active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }

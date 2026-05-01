@@ -698,39 +698,40 @@ export default function Signup() {
         }
         .sp-back-btn {
           display: flex; align-items: center; gap: 6px;
-          padding: 13px 20px; border-radius: 12px;
-          border: 1.5px solid rgba(99,130,201,0.25);
+          padding: 8px 16px; border-radius: 999px;
+          border: 1px solid rgba(99,130,201,0.25);
           background: rgba(240,244,252,0.7);
-          font-size: 12px; font-weight: 600; color: #5a6a80;
+          font-size: 10px; font-weight: 700; color: #5a6a80;
           cursor: pointer; font-family: 'Montserrat', sans-serif;
-          transition: all 0.25s;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
         }
         .sp-back-btn:hover {
           border-color: #4a6fa5; color: #4a6fa5;
           background: rgba(74,111,165,0.08);
+          transform: translateY(-1px);
         }
         .sp-next-btn {
           flex: 1;
           display: flex; align-items: center; justify-content: center; gap: 8px;
-          padding: 15px 24px; border-radius: 14px;
-          background: linear-gradient(120deg, #1C2E4A 0%, #4a6fa5 60%, #764ba2 100%);
-          color: white; border: none;
-          font-size: 12px; letter-spacing: 0.15em;
+          padding: 8px 16px; border-radius: 999px;
+          background: #1a1a1a;
+          color: white; border: 1px solid #1a1a1a;
+          font-size: 10px; letter-spacing: 0.15em;
           text-transform: uppercase; font-weight: 700;
           cursor: pointer; font-family: 'Montserrat', sans-serif;
           position: relative; overflow: hidden;
-          transition: transform 0.3s, box-shadow 0.3s;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .sp-next-btn::before {
-          content: '';
-          position: absolute; inset: 0;
-          background: linear-gradient(120deg, #764ba2, #4a6fa5, #1C2E4A);
-          opacity: 0; transition: opacity 0.4s;
-        }
-        .sp-next-btn:hover::before { opacity: 1; }
-        .sp-next-btn:hover {
+        .sp-next-btn:hover, .sp-next-btn:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-2px);
-          box-shadow: 0 12px 32px rgba(28,46,74,0.3);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         .sp-next-btn > * { position: relative; z-index: 1; }
         .sp-next-btn:disabled { opacity: 0.75; cursor: not-allowed; }
@@ -775,16 +776,22 @@ export default function Signup() {
         .sp-success-sub { font-size: 14px; color: #7a8aa0; max-width: 300px; }
         .sp-success-btn {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 14px 32px; border-radius: 14px;
-          background: linear-gradient(120deg, #1C2E4A, #4a6fa5);
+          padding: 8px 16px; border-radius: 999px;
+          background: #1a1a1a;
           color: white; text-decoration: none;
-          font-size: 12px; letter-spacing: 0.14em;
+          font-size: 10px; letter-spacing: 0.15em;
           text-transform: uppercase; font-weight: 700;
-          transition: transform 0.3s, box-shadow 0.3s;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          border: 1px solid #1a1a1a;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .sp-success-btn:hover {
+        .sp-success-btn:hover, .sp-success-btn:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-2px);
-          box-shadow: 0 10px 28px rgba(28,46,74,0.3);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
       `}</style>
     </div>

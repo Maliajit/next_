@@ -426,14 +426,23 @@ const Home = () => {
         }
         .f-shop-btn {
           background: #fff; color: #000 !important;
-          padding: 14px 36px; border-radius: 999px;
-          font-size: 1rem; font-weight: 600;
-          text-decoration: none; border: none; cursor: pointer;
-          transition: all 0.3s ease;
+          padding: 8px 16px; border-radius: 999px;
+          font-size: 10px; font-weight: 700;
+          text-decoration: none; border: 1px solid #fff; cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           display: inline-block;
-          letter-spacing: -0.01em;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
         }
-        .f-shop-btn:hover { background: #f0f0f0; }
+        .f-shop-btn:hover, .f-shop-btn:active { 
+          background: rgba(255, 255, 255, 0.1) !important; 
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          color: #fff !important;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
 
         /* Featured Grid mobile overrides */
         @media (max-width: 768px) {
@@ -495,19 +504,24 @@ const Home = () => {
           margin-bottom: 2.5rem; line-height: 1;
         }
         .cta-button {
-          background: rgba(45,45,45,0.4);
+          background: rgba(0, 0, 0, 0.6);
           backdrop-filter: blur(15px);
           -webkit-backdrop-filter: blur(15px);
-          color: #000; padding: 18px 48px;
-          border-radius: 999px; font-size: 0.9rem;
-          font-weight: 600; text-transform: uppercase;
-          letter-spacing: 0.2em;
+          color: #fff; padding: 8px 16px;
+          border-radius: 999px; font-size: 10px;
+          font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.15em;
           border: 1px solid rgba(255,255,255,0.1);
-          transition: all 0.3s ease; cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); cursor: pointer;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .cta-button:hover {
-          background: rgba(45,45,45,0.6);
+        .cta-button:hover, .cta-button:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         /* ── Story cards ── */

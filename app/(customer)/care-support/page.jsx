@@ -122,8 +122,29 @@ export default function CareSupport() {
         .f-input:focus { border-color: #1C2E4A !important; outline: none; box-shadow: 0 0 15px rgba(28,46,74,0.05); }
         .f-textarea { height: 160px; resize: none; }
         
-        .btn-submit { width: 100%; padding: 20px; background: #1C2E4A !important; color: #FFFFFF !important; border: none; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3em; cursor: pointer; transition: all 0.4s; border-radius: 4px; }
-        .btn-submit:hover { background: #000 !important; transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .btn-submit { 
+          width: 100%; 
+          padding: 8px 16px; 
+          background: #1a1a1a !important; 
+          color: #FFFFFF !important; 
+          border: 1px solid #1a1a1a; 
+          font-size: 10px; 
+          font-weight: 700; 
+          text-transform: uppercase; 
+          letter-spacing: 0.15em; 
+          cursor: pointer; 
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); 
+          border-radius: 999px; 
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-submit:hover, .btn-submit:active { 
+          background: rgba(255, 255, 255, 0.1) !important; 
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px); 
+          box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
+        }
         .success-msg { text-align: center; padding: 60px 40px; background: #fff; color: #1C2E4A !important; border-radius: 8px; font-weight: 400; border: 1px solid rgba(28,46,74,0.1); }
         .success-msg h3 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 15px; color: #1C2E4A !important; }
 

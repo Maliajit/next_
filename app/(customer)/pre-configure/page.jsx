@@ -191,24 +191,26 @@ const PreConfigure = () => {
         }
         .btn-configure {
           display: inline-block;
-          padding: 13px 40px;
+          padding: 8px 16px;
           background: #1a1a1a;
           color: #fff;
           text-decoration: none;
-          font-size: 0.75rem;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.15em;
           text-transform: uppercase;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           border-radius: 999px;
           border: 1px solid #1a1a1a;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .btn-configure:hover {
-          background: #c4a35a;
-          border-color: #c4a35a;
+        .btn-configure:hover, .btn-configure:active {
+          background: rgba(255, 255, 255, 0.1) !important;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-2px);
-          box-shadow: 0 12px 30px rgba(196, 163, 90, 0.25);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         /* Custom Pagination Lines */
