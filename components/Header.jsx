@@ -104,7 +104,7 @@ const Header = () => {
           flex-direction: column;
           justify-content: space-between;
           width: 22px;
-          height: 14px;
+          height: 12px;
           cursor: pointer;
         }
 
@@ -118,16 +118,11 @@ const Header = () => {
         }
 
         .hamburger-v1.open span:nth-child(1) {
-          transform: translateY(6.25px) rotate(45deg);
+          transform: translateY(5.25px) rotate(45deg);
         }
 
         .hamburger-v1.open span:nth-child(2) {
-          opacity: 0;
-          transform: translateX(-10px);
-        }
-
-        .hamburger-v1.open span:nth-child(3) {
-          transform: translateY(-6.25px) rotate(-45deg);
+          transform: translateY(-5.25px) rotate(-45deg);
         }
 
         .trigger-text {
@@ -324,7 +319,6 @@ const Header = () => {
         <div className="header-left">
           <button className="nav-trigger" onClick={toggleMenu}>
             <div className={`hamburger-v1 ${isMenuOpen ? 'open' : ''}`}>
-              <span></span>
               <span></span>
               <span></span>
             </div>
