@@ -245,7 +245,6 @@ export default function Signup() {
 
   const next = async () => {
     setError('');
-    
     if (step === 0) {
       if (!data.name.trim()) return setError('Please enter your full name');
       if (!data.email.trim()) return setError('Please enter your email address');

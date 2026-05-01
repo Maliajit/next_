@@ -108,17 +108,7 @@ export default function Login() {
           }}
         >
           <div className="lp-brand">
-            <div className="lp-brand-mark">
-              <img src="/assets/fylex-watch-v2/light-logo.png" alt="Fylexx Logo" style={{ width: '28px', height: 'auto', opacity: 0.9 }} onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
-              <svg viewBox="0 0 40 40" width="28" height="28" style={{ display: 'none' }}>
-                <circle cx="20" cy="20" r="18" stroke="#1C2E4A" strokeWidth="1.5" fill="none" />
-                <circle cx="20" cy="20" r="10" stroke="#4a6fa5" strokeWidth="1.2" fill="none" />
-                <circle cx="20" cy="20" r="4" fill="#1C2E4A" />
-                <line x1="20" y1="2" x2="20" y2="8" stroke="#1C2E4A" strokeWidth="1.5" strokeLinecap="round" />
-                <line x1="20" y1="32" x2="20" y2="38" stroke="#1C2E4A" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="lp-brand-name">FYLEXX</span>
+           <span className="lp-brand-name">FYLEXX</span>
           </div>
 
           <div className="lp-left-copy">
@@ -129,12 +119,7 @@ export default function Login() {
               and manage your personalized timepieces.
             </p>
 
-            {/* Real Watch Visual */}
-            <div className="lp-real-watch-wrap">
-              <img src="/assets/fylex-watch-v2/premium.png" alt="Fylexx Premium Watch" className="lp-real-watch-img" />
-              <div className="lp-watch-glow" />
-              <div className="lp-watch-shadow" />
-            </div>
+
           </div>
         </div>
 
@@ -293,8 +278,28 @@ export default function Login() {
           padding-top: var(--header-h, 70px);
         }
         @media(max-width: 820px) {
-          .lp-split { grid-template-columns: 1fr; }
-          .lp-left-panel { display: none; }
+          .lp-split { 
+            grid-template-columns: 1fr; 
+            min-height: auto;
+            gap: 0;
+          }
+          .lp-left-panel { 
+            padding: 40px 24px 10px;
+            justify-content: flex-start;
+          }
+          .lp-left-copy {
+            flex: none;
+          }
+          .lp-left-sub {
+            margin-bottom: 24px;
+          }
+          .lp-right-panel {
+            padding: 10px 24px 60px;
+            align-items: flex-start;
+          }
+          .lp-form-card {
+            padding: 32px 24px;
+          }
         }
 
         /* Left panel */
@@ -341,47 +346,7 @@ export default function Login() {
           line-height: 1.75; max-width: 360px;
           margin-bottom: 48px;
         }
-        .lp-real-watch-wrap {
-          position: relative;
-          max-width: 280px;
-          margin-top: 10px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .lp-real-watch-img {
-          width: 100%;
-          height: auto;
-          position: relative;
-          z-index: 10;
-          filter: drop-shadow(0 15px 25px rgba(28,46,74,0.15));
-          animation: floatWatch 8s ease-in-out infinite alternate;
-        }
-        .lp-watch-glow {
-          position: absolute;
-          width: 80%;
-          height: 80%;
-          background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 60%);
-          z-index: 5;
-        }
-        .lp-watch-shadow {
-          position: absolute;
-          bottom: -20px;
-          width: 60%;
-          height: 15px;
-          border-radius: 50%;
-          background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, transparent 70%);
-          z-index: 1;
-          animation: shadowPulse 8s ease-in-out infinite alternate;
-        }
-        @keyframes floatWatch {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-15px); }
-        }
-        @keyframes shadowPulse {
-          0% { transform: scale(1); opacity: 0.8; }
-          100% { transform: scale(0.85); opacity: 0.4; }
-        }
+
 
         /* Right panel / form */
         .lp-right-panel {
@@ -409,7 +374,7 @@ export default function Login() {
         .lp-form-header { margin-bottom: 32px; }
         .lp-form-title {
           font-family: 'Playfair Display', serif;
-          font-size: 30px; font-weight: 400;
+          font-size: 20px; font-weight: 400;
           color: #1C2E4A; margin-bottom: 6px;
         }
         .lp-form-subtitle {
