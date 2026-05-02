@@ -279,10 +279,14 @@ const EditProductPage = () => {
         if (pickerTarget === 'primary') {
             setForm(prev => ({ ...prev, heroImage: selection[0] }));
         } else if (pickerTarget === 'gallery') {
-            setForm(prev => ({
-                ...prev,
-                gallery: [...prev.gallery, ...selection]
-            }));
+            setForm(prev => {
+                const existingIds = new Set(prev.gallery.map(g => g.id.toString()));
+                const uniqueNew = selection.filter(s => !existingIds.has(s.id.toString()));
+                return {
+                    ...prev,
+                    gallery: [...prev.gallery, ...uniqueNew]
+                };
+            });
         } else if (typeof pickerTarget === 'object') {
             const { variantIndex, type } = pickerTarget;
             setVariants(prev => {
@@ -290,7 +294,10 @@ const EditProductPage = () => {
                 if (type === 'primary') {
                     next[variantIndex].heroImage = selection[0];
                 } else {
-                    next[variantIndex].gallery = [...(next[variantIndex].gallery || []), ...selection];
+                    const currentGallery = next[variantIndex].gallery || [];
+                    const existingIds = new Set(currentGallery.map(g => g.id.toString()));
+                    const uniqueNew = selection.filter(s => !existingIds.has(s.id.toString()));
+                    next[variantIndex].gallery = [...currentGallery, ...uniqueNew];
                 }
                 return next;
             });
@@ -520,13 +527,31 @@ const EditProductPage = () => {
                                                         {form.gallery.map((img, i) => (
                                                             <div key={i} className="aspect-square rounded-lg border border-gray-200 overflow-hidden relative group">
                                                                 <img src={getFileUrl(img.url)} className="w-full h-full object-cover" alt="Gallery" />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setForm(prev => ({ ...prev, gallery: prev.gallery.filter(g => g.id !== img.id) }))}
-                                                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                                                                >
-                                                                    <i className="fas fa-times text-[10px]"></i>
-                                                                </button>
+                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => moveGalleryImage(i, -1)}
+                                                                        disabled={i === 0}
+                                                                        className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-gray-700 disabled:opacity-30 hover:bg-gray-100"
+                                                                    >
+                                                                        <i className="fas fa-chevron-left text-[10px]"></i>
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setForm(prev => ({ ...prev, gallery: prev.gallery.filter(g => g.id !== img.id) }))}
+                                                                        className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                                                                    >
+                                                                        <i className="fas fa-trash-alt text-[10px]"></i>
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => moveGalleryImage(i, 1)}
+                                                                        disabled={i === form.gallery.length - 1}
+                                                                        className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-gray-700 disabled:opacity-30 hover:bg-gray-100"
+                                                                    >
+                                                                        <i className="fas fa-chevron-right text-[10px]"></i>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                         <button
@@ -779,14 +804,19 @@ const EditProductPage = () => {
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, -1)}
                                                             disabled={gIdx === 0}
-                                                            className="!w-6 !h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
-                                                        ><i className="fas fa-chevron-left text-[10px]"></i></button>
+                                                            className="!w-5 !h-5 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-left text-[8px]"></i></button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeVariantImage(variantImageModal.index, img.id)}
+                                                            className="!w-5 !h-5 bg-red-500 rounded-lg flex items-center justify-center text-white hover:bg-red-600 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-trash-alt text-[8px]"></i></button>
                                                         <button
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, 1)}
                                                             disabled={gIdx === variants[variantImageModal.index].gallery.length - 1}
-                                                            className="!w-6 !h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
-                                                        ><i className="fas fa-chevron-right text-[10px]"></i></button>
+                                                            className="!w-5 !h-5 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-right text-[8px]"></i></button>
                                                     </div>
                                                 </div>
                                             </div>

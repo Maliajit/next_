@@ -9,7 +9,7 @@ import productsData from '../../../data/productsData';
 import 'swiper/css/free-mode';
 import Lenis from 'lenis';
 import { useWishlist } from '@/context/WishlistContext';
-import { X, RefreshCw } from 'lucide-react';
+import { X, RefreshCw, Heart, ChevronRight, ChevronLeft, Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { fetchProducts } from '../../../lib/api';
 import { getFileUrl } from '@/lib/utils';
@@ -38,6 +38,7 @@ function ConfigureContent() {
   const [viewMode, setViewMode] = useState('variants');
   const [showCustomAlert, setShowCustomAlert] = useState(false);
   const [userSelections, setUserSelections] = useState({});
+  const [displayPrice, setDisplayPrice] = useState('');
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -57,13 +58,14 @@ function ConfigureContent() {
           title: p.name,
           price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
           heroImage: getFileUrl(p.heroImage || p.images?.[0]) || '/assets/fylex-watch-v2/premium.png',
-          galleryImages: (p.productMedia || []).filter(m => m.type === 'GALLERY' || m.role === 'gallery').map(m => getFileUrl(m.media?.path || m.media?.url)),
+          galleryImages: [],
           theme: p.bgColor || 'champagne',
           accentColor: p.accentColor || '#c4a35a',
           textColor: p.textColor || '#1a1a1a',
         };
         setProduct(mappedProduct);
         setPreviewSrc(mappedProduct.heroImage);
+        setDisplayPrice(mappedProduct.price);
 
         const threeSixty = (p.productMedia || [])
           .filter(m => m.type === '360' || m.role === '360_view')
@@ -74,35 +76,35 @@ function ConfigureContent() {
         const attrMap = {};
         (p.variants || []).forEach(v => {
           (v.variantAttributes || []).forEach(va => {
-              const attr = va.attributeValue?.attribute;
-              if(!attr) return;
-              if(!attrMap[attr.name]) {
-                  attrMap[attr.name] = { id: attr.id, title: `Choose your ${attr.name.toLowerCase()}`, options: [] };
-              }
-              if(!attrMap[attr.name].options.some(o => o.name === va.attributeValue.label)) {
-                  const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
-                  const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
-                  attrMap[attr.name].options.push({ 
-                      name: va.attributeValue.label, 
-                      img: vPath || mappedProduct.heroImage,
-                      dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? vPath : null
-                  });
-              }
+            const attr = va.attributeValue?.attribute;
+            if (!attr) return;
+            if (!attrMap[attr.name]) {
+              attrMap[attr.name] = { id: attr.id, title: `Choose your ${attr.name.toLowerCase()}`, options: [] };
+            }
+            if (!attrMap[attr.name].options.some(o => o.name === va.attributeValue.label)) {
+              const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
+              const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
+              attrMap[attr.name].options.push({
+                name: va.attributeValue.label,
+                img: vPath || mappedProduct.heroImage,
+                dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? vPath : null
+              });
+            }
           });
         });
 
         const dynamicSteps = Object.keys(attrMap).map((key, idx, arr) => ({
           ...attrMap[key],
           id: key.toLowerCase(),
-          nextLbl: idx < arr.length - 1 ? Object.keys(attrMap)[idx+1] : 'Discover'
+          nextLbl: idx < arr.length - 1 ? Object.keys(attrMap)[idx + 1] : 'Discover'
         }));
 
         setStepsData(dynamicSteps);
         setVariants(p.variants || []);
-        
+
         const initialSelections = {};
         dynamicSteps.forEach(step => {
-            initialSelections[step.id] = step.options[0]?.name;
+          initialSelections[step.id] = step.options[0]?.name;
         });
         setUserSelections(initialSelections);
 
@@ -120,6 +122,11 @@ function ConfigureContent() {
           const vImg = initialMatch.variantImages?.find(vi => vi.type === 'MAIN')?.media || initialMatch.variantImages?.[0]?.media;
           const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
           if (vPath) setPreviewSrc(vPath);
+
+          const matchGallery = (initialMatch.variantImages || []).map(vi => 
+            getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
+          ).filter(Boolean);
+          setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
         }
 
         const dialsStep = dynamicSteps.find(s => s.id === 'dial' || s.id === 'dials');
@@ -165,25 +172,11 @@ function ConfigureContent() {
 
 
   const handleWishlistClick = () => {
-    toggleWishlist(product);
-    if (!isInWishlist(product.id)) {
-      Swal.fire({
-        title: 'Added to Favourites',
-        text: `${product.title} has been added to your wishlist.`,
-        icon: 'success',
-        confirmButtonColor: '#008767',
-        confirmButtonText: 'Continue',
-        customClass: { popup: 'professional-swal-popup' }
-      });
+    const match = findMatchingVariant(userSelections);
+    if (match) {
+      toggleWishlist({ ...product, variantId: match.id });
     } else {
-      Swal.fire({
-        title: 'Removed',
-        text: `${product.title} has been removed from your wishlist.`,
-        icon: 'info',
-        confirmButtonColor: '#1a1a1a',
-        confirmButtonText: 'Okay',
-        customClass: { popup: 'professional-swal-popup' }
-      });
+      toggleWishlist(product);
     }
   };
 
@@ -201,9 +194,27 @@ function ConfigureContent() {
     if (currentStep > 0) {
       const prevStepIdx = currentStep - 1;
       setCurrentStep(prevStepIdx);
-      setActiveOpt(0);
+      
+      const prevStepId = stepsData[prevStepIdx].id;
+      const savedSelection = userSelections[prevStepId];
+      const optIdx = stepsData[prevStepIdx].options.findIndex(o => o.name === savedSelection);
+      setActiveOpt(optIdx >= 0 ? optIdx : 0);
       setActiveThumb(0);
-      updatePreviewImage(stepsData[prevStepIdx].options[0].img);
+
+      const match = findMatchingVariant(userSelections);
+      if (match) {
+        const vImg = match.variantImages?.find(vi => vi.type === 'MAIN')?.media || match.variantImages?.[0]?.media;
+        const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
+        updatePreviewImage(vPath || stepsData[prevStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
+        setDisplayPrice(`₹${Number(match.sellingPrice || 0).toLocaleString('en-IN')}`);
+        
+        const matchGallery = (match.variantImages || []).map(vi => 
+          getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
+        ).filter(Boolean);
+        setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
+      } else {
+        updatePreviewImage(stepsData[prevStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
+      }
     } else if (currentStep === 0) {
       resetToOverview();
     }
@@ -242,6 +253,12 @@ function ConfigureContent() {
       const vImg = match.variantImages?.find(vi => vi.type === 'MAIN')?.media || match.variantImages?.[0]?.media;
       const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
       updatePreviewImage(vPath || src);
+      setDisplayPrice(`₹${Number(match.sellingPrice || 0).toLocaleString('en-IN')}`);
+
+      const matchGallery = (match.variantImages || []).map(vi => 
+        getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
+      ).filter(Boolean);
+      setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
     } else {
       updatePreviewImage(src);
     }
@@ -252,9 +269,27 @@ function ConfigureContent() {
     if (currentStep < stepsData.length - 1) {
       const nextStepIdx = currentStep + 1;
       setCurrentStep(nextStepIdx);
-      setActiveOpt(0);
+      
+      const nextStepId = stepsData[nextStepIdx].id;
+      const savedSelection = userSelections[nextStepId];
+      const optIdx = stepsData[nextStepIdx].options.findIndex(o => o.name === savedSelection);
+      setActiveOpt(optIdx >= 0 ? optIdx : 0);
       setActiveThumb(0);
-      updatePreviewImage(stepsData[nextStepIdx].options[0].img);
+
+      const match = findMatchingVariant(userSelections);
+      if (match) {
+        const vImg = match.variantImages?.find(vi => vi.type === 'MAIN')?.media || match.variantImages?.[0]?.media;
+        const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
+        updatePreviewImage(vPath || stepsData[nextStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
+        setDisplayPrice(`₹${Number(match.sellingPrice || 0).toLocaleString('en-IN')}`);
+
+        const matchGallery = (match.variantImages || []).map(vi => 
+          getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
+        ).filter(Boolean);
+        setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
+      } else {
+        updatePreviewImage(stepsData[nextStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
+      }
     } else {
       setShowCustomAlert(true);
     }
@@ -267,7 +302,7 @@ function ConfigureContent() {
   };
 
   const handle360Scroll = (e) => {
-    if(!media360.length) return;
+    if (!media360.length) return;
     const sens = 40;
     const delta = e.clientX;
     const newIndex = Math.floor(delta / sens) % media360.length;
@@ -280,25 +315,30 @@ function ConfigureContent() {
         .customize-root { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #111; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
         #configurator { flex: 1; width: 100%; background: radial-gradient(circle at center, #FFFFFF 0%, #ebedf0 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 5; }
         .top-actions { position: fixed; top: 100px; right: 30px; display: flex; align-items: center; gap: 15px; z-index: 999; }
-        .close-btn { width: 50px; height: 50px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #111; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; }
+        .close-btn { display: flex; align-items: center; justify-content: center; color: #111; cursor: pointer; }
         .c-main { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding-bottom: 200px; }
         .watch-preview { height: 65vh; object-fit: contain; filter: drop-shadow(0 30px 60px rgba(0,0,0,0.15)); transition: opacity 0.4s ease; }
-        .thumbnails { position: absolute; left: 40px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 20px; z-index: 15; }
-        .thumb { width: 62px; height: 62px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.08); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
-        .thumb.active { border-color: #008767; transform: scale(1.1); }
-        .thumb img { width: 85%; height: 85%; object-fit: contain; }
+        .thumbnails { position: absolute; right: 20px; top: 40%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 15; }
+        .thumb { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.1); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .thumb.active { border-color: #1a1a1a; transform: scale(1.1); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 768px) {
+  .thumbnails { right: 15px; gap: 10px; }
+  .thumb { width: 42px; height: 42px; }
+}
         .c-bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 30; background: transparent; }
-        .c-selection-controls { padding: 30px 60px 30px 120px; display: flex; flex-direction: column; gap: 20px; }
-        .step-title { font-size: 20px; font-weight: 600; }
+        .c-selection-controls { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+        .step-title { font-size: 1.125rem; font-weight: 600; }
         .options-row { display: flex; gap: 30px; font-size: 16px; font-weight: 600; color: #8A8A8A; overflow-x: auto; scrollbar-width: none; }
         .opt { cursor: pointer; transition: color 0.3s; white-space: nowrap; }
         .opt.active { color: #008767; }
-        .nav-buttons-row { display: flex; align-items: center; gap: 20px; margin-top: 10px; }
-        .btn-circular-back { width: 50px; height: 50px; border-radius: 50%; background: #1a1a1a; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-buttons-row { position: relative; display: flex; align-items: center; justify-content: center; min-height: 50px; margin-top: 15px; }
+        .btn-circular-back { position: absolute; left: 0; width: 35px; height: 35px; border-radius: 50%; background: #1a1a1a; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; transition: transform 0.3s; }
+        .btn-circular-back:hover { transform: scale(1.05); }
         .btn-pill-next { background: #1a1a1a; color: #fff; font-size: 10px; font-weight: 700; padding: 8px 16px; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 999px; border: 1px solid #1a1a1a; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .btn-pill-next:hover, .btn-pill-next:active { background: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
         .c-summary-footer { background: #fff; padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); }
-        .f-title { font-size: 22px; font-weight: 700; color: #111; margin: 0; }
+        .f-title { font-size: 16px; font-weight: 700; color: #111; margin: 0; }
         .f-price { font-size: 16px; font-weight: 600; color: #111; }
         .alert-overlay { position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.4s; }
         .alert-overlay.show { opacity: 1; visibility: visible; }
@@ -322,7 +362,7 @@ function ConfigureContent() {
           ) : (
             <img src={previewSrc} alt="Watch preview" className="watch-preview" ref={previewImgRef} />
           )}
-          {!isLastStep && media360.length === 0 && product.galleryImages?.length > 0 && (
+          {product.galleryImages?.length > 0 && (
             <div className="thumbnails">
               {product.galleryImages.map((img, idx) => (
                 <div key={idx} className={`thumb ${previewSrc === img ? 'active' : ''}`} onClick={() => updatePreviewImage(img)}>
@@ -331,7 +371,7 @@ function ConfigureContent() {
               ))}
             </div>
           )}
-          {media360.length > 0 && <div style={{position:'absolute',bottom:100,color:'#888',fontSize:13}}><RefreshCw size={14}/> Swipe for 360° View</div>}
+          {media360.length > 0 && <div style={{ position: 'absolute', bottom: 100, color: '#888', fontSize: 13 }}><RefreshCw size={14} /> Swipe for 360° View</div>}
         </div>
 
         <div className="c-bottom-panel">
@@ -350,8 +390,11 @@ function ConfigureContent() {
                 ))}
               </div>
               <div className="nav-buttons-row">
-                {currentStep > 0 && <button className="btn-circular-back" onClick={handlePrevStep}><X size={24} style={{transform:'rotate(90deg)'}}/></button>}
-                <button className="btn-pill-next" onClick={handleNextStep}>{stepsData[currentStep]?.nextLbl}</button>
+                {currentStep > 0 && <button className="btn-circular-back" onClick={handlePrevStep}><ChevronLeft size={22} /></button>}
+                <button className="btn-pill-next" onClick={handleNextStep}>
+                  {stepsData[currentStep]?.nextLbl}
+                  <ChevronRight size={18} />
+                </button>
               </div>
             </div>
           )}
@@ -359,11 +402,8 @@ function ConfigureContent() {
           <div className="c-summary-footer">
             <div className="f-info">
               <h3 className="f-title">{product.title}</h3>
-              <span className="f-price">{product.price}</span>
+              <span className="f-price">{displayPrice}</span>
             </div>
-            <button className={`summary-wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`} onClick={handleWishlistClick}>
-              <X size={22} />
-            </button>
           </div>
         </div>
       </section>
@@ -373,7 +413,7 @@ function ConfigureContent() {
           <button className="alert-top-close" onClick={() => setShowCustomAlert(false)}><X size={24} /></button>
           <div className="alert-content-grid">
             <h2 className="alert-watch-title">{product.title}</h2>
-            <ul style={{listStyle:'none',padding:0,color:'#666',marginBottom:30}}>
+            <ul style={{ listStyle: 'none', padding: 0, color: '#666', marginBottom: 30 }}>
               {Object.keys(userSelections).map(key => <li key={key}>{userSelections[key]}</li>)}
             </ul>
             <div className="alert-image-center"><img src={previewSrc} className="alert-watch-preview" /></div>

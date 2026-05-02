@@ -43,14 +43,12 @@ export function WishlistProvider({ children }) {
       if (result) {
         if (result.isInWishlist === false) {
           setWishlist(prev => prev.filter(i => i.id !== product.id));
-          info?.(`${product.title} removed from wishlist`);
         } else {
           setWishlist(prev => [...prev, product]);
-          success?.(`${product.title} added to wishlist`);
         }
       }
     } catch (err) {
-      error?.('Failed to update wishlist');
+      console.error('Failed to update wishlist', err);
     }
   };
 

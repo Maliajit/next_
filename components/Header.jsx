@@ -67,12 +67,12 @@ const Header = () => {
           grid-template-columns: 1fr auto 1fr;
           align-items: center;
           padding: 0 clamp(20px, 5vw, 56px);
-          background: ${isMenuOpen ? '#1C2535' : '#000000'};
+          background: ${isMenuOpen ? '#000000ff' : '#000000'};
           border-bottom: 1px solid ${isMenuOpen ? 'rgba(255,255,255,0.1)' : 'var(--gold-dim)'};
           transition: background .4s, border-color .4s, transform .4s ease-in-out;
         }
         header.nav-v1.scrolled {
-          background: ${isMenuOpen ? '#1C2535' : '#000000'};
+          background: ${isMenuOpen ? '#000000ff' : '#000000'};
           backdrop-filter: ${isMenuOpen ? 'none' : 'blur(14px)'};
         }
         header.nav-v1.hidden {
@@ -148,7 +148,7 @@ const Header = () => {
         .overlay-screen-v1 {
           position: fixed; top: 0; left: 0; width: 100%;
           z-index: 2500;
-          background: #1C2535;
+          background: #0c0c0cff;
           display: flex;
           transform: translateY(-100%);
           transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
@@ -289,15 +289,16 @@ const Header = () => {
               <Link href="/products" className="primary" onClick={closeAll}>Fylex Watches</Link>
               <Link href="/my-purchases" className="primary" onClick={closeAll}>Your Collection</Link>
               <Link href="/shop" className="primary" onClick={closeAll}>Explore Shop</Link>
+              <Link href="#" className="primary" onClick={closeAll}>About Us</Link>
               <Link href="/#gallery" className="primary" onClick={(e) => handleLinkClick(e, 'gallery')}>Community</Link>
             </div>
             <div className="nav-link-group" style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px', width: '100%', paddingBottom: '20px' }}>
-              <Link href="/care-support" className="secondary" onClick={closeAll} style={{ fontSize: '1.1rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <Link href="/care-support" className="secondary" onClick={closeAll} style={{ fontSize: '0.9rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 Care & Support
               </Link>
               {user ? (
-                <Link href="/profile" className="secondary" onClick={closeAll} style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--gold-dim)' }}>
+                <Link href="/profile" className="secondary" onClick={closeAll} style={{ fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '10px'}}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                   My Profile
                 </Link>
