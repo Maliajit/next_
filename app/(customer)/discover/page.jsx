@@ -12,6 +12,7 @@ import 'swiper/css/effect-coverflow';
 import 'swiper/css/free-mode';
 import { fetchProducts } from '../../../lib/api';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { getFileUrl } from '@/lib/utils';
 import localProductsData from '../../../data/productsData';
 
@@ -19,6 +20,7 @@ function DiscoverContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const watchId = searchParams.get('watch');
   const mode = searchParams.get('mode');
   const isGeneralMode = mode === 'all';
@@ -427,62 +429,163 @@ function DiscoverContent() {
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
-        /* ═══ HERO SECTION ═══ */
+        /* ═══ NEW PREMIUM HERO ═══ */
         .cfg-hero {
           min-height: 100vh;
-          background: ${product.gradient || product.bgColor};
+          background: radial-gradient(circle at center, #ffffff 0%, #e8edf3 100%);
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
-          text-align: center;
           position: relative;
-          padding: 120px 20px 80px;
+          padding: 80px 40px;
           overflow: hidden;
         }
-        .cfg-hero::after {
-          content: '';
+        
+        .cfg-hero-aura {
           position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 120px;
-          background: linear-gradient(to top, #ffffff, transparent);
+          width: 600px;
+          height: 600px;
+          background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+          z-index: 1;
           pointer-events: none;
         }
-        .cfg-hero-title {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(2.8rem, 7vw, 5.5rem);
-          font-weight: 400;
-          margin: 0 0 10px;
-          line-height: 1.05;
-          opacity: ${isScrolled ? 0 : 1};
-          transform: translateY(${isScrolled ? '-30px' : '0'});
-          transition: opacity 0.5s, transform 0.5s;
-        }
-        .cfg-hero-accent {
-          font-style: italic;
-          opacity: 0.5;
-          display: block;
-          font-size: 0.45em;
-          letter-spacing: 0.15em;
-        }
-        .cfg-hero-subtitle {
-          font-size: 0.85rem;
-          letter-spacing: 0.35em;
-          text-transform: uppercase;
-          color: ${product.accentColor};
-          font-weight: 600;
-          margin-bottom: 30px;
-          opacity: ${isScrolled ? 0 : 1};
-          transition: opacity 0.5s;
-        }
+
         .cfg-hero-image {
           width: 100%;
-          max-width: 550px;
+          max-width: 500px;
           filter: drop-shadow(0 30px 60px rgba(0,0,0,0.12));
           position: relative;
           z-index: 5;
+          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* Top Left Favourites */
+        .cfg-fav-toggle {
+          position: absolute;
+          top: 120px;
+          left: 40px;
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          cursor: pointer;
+          color: #006039; /* Rolex green */
+          font-weight: 500;
+          font-size: 14px;
+          transition: opacity 0.3s;
+        }
+        .cfg-fav-toggle:hover { opacity: 0.8; }
+        .cfg-fav-toggle svg { width: 22px; height: 22px; fill: currentColor; }
+
+        /* Bottom Left Details */
+        .cfg-details-box {
+          position: absolute;
+          bottom: 60px;
+          left: 40px;
+          z-index: 100;
+          text-align: left;
+          max-width: 400px;
+        }
+        .cfg-details-title {
+          font-family: 'Inter', sans-serif;
+          font-size: clamp(2rem, 4vw, 2.8rem);
+          font-weight: 700;
+          color: #1a1a1a;
+          margin-bottom: 12px;
+          letter-spacing: -0.02em;
+        }
+        .cfg-details-specs {
+          font-size: 1.1rem;
+          color: #666;
+          margin-bottom: 2px;
+          font-weight: 300;
+        }
+        .cfg-details-ref {
+          font-size: 1.1rem;
+          color: #666;
+          margin-bottom: 15px;
+          font-weight: 300;
+        }
+        .cfg-details-price {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #1a1a1a;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .cfg-info-icon {
+          width: 16px;
+          height: 16px;
+          border: 1px solid #1a1a1a;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: 700;
+        }
+
+        /* Middle Right Variations */
+        .cfg-variations-btn {
+          position: absolute;
+          right: 40px;
+          top: 58%;
+          transform: translateY(-50%);
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .cfg-variations-btn:hover {
+            transform: translateY(-52%);
+        }
+        .cfg-var-thumb {
+          width: 76px;
+          height: 76px;
+          border-radius: 50%;
+          background: #fff;
+          border: 1px solid #eee;
+          padding: 8px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .cfg-var-thumb img { width: 90%; height: 90%; object-fit: contain; }
+        .cfg-var-label {
+          font-size: 10px;
+          font-weight: 700;
+          color: #1a1a1a;
+          text-transform: none;
+          letter-spacing: 0.02em;
+        }
+
+        /* Far Right Vertical Nav */
+        .cfg-vert-nav {
+          position: absolute;
+          right: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .cfg-nav-dash {
+          width: 3px;
+          height: 16px;
+          background: #ddd;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          cursor: pointer;
+        }
+        .cfg-nav-dash:hover { background: #bbb; }
+        .cfg-nav-dash.active {
+          height: 32px;
+          background: #666;
         }
 
         /* ── TOP SWIPER ── */
@@ -1019,44 +1122,55 @@ function DiscoverContent() {
 
       <div className="cfg-content-wrapper">
         <section className="cfg-hero" ref={heroRef}>
-          {isGeneralMode ? (
-            <div className="cfg-top-swiper">
-              <Swiper
-                modules={[Navigation, Pagination, EffectFade]}
-                effect="fade"
-                fadeEffect={{ crossFade: true }}
-                navigation={true}
-                pagination={{ clickable: true }}
-                initialSlide={initialIndex}
-                onSlideChange={(swiper) => {
-                  const newProduct = productsData[swiper.activeIndex];
-                  const params = new URLSearchParams(searchParams);
-                  params.set('watch', newProduct.id);
-                  window.history.replaceState(null, '', `?${params.toString()}`);
-                }}
-                style={{ width: '100%', height: 'auto' }}
-              >
-                {productsData.map((p) => (
-                  <SwiperSlide key={p.id}>
-                    <span className="cfg-hero-subtitle">{p.subtitle}</span>
-                    <h1 className="cfg-hero-title">
-                      {p.title}
-                      <span className="cfg-hero-accent">{p.titleAccent}</span>
-                    </h1>
-                    <img src={p.heroImage} alt={p.title} className="cfg-hero-image" />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+          <div className="cfg-hero-aura"></div>
+          
+          {/* Top Left Favourites */}
+          <div className="cfg-fav-toggle" onClick={() => toggleWishlist(product)}>
+            <svg viewBox="0 0 24 24">
+              <path d={isInWishlist(product.id) ? "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" : "M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"} />
+            </svg>
+            <span>{isInWishlist(product.id) ? 'Remove from favourites' : 'Add to favourites'}</span>
+          </div>
+
+          {/* Bottom Left Details */}
+          <div className="cfg-details-box">
+            <h1 className="cfg-details-title">{product.title}</h1>
+            <p className="cfg-details-specs">{product.subtitle}</p>
+            <p className="cfg-details-ref">Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
+            <div className="cfg-details-price">
+              ₹ {product.price?.toLocaleString() || '7,838,000'}
+              <div className="cfg-info-icon">i</div>
             </div>
-          ) : (
-            <>
-              <span className="cfg-hero-subtitle">{product.subtitle}</span>
-              <h1 className="cfg-hero-title">
-                {product.title}
-                <span className="cfg-hero-accent">{product.titleAccent}</span>
-              </h1>
-              <img src={product.heroImage} alt={product.title} className="cfg-hero-image" />
-            </>
+          </div>
+
+          {/* Center Watch Image */}
+          <img src={product.heroImage} alt={product.title} className="cfg-hero-image" />
+
+          {/* Middle Right Variations */}
+          {product.combinations?.length > 0 && (
+            <div className="cfg-variations-btn" onClick={() => openInfoModal(product)}>
+              <div className="cfg-var-thumb">
+                <img src={product.combinations[0].img} alt="Variation" />
+              </div>
+              <span className="cfg-var-label">View variations</span>
+            </div>
+          )}
+
+          {/* Far Right Vertical Nav */}
+          {isGeneralMode && (
+            <div className="cfg-vert-nav">
+              {productsData.map((p, idx) => (
+                <div 
+                  key={p.id} 
+                  className={`cfg-nav-dash ${initialIndex === idx ? 'active' : ''}`}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams);
+                    params.set('watch', p.id);
+                    router.push(`?${params.toString()}`, { scroll: false });
+                  }}
+                />
+              ))}
+            </div>
           )}
         </section>
 
