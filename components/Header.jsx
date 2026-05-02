@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { useCart } from '@/context/CartContext';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -11,8 +13,16 @@ const Header = () => {
   const pathname = usePathname() || '';
   const location = { pathname };
   const { user } = useAuth() || { user: null };
+  const wishlistCtx = useWishlist();
+  const cartCtx = useCart();
+  
+  const wishlist = wishlistCtx?.wishlist || [];
+  const cartCount = cartCtx?.totalCount || 0;
+  const wishlistCount = wishlist.length;
 
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    setMounted(true);
     let lastScrollY = window.scrollY;
 
     const handleScroll = () => {
@@ -144,6 +154,26 @@ const Header = () => {
         }
         .header-right-item:hover { opacity: 1; }
         .header-right-item svg { width: 18px; height: 18px; stroke-width: 1.5; }
+
+        .badge-v1 {
+          background: #008767;
+          color: #fff;
+          font-size: 10px;
+          font-weight: 700;
+          min-width: 16px;
+          height: 16px;
+          padding: 0 4px;
+          border-radius: 99px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          border: 1.5px solid #000;
+          z-index: 5;
+        }
+        .header-right-item { position: relative; }
 
         .overlay-screen-v1 {
           position: fixed; top: 0; left: 0; width: 100%;
@@ -338,6 +368,7 @@ const Header = () => {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78v0z" />
             </svg>
+            {mounted && wishlistCount > 0 ? <div className="badge-v1">{wishlistCount}</div> : null}
             <span>Wishlist</span>
           </Link>
           <Link href="/cart" className="header-right-item" onClick={closeAll} title="Cart">
@@ -345,6 +376,7 @@ const Header = () => {
               <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
+            {mounted && cartCount > 0 ? <div className="badge-v1">{cartCount}</div> : null}
             <span>Cart</span>
           </Link>
         </div>

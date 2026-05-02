@@ -174,10 +174,17 @@ function ConfigureContent() {
   const handleWishlistClick = () => {
     const match = findMatchingVariant(userSelections);
     if (match) {
-      toggleWishlist({ ...product, variantId: match.id });
+      toggleWishlist({ ...product, id: match.id.toString() });
     } else {
-      toggleWishlist(product);
+      // Fallback to base product if no variant found (though rare in configurator)
+      toggleWishlist({ ...product, id: product.id.toString() });
     }
+  };
+
+  const isCurrentVariantInWishlist = () => {
+    const match = findMatchingVariant(userSelections);
+    if (!match) return isInWishlist(product.id.toString());
+    return isInWishlist(match.id.toString());
   };
 
   const handleCategoryClick = (idx) => {
@@ -315,6 +322,7 @@ function ConfigureContent() {
         .customize-root { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #111; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
         #configurator { flex: 1; width: 100%; background: radial-gradient(circle at center, #FFFFFF 0%, #ebedf0 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 5; }
         .top-actions { position: fixed; top: 100px; right: 30px; display: flex; align-items: center; gap: 15px; z-index: 999; }
+        .top-left-actions { position: fixed; top: 100px; left: 30px; display: flex; align-items: center; gap: 15px; z-index: 999; }
         .close-btn { display: flex; align-items: center; justify-content: center; color: #111; cursor: pointer; }
         .c-main { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding-bottom: 200px; }
         .watch-preview { height: 65vh; object-fit: contain; filter: drop-shadow(0 30px 60px rgba(0,0,0,0.15)); transition: opacity 0.4s ease; }
@@ -335,8 +343,11 @@ function ConfigureContent() {
         .nav-buttons-row { position: relative; display: flex; align-items: center; justify-content: center; min-height: 50px; margin-top: 15px; }
         .btn-circular-back { position: absolute; left: 0; width: 35px; height: 35px; border-radius: 50%; background: #1a1a1a; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; transition: transform 0.3s; }
         .btn-circular-back:hover { transform: scale(1.05); }
-        .btn-pill-next { background: #1a1a1a; color: #fff; font-size: 10px; font-weight: 700; padding: 8px 16px; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 999px; border: 1px solid #1a1a1a; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .btn-pill-next:hover, .btn-pill-next:active { background: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+        .btn-pill-next { background: #1a1a1a; color: #fff; font-size: 10px; font-weight: 700; padding: 10px 24px; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 999px; border: 1px solid #1a1a1a; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        @media (hover: hover) {
+          .btn-pill-next:hover { background: rgba(26, 26, 26, 0.8) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+        }
+        .btn-pill-next:active { transform: scale(0.96); opacity: 0.9; }
         .c-summary-footer { background: #fff; padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); }
         .f-title { font-size: 16px; font-weight: 700; color: #111; margin: 0; }
         .f-price { font-size: 16px; font-weight: 600; color: #111; }
@@ -347,11 +358,33 @@ function ConfigureContent() {
         .alert-content-grid { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 450px; padding-top: 40px; }
         .alert-watch-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 20px; }
         .alert-watch-preview { width: 100%; max-width: 320px; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.12)); }
-        .alert-footer-btn { margin-top: 40px; padding: 8px 16px; background: #1a1a1a; color: #fff; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; border: 1px solid #1a1a1a; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .alert-footer-btn:hover, .alert-footer-btn:active { background: rgba(255, 255, 255, 0.1) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
+        .alert-footer-btn { margin-top: 40px; padding: 10px 24px; background: #1a1a1a; color: #fff; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; border: 1px solid #1a1a1a; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        @media (hover: hover) {
+          .alert-footer-btn:hover { background: rgba(26, 26, 26, 0.8) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); }
+        }
+        .alert-footer-btn:active { transform: scale(0.96); opacity: 0.9; }
+
+        .f-add-cart-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; border: none; background: none; padding: 5px 10px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+        .f-add-cart-btn:hover { transform: translateY(-2px); opacity: 0.8; }
+        .f-add-cart-btn:active { transform: scale(0.96); }
+        .f-add-cart-text { font-size: 12px; font-weight: 700; color: #008767; letter-spacing: 0.1em; text-transform: uppercase; }
       `}</style>
 
       <section id="configurator" ref={configuratorRef}>
+        <div className="top-left-actions">
+          <button className="f-add-cart-btn" onClick={handleWishlistClick}>
+            <Heart 
+              size={22} 
+              color="#008767" 
+              fill={isCurrentVariantInWishlist() ? "#008767" : "none"} 
+              style={{ transition: 'all 0.3s ease' }}
+            />
+            <span className="f-add-cart-text">
+              {isCurrentVariantInWishlist() ? 'REMOVE FROM FAVOURITE' : 'ADD TO FAVOURITE'}
+            </span>
+          </button>
+        </div>
+
         <div className="top-actions">
           <button onClick={() => router.push(`/products`)} className="close-btn"><X size={22} /></button>
         </div>
@@ -391,7 +424,7 @@ function ConfigureContent() {
               </div>
               <div className="nav-buttons-row">
                 {currentStep > 0 && <button className="btn-circular-back" onClick={handlePrevStep}><ChevronLeft size={22} /></button>}
-                <button className="btn-pill-next" onClick={handleNextStep}>
+                <button key={currentStep} className="btn-pill-next" onClick={handleNextStep}>
                   {stepsData[currentStep]?.nextLbl}
                   <ChevronRight size={18} />
                 </button>
