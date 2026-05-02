@@ -30,6 +30,8 @@ function DiscoverContent() {
   const [scrollDir, setScrollDir] = useState('up');
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeModalData, setActiveModalData] = useState(null);
+  const [activeSpecGroup, setActiveSpecGroup] = useState(null);
+  const [activeSection, setActiveSection] = useState('hero');
   const lastScrollY = useRef(0);
   const heroRef = useRef(null);
 
@@ -98,7 +100,16 @@ function DiscoverContent() {
                             value: va.attributeValue?.label
                         })) || []
                     };
-                })
+                }),
+                specs: (p.specifications || []).reduce((acc, s) => {
+                    const gName = s.specification?.groups?.[0]?.group?.name || 'Technical Specifications';
+                    if (!acc[gName]) acc[gName] = [];
+                    acc[gName].push({
+                        label: s.specification?.name,
+                        value: s.value
+                    });
+                    return acc;
+                }, {})
             };
         });
         setProductsData(mapped);
@@ -123,6 +134,41 @@ function DiscoverContent() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Intersection Observer for Section Pagination
+  useEffect(() => {
+    if (loading) return;
+
+    const sections = ['hero', 'description', 'specs', 'heritage'];
+    const observerOptions = {
+      root: null,
+      rootMargin: '-49% 0px -49% 0px',
+      threshold: 0
+    };
+
+    const handleIntersect = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    
+    // We need a small timeout to ensure the DOM is fully ready after loading
+    const timeoutId = setTimeout(() => {
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+      });
+    }, 100);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+    };
+  }, [loading, watchId]); // Re-run on watch change as sections might re-render
   const openInfoModal = (p) => {
     const templates = p.combinations || [];
     setActiveModalData({ ...p, combinations: templates });
@@ -462,7 +508,7 @@ function DiscoverContent() {
         /* Top Left Favourites */
         .cfg-fav-toggle {
           position: absolute;
-          top: 120px;
+          top: 94px; /* Aligned with Configure button */
           left: 40px;
           z-index: 100;
           display: flex;
@@ -586,6 +632,49 @@ function DiscoverContent() {
         .cfg-nav-dash.active {
           height: 32px;
           background: #666;
+        }
+
+        /* ═══ PAGE VERTICAL PAGINATION ═══ */
+        .cfg-page-pagination {
+          position: fixed;
+          right: 35px;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 2000;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          align-items: center;
+        }
+        .cfg-pagination-bar {
+          width: 4px;
+          height: 40px;
+          background: #d1d5db;
+          border-radius: 2px;
+          transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+          cursor: pointer;
+          position: relative;
+        }
+        .cfg-pagination-bar:hover {
+          background: #bbb;
+        }
+        .cfg-pagination-bar.active {
+          height: 100px;
+          background: #1a1a1a;
+        }
+        /* Mobile adjustment */
+        @media (max-width: 768px) {
+          .cfg-page-pagination {
+            right: 15px;
+            gap: 8px;
+          }
+          .cfg-pagination-bar {
+            width: 3px;
+            height: 25px;
+          }
+          .cfg-pagination-bar.active {
+            height: 60px;
+          }
         }
 
         /* ── TOP SWIPER ── */
@@ -1109,6 +1198,159 @@ function DiscoverContent() {
         .cfg-book-btn:hover svg {
           transform: translateX(5px);
         }
+
+        /* Technical Details Section Styles */
+        .cfg-specs-section {
+          padding: 20px 0;
+          background: #fff;
+          color: #1a1a1a;
+          position: relative;
+        }
+        .cfg-specs-container {
+          max-width: 1400px;
+          margin: 0 auto;
+          padding: 0 20px;
+        }
+        .cfg-specs-header {
+          margin-bottom: 80px;
+          max-width: 800px;
+        }
+        .cfg-specs-title {
+          font-family: 'Outfit', sans-serif;
+          font-size: 3rem;
+          line-height: 1.1;
+          font-weight: 600;
+          margin-bottom: 20px;
+          color: #1a1a1a;
+          letter-spacing: -0.02em;
+        }
+        .cfg-specs-title span {
+          color: #006039;
+          display: block;
+        }
+        .cfg-specs-ref {
+          font-size: 1.1rem;
+          color: #1a1a1a;
+          font-weight: 500;
+          opacity: 0.8;
+          margin-top: 20px;
+        }
+        .cfg-specs-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.2fr;
+          gap: 120px;
+          align-items: start;
+        }
+        .cfg-specs-img-wrap {
+          position: sticky;
+          top: 150px;
+          display: flex;
+          justify-content: center;
+        }
+        .cfg-specs-img {
+          width: 90%;
+          height: auto;
+          filter: drop-shadow(0 40px 80px rgba(0,0,0,0.12));
+        }
+        .cfg-spec-accordion {
+          border-top: 1px solid #e5e5e5;
+        }
+        .cfg-spec-item {
+          border-bottom: 1px solid #e5e5e5;
+        }
+        .cfg-spec-trigger {
+          width: 100%;
+          padding: 15px 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: none;
+          border: none;
+          cursor: pointer;
+          text-align: left;
+          transition: all 0.3s;
+        }
+        .cfg-spec-group-name {
+          font-family: 'Outfit', sans-serif;
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+        .cfg-spec-icon {
+          width: 14px;
+          height: 14px;
+          position: relative;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .cfg-spec-icon::before,
+        .cfg-spec-icon::after {
+          content: '';
+          position: absolute;
+          background: #1a1a1a;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+        .cfg-spec-icon::before {
+          width: 100%;
+          height: 2px;
+        }
+        .cfg-spec-icon::after {
+          width: 2px;
+          height: 100%;
+          transition: transform 0.4s;
+        }
+        .cfg-spec-item.active .cfg-spec-icon {
+          transform: rotate(135deg);
+        }
+        .cfg-spec-content {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .cfg-spec-item.active .cfg-spec-content {
+          max-height: 1200px;
+        }
+        .cfg-spec-inner {
+          padding-bottom: 20px;
+        }
+        .cfg-spec-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 18px 0;
+          font-size: 1.1rem;
+          border-bottom: 1px solid #f5f5f5;
+        }
+        .cfg-spec-row:last-child {
+          border-bottom: none;
+        }
+        .cfg-spec-label {
+          color: #1a1a1a;
+          font-weight: 600;
+          width: 40%;
+        }
+        .cfg-spec-value {
+          color: #444;
+          text-align: left;
+          width: 55%;
+          line-height: 1.5;
+        }
+
+        @media (max-width: 1024px) {
+          .cfg-specs-grid {
+            grid-template-columns: 1fr;
+            gap: 60px;
+          }
+          .cfg-specs-img-wrap {
+            position: relative;
+            top: 0;
+            order: -1;
+          }
+          .cfg-specs-title {
+            font-size: 2rem;
+          }
+        }
+
       `}</style>
 
       {/* ── TOP-RIGHT CTA ── */}
@@ -1120,8 +1362,23 @@ function DiscoverContent() {
         )}
       </div>
 
+      <div className="cfg-page-pagination">
+        {['hero', 'description', 'specs', 'heritage'].map((id) => (
+          <div
+            key={id}
+            className={`cfg-pagination-bar ${activeSection === id ? 'active' : ''}`}
+            onClick={() => {
+              const el = document.getElementById(id);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          />
+        ))}
+      </div>
+
       <div className="cfg-content-wrapper">
-        <section className="cfg-hero" ref={heroRef}>
+        <section id="hero" className="cfg-hero" ref={heroRef}>
           <div className="cfg-hero-aura"></div>
           
           {/* Top Left Favourites */}
@@ -1174,47 +1431,9 @@ function DiscoverContent() {
           )}
         </section>
 
-        {/* ── NEW YOUR CHOICES SECTION ── */}
-        {hasConfig && (
-          <section className="cfg-choices-section">
-            <div style={{ textAlign: 'center' }}>
-              <span className="cfg-desc-eyebrow">Your Custom Piece</span>
-              <h2 className="cfg-desc-heading" style={{ color: '#1a1a1a' }}>Refining the Infinite</h2>
-            </div>
-
-            <div className="cfg-choices-grid">
-              {Object.keys(selections).map(key => {
-                const val = selections[key];
-                const vPath = findVariantImg(key, val);
-                return (
-                  <div key={key} className="cfg-choice-card">
-                    <div className="cfg-choice-img-wrap">
-                      <img src={vPath || product.image} alt={val} className="cfg-choice-img" />
-                    </div>
-                    <span className="cfg-choice-label" style={{ textTransform: 'capitalize' }}>{key}</span>
-                    <h3 className="cfg-choice-name">{val}</h3>
-                    <p className="cfg-choice-desc">
-                      {configMap.materials[val]?.desc || 
-                       configMap.bezels[val]?.desc || 
-                       configMap.dials[val]?.desc || 
-                       `Premium ${key} selection crafted with absolute precision for a superior timepiece experience.`}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div style={{ textAlign: 'center', marginTop: '60px' }}>
-                <button onClick={handleBookNow} className="cfg-book-btn">
-                    Book This Configuration
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                </button>
-            </div>
-          </section>
-        )}
 
         {!hasConfig ? (
-          <section className="cfg-desc-section" style={{
+          <section id="description" className="cfg-desc-section" style={{
             background: product.gradient || `
               radial-gradient(circle at 10% 10%, rgba(${product.accentRgb}, 0.15) 0%, transparent 40%),
               radial-gradient(circle at 90% 90%, rgba(${product.accentRgb}, 0.1) 0%, transparent 40%),
@@ -1230,11 +1449,11 @@ function DiscoverContent() {
               <p className="cfg-desc-text">{product.longDesc}</p>
             </div>
             <div className="cfg-desc-img-wrap" style={{ position: 'relative', zIndex: 2 }}>
-              <img src={product.heroImage} alt={product.title} className="cfg-desc-img" />
+              <img src={product.galleryImages?.[0] || product.heroImage} alt={product.title} className="cfg-desc-img" />
             </div>
           </section>
         ) : (
-          <section className="cfg-desc-section" style={{
+          <section id="description" className="cfg-desc-section" style={{
             background: product.gradient || 'radial-gradient(circle at 10% 10%, rgba(255, 45, 117, 0.08) 0%, transparent 40%), linear-gradient(135deg, #ffffff 0%, #fff0f5 100%)'
           }}>
             <div className="cfg-mist-layer" style={{
@@ -1244,13 +1463,11 @@ function DiscoverContent() {
               <span className="cfg-desc-eyebrow" style={{ color: '#c4a35a' }}>Your Masterpiece</span>
               <h2 className="cfg-desc-heading" style={{ color: '#1a1a1a' }}>The Result of Your Craft</h2>
               <p className="cfg-desc-text" style={{ color: '#444' }}>
-                Your selected configuration–a {materialParam} timepiece with a {bezelParam} bezel and a {dialParam} dial–is a true reflection
-                of excellence and personal style. This unique combination merges the finest materials with our artisanal heritage,
-                creating a piece that is as distinctive as it is timeless. Discover the precision of Fylex, now personalized by you.
+                {product.longDesc}
               </p>
             </div>
             <div className="cfg-desc-img-wrap">
-              <img src={product.heroImage} alt={product.title} className="cfg-desc-img" />
+              <img src={product.galleryImages?.[0] || product.heroImage} alt={product.title} className="cfg-desc-img" />
             </div>
           </section>
         )}
@@ -1269,50 +1486,70 @@ function DiscoverContent() {
             </div>
           </section>
         )}
-
-        {(product.productType === 'simple' || hasConfig) && product.galleryImages?.length > 0 && (
-          <section className="cfg-swiper-section">
-            <h2 className="cfg-swiper-title">The Gallery</h2>
-            <div className="cfg-swiper-container">
-              <Swiper
-                modules={[EffectCoverflow, Pagination, FreeMode]}
-                effect="coverflow"
-                grabCursor={true}
-                centeredSlides={true}
-                slidesPerView="auto"
-                coverflowEffect={{
-                  rotate: 0,
-                  stretch: 0,
-                  depth: 120,
-                  modifier: 2.5,
-                  slideShadows: false,
-                }}
-                pagination={{ clickable: true }}
-                loop={true}
-                freeMode={true}
-              >
-                {product.galleryImages.map((img, i) => (
-                  <SwiperSlide key={i}>
-                    <img src={img} alt={`${product.title} Gallery ${i + 1}`} className="cfg-slide-img" />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+        {/* ── TECHNICAL DETAILS SECTION ── */}
+        <section id="specs" className="cfg-specs-section">
+          <div className="cfg-specs-container">
+            <div className="cfg-specs-header">
+              <h2 className="cfg-specs-title">
+                More {product.title}
+                <span>technical details</span>
+              </h2>
+              <p className="cfg-specs-ref">Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
             </div>
-          </section>
-        )}
 
-        <section className="cfg-heritage-section">
+            <div className="cfg-specs-grid">
+              <div className="cfg-specs-img-wrap">
+                <img src={product.galleryImages?.[1] || product.galleryImages?.[0] || product.heroImage} alt={product.title} className="cfg-specs-img" />
+              </div>
+
+              <div className="cfg-spec-accordion">
+                {Object.keys(product.specs || {}).map((groupName, idx) => (
+                  <div key={groupName} className={`cfg-spec-item ${activeSpecGroup === groupName ? 'active' : ''}`}>
+                    <button 
+                      className="cfg-spec-trigger"
+                      onClick={() => setActiveSpecGroup(activeSpecGroup === groupName ? null : groupName)}
+                    >
+                      <span className="cfg-spec-group-name">{groupName}</span>
+                      <div className="cfg-spec-icon"></div>
+                    </button>
+                    <div className="cfg-spec-content">
+                      <div className="cfg-spec-inner">
+                        {(product.specs[groupName] || []).map((spec, sIdx) => (
+                          <div key={sIdx} className="cfg-spec-row">
+                            <span className="cfg-spec-label">{spec.label}</span>
+                            <span className="cfg-spec-value">{spec.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="heritage" className="cfg-heritage-section">
           <div className="cfg-heritage-left">
             <span className="cfg-heritage-eyebrow">Heritage & Legacy</span>
             <h2 className="cfg-heritage-heading">A Story Written in Time</h2>
             <p className="cfg-heritage-text">{product.heritageText}</p>
           </div>
           <div className="cfg-heritage-right">
-            <div className="cfg-sold-stats" onClick={() => openInfoModal(product)}>
-              <span className="shimmer-sweep"></span>
-              <span className="stats-numbers">{product.sold}/{product.totalStock}</span>
-              <span className="stats-label">Configurations Sold</span>
-              <p className="stats-description">Explore the unique combinations and personalized touches chosen by our discerning clients around the globe. Click to view the registry.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', alignItems: 'flex-end', width: '100%' }}>
+              {product.galleryImages?.[2] && (
+                <img 
+                  src={product.galleryImages[2]} 
+                  alt="Heritage" 
+                  style={{ width: '100%', maxWidth: '400px', borderRadius: '16px', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.1))' }} 
+                />
+              )}
+              <div className="cfg-sold-stats" onClick={() => openInfoModal(product)}>
+                <span className="shimmer-sweep"></span>
+                <span className="stats-numbers">{product.sold}/{product.totalStock}</span>
+                <span className="stats-label">Configurations Sold</span>
+                <p className="stats-description">Explore the unique combinations and personalized touches chosen by our discerning clients around the globe. Click to view the registry.</p>
+              </div>
             </div>
           </div>
         </section>
