@@ -77,7 +77,7 @@ function DiscoverContent() {
                 textColor: p.textColor || '#1a1a1a',
                 videoUrl: p.videoUrl || null,
                 heritageText: p.heritageText || 'Founded on the principles of precision and timeless elegance, Fylex has been at the forefront of horological innovation for generations.',
-                sold: p.soldCount || (p.id % 100) + 120, // Real data or believable placeholder
+                sold: (p.soldCount !== undefined && p.soldCount !== null) ? p.soldCount : Math.min((p.id % 100) + 120, p.qty || p.stockCount || 500),
                 totalStock: p.qty || p.stockCount || 500,
                 galleryImages: (p.productMedia?.length > 0) 
                     ? p.productMedia.map(m => {

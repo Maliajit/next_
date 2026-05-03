@@ -6,6 +6,48 @@ import { useOrder } from '@/context/OrderContext';
 export default function MyPurchases() {
   const { orders } = useOrder();
 
+  // Helper to build redirect URL to discover page
+  const buildRedirectUrl = (item) => {
+    const productId = item.productId || item.product?.id || item.product_id;
+    if (!productId) return '/discover';
+    
+    let url = `/discover?watch=${productId}`;
+    const variant = item.productVariant || item.variant;
+    
+    if (variant?.variantAttributes) {
+      variant.variantAttributes.forEach(va => {
+        const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+        const valLabel = va.attributeValue?.label;
+        if (attrName && valLabel) {
+          url += `&${attrName}=${encodeURIComponent(valLabel)}`;
+        }
+      });
+    }
+    return url;
+  };
+
+  // Helper to build variant name from attributes
+  const getVariantName = (item) => {
+    const variant = item.productVariant || item.variant;
+    if (variant?.variantAttributes && variant.variantAttributes.length > 0) {
+      return variant.variantAttributes.map(va => va.attributeValue?.label).join(', ');
+    }
+    return item.subtitle || item.titleAccent || '';
+  };
+
+  // Flatten orders into individual item cards, expanding for quantity
+  const allPurchasedUnits = orders.flatMap(order => 
+    order.items.flatMap(item => 
+      Array.from({ length: item.qty || 1 }, (_, i) => ({
+        ...item,
+        orderDate: order.date,
+        orderId: order.id,
+        redirectUrl: buildRedirectUrl(item),
+        variantDisplay: getVariantName(item)
+      }))
+    )
+  );
+
   return (
     <div className="purchases-page">
       <style>{`
@@ -16,7 +58,7 @@ export default function MyPurchases() {
           font-family: 'Inter', sans-serif;
         }
         .purchases-container {
-          max-width: 1000px;
+          max-width: 1200px;
           margin: 0 auto;
         }
         .purchases-header {
@@ -36,83 +78,81 @@ export default function MyPurchases() {
           font-weight: 300;
         }
 
-        .orders-list {
+        .purchases-grid {
           display: flex;
           flex-direction: column;
-          gap: 30px;
+          gap: 20px;
         }
 
-        .order-card {
+        .purchase-card {
           background: #fff;
           border-radius: 16px;
-          padding: 30px;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+          overflow: hidden;
+          text-decoration: none;
+          color: inherit;
+          display: flex;
+          align-items: center;
           border: 1px solid rgba(0,0,0,0.04);
-          transition: transform 0.3s ease;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+          padding: 15px 25px;
         }
-        .order-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+        .purchase-card:hover {
+          transform: translateX(10px);
+          box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+          border-color: rgba(0,0,0,0.1);
         }
 
-        .order-meta {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 25px;
-          padding-bottom: 15px;
-          border-bottom: 1px solid #f0f0f0;
-        }
-        .order-id { font-weight: 700; color: #1a1a1a; font-size: 0.9rem; }
-        .order-date { color: #888; font-size: 0.9rem; }
-
-        .order-items {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-        .bought-item {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-        }
-        .bought-img {
+        .purchase-img-wrap {
           width: 80px;
           height: 80px;
-          background: #f7f7f7;
+          background: #f8f8f8;
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 10px;
+          flex-shrink: 0;
         }
-        .bought-img img {
+        .purchase-img-wrap img {
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
+          filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05));
+          transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
-        .bought-info {
-          flex: 1;
-        }
-        .bought-info h3 {
-          font-family: 'Playfair Display', serif;
-          font-size: 1.25rem;
-          margin: 0 0 4px;
-        }
-        .bought-info .price {
-          color: #666;
-          font-weight: 500;
+        .purchase-card:hover .purchase-img-wrap img {
+          transform: scale(1.1);
         }
 
-        .order-total-row {
-          margin-top: 25px;
+        .purchase-info {
+          padding: 0 25px;
           display: flex;
-          justify-content: flex-end;
-          align-items: center;
-          gap: 15px;
+          flex-direction: column;
+          gap: 4px;
+          flex: 1;
         }
-        .total-lbl { color: #888; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .total-val { font-size: 1.4rem; font-weight: 700; color: #1a1a1a; }
+        .purchase-date {
+          font-size: 0.7rem;
+          font-weight: 600;
+          color: #c4a35a;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+        .purchase-name {
+          font-family: 'Playfair Display', serif;
+          font-size: 1.25rem;
+          font-weight: 400;
+          color: #1a1a1a;
+          margin: 0;
+          line-height: 1.2;
+        }
+        .v-accent {
+          font-size: 1rem;
+          color: #888;
+          font-weight: 300;
+          font-family: 'Inter', sans-serif;
+        }
 
         .purchases-empty {
           text-align: center;
@@ -129,33 +169,30 @@ export default function MyPurchases() {
         }
         .empty-cta {
           display: inline-block;
-          padding: 8px 16px;
+          padding: 12px 30px;
           background: #1a1a1a;
           color: #fff;
           text-decoration: none;
           border-radius: 999px;
-          font-size: 10px;
+          font-size: 0.8rem;
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.15em;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           margin-top: 20px;
           border: 1px solid #1a1a1a;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        .empty-cta:hover, .empty-cta:active {
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-color: rgba(255, 255, 255, 0.2);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        .empty-cta:hover {
+          background: #fff;
+          color: #1a1a1a;
         }
 
         @media (max-width: 768px) {
           .purchases-page { padding: 100px 5% 60px; }
-          .purchases-header h1 { font-size: 2.5rem; }
-          .order-card { padding: 20px; }
+          .purchases-header h1 { font-size: 2rem; }
+          .purchase-card { padding: 12px 15px; gap: 0; }
+          .purchase-info { padding: 0 15px; }
+          .purchase-name { font-size: 1.1rem; }
         }
       `}</style>
 
@@ -165,7 +202,7 @@ export default function MyPurchases() {
           <p>Chronicles of your journey with Fylex.</p>
         </div>
 
-        {orders.length === 0 ? (
+        {allPurchasedUnits.length === 0 ? (
           <div className="purchases-empty">
             <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -178,37 +215,20 @@ export default function MyPurchases() {
             <Link href="/products" className="empty-cta">Browse Collection</Link>
           </div>
         ) : (
-          <div className="orders-list">
-            {orders.map((order) => (
-              <div key={order.id} className="order-card">
-                <div className="order-meta">
-                  <span className="order-id">{order.id}</span>
-                  <span className="order-date">{order.date}</span>
+          <div className="purchases-grid">
+            {allPurchasedUnits.map((unit, idx) => (
+              <Link key={`${unit.orderId}-${unit.id}-${idx}`} href={unit.redirectUrl} className="purchase-card">
+                <div className="purchase-img-wrap">
+                  <img src={unit.image || unit.heroImage} alt={unit.title} />
                 </div>
-                <div className="order-items">
-                  {order.items.length > 0 ? (
-                    order.items.map((item, idx) => (
-                      <div key={idx} className="bought-item">
-                        <div className="bought-img">
-                          <img src={item.image || item.heroImage} alt={item.title} />
-                        </div>
-                        <div className="bought-info">
-                          <h3>{item.title} {item.titleAccent || ''}</h3>
-                          <div className="price">{item.price} x {item.qty}</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="bought-item">
-                      <p className="total-lbl">No items listed for this order.</p>
-                    </div>
-                  )}
+                <div className="purchase-info">
+                  <span className="purchase-date">{unit.orderDate}</span>
+                  <h3 className="purchase-name">
+                    {unit.title} 
+                    {unit.variantDisplay && <span className="v-accent"> — {unit.variantDisplay}</span>}
+                  </h3>
                 </div>
-                <div className="order-total-row">
-                  <span className="total-lbl">Total Investment</span>
-                  <span className="total-val">{order.total}</span>
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
