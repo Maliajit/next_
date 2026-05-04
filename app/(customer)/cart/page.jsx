@@ -127,9 +127,7 @@ export default function Cart() {
           transition: 'opacity 0.7s ease, transform 0.7s ease',
         }}
       >
-        <span className="cart-hero-label">Your Selection</span>
         <h1 className="cart-hero-title">Shopping Cart</h1>
-        <p className="cart-hero-sub">{items.length} item{items.length !== 1 ? 's' : ''} curated for you</p>
       </div>
 
       <div className="cart-layout">
@@ -199,7 +197,7 @@ export default function Cart() {
           </div>
 
           {/* Trust badges */}
-          <div className="cart-trust-badges">
+          {/* <div className="cart-trust-badges">
             {[
               { icon: '🔒', label: 'Secure Payment' },
               { icon: '↩', label: '30-Day Returns' },
@@ -210,7 +208,7 @@ export default function Cart() {
                 <span className="cart-badge-label">{b.label}</span>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -257,33 +255,19 @@ export default function Cart() {
           text-align: center;
           margin-bottom: 52px;
         }
-        .cart-hero-label {
-          display: inline-block;
-          font-size: 10px;
-          letter-spacing: 0.38em;
-          text-transform: uppercase;
-          color: #4a6fa5;
-          font-weight: 600;
-          margin-bottom: 14px;
-        }
         .cart-hero-title {
           font-family: 'Playfair Display', serif;
           font-size: clamp(38px, 5.5vw, 72px);
           font-weight: 400;
           color: #1C2E4A;
           line-height: 1.08;
-          margin-bottom: 12px;
+         
           background: linear-gradient(120deg, #1C2E4A 0%, #4a6fa5 55%, #764ba2 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-        .cart-hero-sub {
-          font-size: 13px;
-          color: #7a8aa0;
-          font-weight: 300;
-          letter-spacing: 0.06em;
-        }
+       
 
         .cart-layout {
           position: relative; z-index: 1;
@@ -500,7 +484,7 @@ export default function Cart() {
             padding: calc(var(--header-h, 70px) + 20px) 16px 80px;
           }
           .cart-hero-title {
-            font-size: 2.2rem;
+            font-size: 22px;
           }
           .cart-item-row {
              flex-direction: column;

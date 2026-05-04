@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCart, addToCartApi, removeFromCartApi, updateCartQtyApi } from '../lib/api';
-import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
 import { getFileUrl } from '../lib/utils';
 
@@ -8,7 +7,6 @@ const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
-  const { success, error, info } = useToast() || {};
   const { user } = useAuth() || {};
   const userId = user?.id;
 
@@ -71,7 +69,6 @@ export function CartProvider({ children }) {
 
   const addToCart = async (variantId, quantity = 1, productInfo = {}, productId = null) => {
     if (!userId) {
-      error?.('Please sign in to add items to cart');
       return;
     }
     try {
@@ -118,10 +115,9 @@ export function CartProvider({ children }) {
             };
         });
         setItems(mapped);
-        success?.(`${productInfo.title || 'Item'} added to cart`);
       }
     } catch (err) {
-      error?.('Failed to add item to cart');
+      console.error('Failed to add item to cart', err);
     }
   };
 
@@ -130,9 +126,8 @@ export function CartProvider({ children }) {
     try {
       const result = await removeFromCartApi(userId, id);
       setItems(prev => prev.filter(i => i.id !== id));
-      info?.('Item removed from cart');
     } catch (err) {
-      error?.('Failed to remove item from cart');
+      console.error('Failed to remove item from cart', err);
     }
   };
 
@@ -155,7 +150,7 @@ export function CartProvider({ children }) {
         );
       }
     } catch (err) {
-      error?.('Failed to update quantity');
+      console.error('Failed to update quantity', err);
     }
   };
 

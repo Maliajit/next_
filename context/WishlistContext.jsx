@@ -1,14 +1,13 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchWishlist, toggleWishlistApi } from '../lib/api';
-import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
+import { getFileUrl } from '../lib/utils';
 
 const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
-  const { success, error, info } = useToast() || {};
   const { user } = useAuth();
 
   // Initial load from backend
@@ -16,19 +15,54 @@ export function WishlistProvider({ children }) {
     const loadWishlist = async () => {
       if (!user?.id) return;
       try {
-        const data = await fetchWishlist(user.id);
-        if (data && Array.isArray(data)) {
-            const mapped = data
+        const res = await fetchWishlist(user.id);
+        const items = Array.isArray(res) ? res : (res?.items || []);
+        
+        if (items.length >= 0) {
+            const mapped = items
                 .map(item => {
-                    // STRICT: Only track variant-based wishlist items for the configurator
-                    const targetId = item.productVariantId || item.productVariant?.id;
+                    const variant = item.productVariant || item.variant || {};
+                    const product = variant.product || item.product || {};
+                    const targetId = variant.id || item.productVariantId;
+                    
                     if (!targetId) return null;
+
+                    const vName = (variant.variantAttributes && variant.variantAttributes.length > 0)
+                        ? variant.variantAttributes
+                            .map(va => va.attributeValue?.label || va.attributeValue?.value)
+                            .filter(Boolean)
+                            .join(', ')
+                        : (item.subtitle || item.titleAccent || '');
+
+                    // Find variant image
+                    const vImg = variant.variantImages?.find(vi => vi.type === 'MAIN')?.media || variant.variantImages?.[0]?.media;
+                    let imgPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+                    if (!imgPath) {
+                        imgPath = variant.heroImage || product.heroImage || item.heroImage || item.image || '';
+                    }
+
+                    // Build redirect URL
+                    let redirectUrl = `/discover?watch=${product.id || item.productId}`;
+                    if (variant.variantAttributes) {
+                        variant.variantAttributes.forEach(va => {
+                            const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+                            const valLabel = va.attributeValue?.label;
+                            if (attrName && valLabel) {
+                                redirectUrl += `&${attrName}=${encodeURIComponent(valLabel)}`;
+                            }
+                        });
+                    }
 
                     return {
                         ...item,
                         id: targetId.toString(),
-                        price: item.price ? `₹${item.price.toLocaleString()}` : '₹0',
-                        image: item.heroImage || item.image || item.product?.heroImage || '/assets/fylex-watch-v2/premium.png'
+                        productId: product.id?.toString(),
+                        variantId: targetId.toString(),
+                        productName: product.name || item.title || 'Fylex Watch',
+                        variantName: vName,
+                        price: variant.price ? `₹${Number(variant.price).toLocaleString()}` : (item.price ? `₹${Number(item.price).toLocaleString()}` : '₹0'),
+                        image: getFileUrl(imgPath) || '/assets/fylex-watch-v2/premium.png',
+                        redirectUrl
                     };
                 })
                 .filter(Boolean);
@@ -43,7 +77,6 @@ export function WishlistProvider({ children }) {
 
   const toggleWishlist = async (product) => {
     if (!user?.id) {
-      error?.('Please login to manage your wishlist');
       return;
     }
     try {

@@ -5,14 +5,12 @@ import { useCart } from '@/context/CartContext';
 import { useOrder } from '@/context/OrderContext';
 import { useAuth } from '@/context/AuthContext';
 import { addAddressApi, initiatePaymentApi, verifyPaymentApi, calculateShippingApi } from '@/lib/api';
-import { useToast } from '@/context/ToastContext';
 
 const Checkout = () => {
   const navigate = useRouter();
   const { items, clearCart } = useCart();
   const { addOrder } = useOrder();
   const { user } = useAuth();
-  const { success, error, info } = useToast() || {};
 
   const [activeStep, setActiveStep] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -134,12 +132,10 @@ const Checkout = () => {
 
   const handleNext = async () => {
     if (!validateStep(activeStep)) {
-      error?.('Please fill in all required fields');
       return;
     }
 
     if (!isServiceable) {
-      error?.('Delivery is not available for this location');
       return;
     }
 
@@ -180,7 +176,7 @@ const Checkout = () => {
         await handleCODOrder(shippingAddressId);
       }
     } catch (err) {
-      error?.(err.message || 'Checkout failed');
+      console.error('Checkout failed', err);
       setIsProcessing(false);
     }
   };
@@ -223,14 +219,13 @@ const Checkout = () => {
               date: new Date().toLocaleDateString(),
             });
 
-            success?.('Order placed successfully!');
             clearCart();
             navigate.push('/my-purchases');
           } else {
             throw new Error('Payment verification failed');
           }
         } catch (err) {
-          error?.(err.message);
+          console.error('Payment verification failed', err);
           setIsProcessing(false);
         }
       },
@@ -261,7 +256,6 @@ const Checkout = () => {
       date: new Date().toLocaleDateString(),
     });
 
-    success?.('Order placed successfully (COD)!');
     clearCart();
     navigate.push('/my-purchases');
   };
@@ -529,7 +523,7 @@ const Checkout = () => {
         .checkout-page {
           min-height: 100vh;
           background: #f8fafc;
-          padding: 110px 24px 80px;
+          padding: 80px 24px 80px;
           font-family: 'Montserrat', sans-serif;
           position: relative;
           opacity: 0;
