@@ -177,7 +177,7 @@ export default function Cart() {
               <span>{shippingPlaceholder === 0 ? <span className="cart-free-tag">Free</span> : (subtotal > 0 ? "Calculated at checkout" : "₹0")}</span>
             </div>
             {shippingPlaceholder > 0 && (
-              <div className="cart-free-hint">Spend ₹{(150000 - subtotal).toLocaleString()} more for free shipping</div>
+              <div className="cart-free-hint">Spend ₹{(15000 - subtotal).toLocaleString()} more for free shipping</div>
             )}
             <div className="cart-summary-divider" />
             <div className="cart-summary-total">

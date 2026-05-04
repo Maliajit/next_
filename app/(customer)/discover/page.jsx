@@ -231,7 +231,7 @@ function DiscoverContent() {
   }
 
   // Default to first if no watchId is provided or product not found
-  const productIndex = productsData.findIndex(p => p.id === watchId);
+  const productIndex = productsData.findIndex(p => p.id === watchId || p.slug === watchId);
   const initialIndex = productIndex !== -1 ? productIndex : 0;
   const product = productsData[initialIndex];
 

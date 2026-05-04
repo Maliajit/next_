@@ -26,14 +26,14 @@ export function CartProvider({ children }) {
                 const product = variant?.product;
                 
                 // Find variant image
-                const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN')?.media || variant?.variantImages?.[0]?.media;
-                let imgPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+                const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN' || vi.isPrimary === 1)?.media || variant?.variantImages?.[0]?.media;
+                let imgPath = vImg?.url || vImg?.filePath || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
                 if (!imgPath) {
                     imgPath = product?.heroImage || '';
                 }
 
                 // Build redirect URL
-                let redirectUrl = `/discover?watch=${product?.id}`;
+                let redirectUrl = `/discover?watch=${product?.slug || product?.id}`;
                 if (variant?.variantAttributes) {
                     variant.variantAttributes.forEach(va => {
                         const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
@@ -82,14 +82,14 @@ export function CartProvider({ children }) {
             const product = variant?.product;
             
             // Find variant image
-            const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN')?.media || variant?.variantImages?.[0]?.media;
-            let imgPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+            const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN' || vi.isPrimary === 1)?.media || variant?.variantImages?.[0]?.media;
+            let imgPath = vImg?.url || vImg?.filePath || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
             if (!imgPath) {
                 imgPath = product?.heroImage || '';
             }
 
             // Build redirect URL
-            let redirectUrl = `/discover?watch=${product?.id}`;
+            let redirectUrl = `/discover?watch=${product?.slug || product?.id}`;
             if (variant?.variantAttributes) {
                 variant.variantAttributes.forEach(va => {
                     const attrName = va.attributeValue?.attribute?.name?.toLowerCase();

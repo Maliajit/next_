@@ -35,14 +35,14 @@ export function WishlistProvider({ children }) {
                         : (item.subtitle || item.titleAccent || '');
 
                     // Find variant image
-                    const vImg = variant.variantImages?.find(vi => vi.type === 'MAIN')?.media || variant.variantImages?.[0]?.media;
-                    let imgPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+                    const vImg = variant.variantImages?.find(vi => vi.type === 'MAIN' || vi.isPrimary === 1)?.media || variant.variantImages?.[0]?.media;
+                    let imgPath = vImg?.url || vImg?.filePath || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
                     if (!imgPath) {
                         imgPath = variant.heroImage || product.heroImage || item.heroImage || item.image || '';
                     }
 
                     // Build redirect URL
-                    let redirectUrl = `/discover?watch=${product.id || item.productId}`;
+                    let redirectUrl = `/discover?watch=${product.slug || product.id || item.productId}`;
                     if (variant.variantAttributes) {
                         variant.variantAttributes.forEach(va => {
                             const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
@@ -80,17 +80,36 @@ export function WishlistProvider({ children }) {
       return;
     }
     try {
+      const variantIdStr = (product.variantId || product.currentVariantId || product.id).toString();
       const result = await toggleWishlistApi(user.id, product);
       if (result) {
-        const productIdStr = product.id.toString();
         
         setWishlist(prev => {
-            const exists = prev.some(i => i.id === productIdStr);
+            const exists = prev.some(i => i.id === variantIdStr);
             if (result.added === false) {
-                return prev.filter(i => i.id !== productIdStr);
+                return prev.filter(i => i.id !== variantIdStr);
             } else {
                 if (exists) return prev;
-                return [...prev, { ...product, id: productIdStr }];
+                
+                // Build redirect URL for local item
+                let localRedirectUrl = `/discover?watch=${product.slug || product.id}`;
+                const activeVariant = (product.variants || []).find(v => v.id.toString() === variantIdStr);
+                if (activeVariant?.variantAttributes) {
+                    activeVariant.variantAttributes.forEach(va => {
+                        const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+                        const valLabel = va.attributeValue?.label;
+                        if (attrName && valLabel) {
+                            localRedirectUrl += `&${attrName}=${encodeURIComponent(valLabel)}`;
+                        }
+                    });
+                }
+
+                return [...prev, { 
+                    ...product, 
+                    id: variantIdStr, 
+                    variantId: variantIdStr,
+                    redirectUrl: localRedirectUrl
+                }];
             }
         });
       }

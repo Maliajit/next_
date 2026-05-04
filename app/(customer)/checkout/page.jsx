@@ -30,6 +30,7 @@ const Checkout = () => {
     postalCode: '',
     phone: '',
     email: user?.email || '',
+    dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
     paymentMethod: 'razorpay', // 'razorpay' or 'cod'
   });
 
@@ -51,6 +52,7 @@ const Checkout = () => {
         lastName: names.slice(1).join(' ') || '',
         email: user.email || prev.email,
         phone: user.mobile || prev.phone,
+        dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : prev.dob,
       }));
     }
 
@@ -104,7 +106,7 @@ const Checkout = () => {
   ];
 
   const subtotal = items.reduce((s, i) => s + (Number(i.unitPrice) || 0) * (i.qty || 1), 0);
-  const total = subtotal + shipping;
+  const total = Math.round(subtotal + (shipping || 0));
 
   const validateStep = (step) => {
     const errors = {};
@@ -125,12 +127,15 @@ const Checkout = () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!formData.email) errors.email = 'Required';
       else if (!emailRegex.test(formData.email)) errors.email = 'Invalid email';
+
+      if (!formData.dob) errors.dob = 'Required';
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleNext = async () => {
+  const handleNext = async (e) => {
+    if (e && e.currentTarget) e.currentTarget.blur();
     if (!validateStep(activeStep)) {
       return;
     }
@@ -214,6 +219,7 @@ const Checkout = () => {
               paymentMethod: 'online',
               paymentId: response.razorpay_payment_id,
               notes: formData.apartment ? `Apt: ${formData.apartment}` : '',
+              dob: formData.dob,
               items: [...items],
               total: `₹${total.toLocaleString()}`,
               date: new Date().toLocaleDateString(),
@@ -251,6 +257,7 @@ const Checkout = () => {
       billingAddressId: addressId,
       paymentMethod: 'cod',
       notes: formData.apartment ? `Apt: ${formData.apartment}` : '',
+      dob: formData.dob,
       items: [...items],
       total: `₹${total.toLocaleString()}`,
       date: new Date().toLocaleDateString(),
@@ -341,6 +348,11 @@ const Checkout = () => {
                       <label>Email Address</label>
                       <input type="email" name="email" value={formData.email} onChange={updateFormData} placeholder="john@example.com" />
                       {validationErrors.email && <span className="error-msg">{validationErrors.email}</span>}
+                    </div>
+                    <div className={`form-group full ${validationErrors.dob ? 'error' : ''}`}>
+                      <label>Date of Birth</label>
+                      <input type="date" name="dob" value={formData.dob} onChange={updateFormData} />
+                      {validationErrors.dob && <span className="error-msg">{validationErrors.dob}</span>}
                     </div>
                     <div className={`form-group full ${validationErrors.address ? 'error' : ''}`}>
                       <label>Address Line 1</label>
@@ -446,15 +458,19 @@ const Checkout = () => {
                   <p className="review-text">Please review your shipping and payment details before completing the purchase.</p>
                   <div className="review-summary-box">
                     <div className="review-item">
-                      <span className="label">Shipping To:</span>
+                      <span className="review-label">Shipping To:</span>
                       <span className="value">{formData.firstName} {formData.lastName}, {formData.address}, {formData.city}, {formData.postalCode}</span>
                     </div>
                     <div className="review-item">
-                      <span className="label">Contact:</span>
+                      <span className="review-label">Contact:</span>
                       <span className="value">{formData.phone} | {formData.email}</span>
                     </div>
                     <div className="review-item">
-                      <span className="label">Payment:</span>
+                      <span className="review-label">Date of Birth:</span>
+                      <span className="value">{formData.dob}</span>
+                    </div>
+                    <div className="review-item">
+                      <span className="review-label">Payment:</span>
                       <span className="value">{formData.paymentMethod === 'razorpay' ? 'Razorpay Secure' : 'Cash on Delivery'}</span>
                     </div>
                   </div>
@@ -463,8 +479,9 @@ const Checkout = () => {
 
               <div className="checkout-footer-actions">
                 <button
+                  key={`step-${activeStep}`}
                   className={`primary-btn ${isProcessing || isCalculatingShipping || (isServiceable === false) ? 'disabled' : 'pulse'}`}
-                  onClick={handleNext}
+                  onClick={(e) => handleNext(e)}
                   disabled={isProcessing || isCalculatingShipping || (isServiceable === false)}
                 >
                   {isProcessing ? 'Processing...' : (activeStep === 3 ? 'Place Order' : 'Continue')}
@@ -486,7 +503,7 @@ const Checkout = () => {
                       <div className="item-name">{item.title}</div>
                       <div className="item-meta">{item.qty} item{item.qty !== 1 ? 's' : ''}</div>
                     </div>
-                    <div className="item-price">{item.priceDisplay || `₹${Number(item.unitPrice).toLocaleString()}`}</div>
+                    <div className="item-price">{item.priceDisplay || `₹${Math.round(Number(item.unitPrice)).toLocaleString()}`}</div>
                   </div>
                 ))}
               </div>
@@ -494,12 +511,12 @@ const Checkout = () => {
               <div className="summary-lines">
                 <div className="summary-line">
                   <span>Subtotal</span>
-                  <span>₹{subtotal.toLocaleString()}</span>
+                  <span>₹{Math.round(subtotal).toLocaleString()}</span>
                 </div>
                 <div className="summary-line">
                   <span>Shipping</span>
                   <span className={shipping === 0 ? 'free-tag' : ''}>
-                    {isCalculatingShipping ? 'Calculating...' : (shipping === null ? '--' : (shipping === 0 ? 'Free' : `₹${shipping.toLocaleString()}`))}
+                    {isCalculatingShipping ? 'Calculating...' : (shipping === null ? '--' : (shipping === 0 ? 'Free' : `₹${Math.round(shipping).toLocaleString()}`))}
                   </span>
                 </div>
                 <div className="summary-line total">
@@ -559,9 +576,13 @@ const Checkout = () => {
 
         .checkout-title {
           font-family: 'Playfair Display', serif;
-          font-size: 32px; color: #1e293b;
-          margin-bottom: 32px;
+          font-size: 20px; color: #1e293b;
+          margin-bottom: 10px;
         }
+
+
+        .review-text{
+        font-size:12px;}
 
         .checkout-progress {
           display: flex; justify-content: center; gap: 40px;
@@ -641,12 +662,12 @@ const Checkout = () => {
           border-radius: 16px; display: grid; gap: 16px;
         }
         .review-item { display: grid; gap: 4px; }
-        .review-item .label { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 600; }
+        .review-item .review-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 600; }
         .review-item .value { font-size: 14px; color: #1e293b; font-weight: 500; }
 
         .checkout-footer-actions {
           margin-top: 40px; padding-top: 32px; border-top: 1px solid #e2e8f0;
-          display: flex; justify-content: flex-end;
+          display: flex; justify-content: center;
         }
         .primary-btn {
           padding: 8px 16px; border-radius: 999px; border: 1px solid #1a1a1a;
@@ -663,6 +684,7 @@ const Checkout = () => {
           transform: translateY(-2px); 
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
         }
+        .primary-btn:focus { outline: none; }
         .primary-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .order-summary-card { padding: 24px; position: sticky; top: 40px; }
