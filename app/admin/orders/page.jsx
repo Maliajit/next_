@@ -70,8 +70,9 @@ const OrdersPage = () => {
           title: 'ITEMS', field: 'itemsCount', width: 100, hozAlign: 'center',
           formatter: (cell) => {
             const d = cell.getRow().getData();
-            const count = d.itemsCount ?? (Array.isArray(d.items) ? d.items.length : 1);
-            return `<div style="text-align:center"><span style="font-weight:700;color:#1e293b">${count}</span><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;font-weight:700">Units</div></div>`;
+            const items = d.items || [];
+            const totalUnits = items.reduce((acc, item) => acc + (item.quantity || item.qty || 1), 0);
+            return `<div style="text-align:center"><span style="font-weight:700;color:#1e293b">${totalUnits}</span><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;font-weight:700">Units</div></div>`;
           },
         },
         {
@@ -81,14 +82,14 @@ const OrdersPage = () => {
             if (!val) return '—';
             const d = new Date(val);
             if (isNaN(d.getTime())) return 'Invalid Date';
-            return `<div style="line-height:1.4"><div style="font-weight:700;color:#1e293b;font-size:13px">${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div><div style="font-size:11px;color:#94a3b8;font-weight:600">${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div></div>`;
+            return `<div style="line-height:1.4"><div style="font-weight:700;color:#1e293b;font-size:13px">${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div><div style="font-size:11px;color:#94a3b8;font-weight:600">${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div></div>`;
           },
         },
         {
           title: 'AMOUNT', field: 'grandTotal', width: 140,
           formatter: (cell) => {
             const val = cell.getValue() || cell.getRow().getData().amount || 0;
-            return `<div style="font-weight:800;color:#1e293b;font-size:15px">₹${Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>`;
+            return `<div style="font-weight:800;color:#1e293b;font-size:15px">₹${Math.round(Number(val)).toLocaleString('en-IN')}</div>`;
           },
         },
         {
