@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useOrder } from '@/context/OrderContext';
 import { useAuth } from '@/context/AuthContext';
-import { addAddressApi, initiatePaymentApi, verifyPaymentApi, calculateTotalApi } from '@/lib/api';
+import { addAddressApi, initiatePaymentApi, verifyPaymentApi, calculateShippingApi } from '@/lib/api';
 
 const Checkout = () => {
   const navigate = useRouter();
@@ -15,18 +15,9 @@ const Checkout = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // SERVER-SIDE TRUTH
-  const [totals, setTotals] = useState({
-      subtotal: 0,
-      shipping: 0,
-      tax: 0,
-      discount: 0,
-      total: 0
-  });
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [error, setError] = useState(null);
-  const [isServiceable, setIsServiceable] = useState(true);
+  const [shipping, setShipping] = useState(null);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  const [isServiceable, setIsServiceable] = useState(true); // true, false, or null (for fallback)
   const [isCodAvailable, setIsCodAvailable] = useState(true);
   const [shippingMessage, setShippingMessage] = useState('');
 
@@ -39,14 +30,15 @@ const Checkout = () => {
     postalCode: '',
     phone: '',
     email: user?.email || '',
-    dob: '',
-    paymentMethod: 'razorpay',
+    dob: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+    paymentMethod: 'razorpay', // 'razorpay' or 'cod'
   });
 
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
     setIsLoaded(true);
+    // Load Razorpay script
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
@@ -64,49 +56,57 @@ const Checkout = () => {
       }));
     }
 
-    return () => { 
-        if (document.body.contains(script)) {
-            document.body.removeChild(script); 
-        }
+    return () => {
+      document.body.removeChild(script);
     };
   }, [user]);
 
-  // REFRESH TOTALS FROM BACKEND ONLY
   useEffect(() => {
-    const refreshTotals = async () => {
-        if (!user?.id || items.length === 0) return;
-        
-        if (formData.postalCode.length === 6) {
-            setIsCalculating(true);
-            const res = await calculateTotalApi(user.id, formData.postalCode);
-            if (res.success) {
-                setTotals(res.data);
-                setIsServiceable(res.data.serviceable !== false);
-                setIsCodAvailable(res.data.codAvailable !== false);
-                setShippingMessage(res.data.message || '');
-                setError(null);
-
-                if (res.data.codAvailable === false && formData.paymentMethod === 'cod') {
-                    setFormData(prev => ({ ...prev, paymentMethod: 'razorpay' }));
-                }
-            } else {
-                setError(res.error);
+    const updateShipping = async () => {
+      if (formData.postalCode.length < 6) {
+        setIsServiceable(true);
+        setIsCodAvailable(true);
+        setShipping(null);
+        setShippingMessage('');
+        return;
+      }
+      
+      if (formData.postalCode.length === 6) {
+        setIsCalculatingShipping(true);
+        try {
+          const res = await calculateShippingApi(
+            user?.id, 
+            formData.postalCode
+          );
+          if (res) {
+            setIsServiceable(res.serviceable);
+            setIsCodAvailable(res.codAvailable !== false);
+            setShipping(res.rate);
+            setShippingMessage(res.message || '');
+            
+            // Auto-switch from COD if it's no longer available
+            if (res.codAvailable === false && formData.paymentMethod === 'cod') {
+                setFormData(prev => ({ ...prev, paymentMethod: 'razorpay' }));
             }
-            setIsCalculating(false);
-        } else {
-            // Reset if pincode is incomplete
-            setIsServiceable(true);
-            setIsCodAvailable(true);
+          }
+        } catch (err) {
+          console.error('Shipping calculation error:', err);
+        } finally {
+          setIsCalculatingShipping(false);
         }
+      }
     };
-    refreshTotals();
-  }, [items, formData.postalCode, user?.id]);
+    updateShipping();
+  }, [formData.postalCode, user?.id]);
 
   const steps = [
     { id: 1, name: 'Shipping' },
     { id: 2, name: 'Payment' },
     { id: 3, name: 'Review' },
   ];
+
+  const subtotal = items.reduce((s, i) => s + (Number(i.unitPrice) || 0) * (i.qty || 1), 0);
+  const total = Math.round(subtotal + (shipping || 0));
 
   const validateStep = (step) => {
     const errors = {};
@@ -116,11 +116,11 @@ const Checkout = () => {
       if (!formData.address.trim()) errors.address = 'Required';
       if (!formData.city.trim()) errors.city = 'Required';
 
-      const postalRegex = /^[1-9][0-9]{5}$/;
+      const postalRegex = /^[1-9][0-9]{5}$/; // Indian PIN code
       if (!formData.postalCode) errors.postalCode = 'Required';
       else if (!postalRegex.test(formData.postalCode)) errors.postalCode = 'Invalid PIN (6 digits)';
 
-      const phoneRegex = /^[6-9][0-9]{9}$/;
+      const phoneRegex = /^[6-9][0-9]{9}$/; // Indian mobile
       if (!formData.phone) errors.phone = 'Required';
       else if (!phoneRegex.test(formData.phone.replace(/\D/g, ''))) errors.phone = 'Invalid 10-digit number';
 
@@ -136,8 +136,13 @@ const Checkout = () => {
 
   const handleNext = async (e) => {
     if (e && e.currentTarget) e.currentTarget.blur();
-    if (!validateStep(activeStep)) return;
-    if (!isServiceable) return;
+    if (!validateStep(activeStep)) {
+      return;
+    }
+
+    if (!isServiceable) {
+      return;
+    }
 
     if (activeStep < 3) {
       setActiveStep(activeStep + 1);
@@ -151,56 +156,93 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      const addrRes = await addAddressApi(user.id, {
+      // 1. Create Address first
+      const addressResult = await addAddressApi(user.id, {
         name: `${formData.firstName} ${formData.lastName}`,
         mobile: formData.phone,
         address: formData.address,
         city: formData.city,
+        state: 'State', // Should ideally be a field
         pincode: formData.postalCode,
         country: 'India',
         type: 'home',
         isDefault: true,
       });
 
-      if (!addrRes.success) throw new Error(addrRes.error);
+      if (!addressResult || addressResult.error) {
+        throw new Error('Failed to save shipping address');
+      }
+
+      const shippingAddressId = addressResult.id.toString();
 
       if (formData.paymentMethod === 'razorpay') {
-        await handleRazorpayPayment(addrRes.data.id);
+        await handleRazorpayPayment(shippingAddressId);
       } else {
-        await handleCODOrder(addrRes.data.id);
+        await handleCODOrder(shippingAddressId);
       }
     } catch (err) {
-      setError(err.message);
+      console.error('Checkout failed', err);
       setIsProcessing(false);
     }
   };
 
   const handleRazorpayPayment = async (addressId) => {
-    const payRes = await initiatePaymentApi(user.id, formData.postalCode, `rcpt_${Date.now()}`);
-    if (!payRes.success) throw new Error(payRes.error);
+    // 2. Initiate Razorpay Order
+    const razorpayOrder = await initiatePaymentApi(total, `order_rcpt_${Date.now()}`);
+
+    if (!razorpayOrder || !razorpayOrder.id) {
+      throw new Error('Failed to initialize payment gateway');
+    }
 
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: payRes.data.amount,
-      currency: payRes.data.currency,
-      order_id: payRes.data.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      name: 'Fylex Luxury',
+      description: 'Luxury Timepiece Purchase',
+      order_id: razorpayOrder.id,
       handler: async (response) => {
-        const verRes = await verifyPaymentApi({
-          orderId: payRes.data.id,
-          paymentId: response.razorpay_payment_id,
-          signature: response.razorpay_signature,
-        });
+        try {
+          // 3. Verify Payment
+          const verification = await verifyPaymentApi({
+            orderId: razorpayOrder.id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          });
 
-        if (verRes.success) {
-          await finalizeOrder(addressId, 'online', response.razorpay_payment_id);
-        } else {
-          setError('Payment verification failed');
+          if (verification && verification.success) {
+            // 4. Create Final Order in Backend
+            await addOrder({
+              customerId: user.id,
+              shippingAddressId: addressId,
+              billingAddressId: addressId,
+              paymentMethod: 'online',
+              paymentId: response.razorpay_payment_id,
+              notes: formData.apartment ? `Apt: ${formData.apartment}` : '',
+              dob: formData.dob,
+              items: [...items],
+              total: `Γé╣${total.toLocaleString()}`,
+            });
+
+            clearCart();
+            navigate.push('/thank-you');
+          } else {
+            throw new Error('Payment verification failed');
+          }
+        } catch (err) {
+          console.error('Payment verification failed', err);
           setIsProcessing(false);
         }
       },
-      prefill: { email: formData.email, contact: formData.phone },
+      prefill: {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        contact: formData.phone,
+      },
       theme: { color: '#1e293b' },
-      modal: { ondismiss: () => setIsProcessing(false) }
+      modal: {
+        ondismiss: () => setIsProcessing(false),
+      }
     };
 
     const rzp = new window.Razorpay(options);
@@ -208,26 +250,19 @@ const Checkout = () => {
   };
 
   const handleCODOrder = async (addressId) => {
-    await finalizeOrder(addressId, 'cod');
-  };
-
-  const finalizeOrder = async (addressId, method, paymentId = null) => {
-    const orderRes = await addOrder({
+    await addOrder({
       customerId: user.id,
       shippingAddressId: addressId,
-      paymentMethod: method,
-      paymentId: paymentId,
+      billingAddressId: addressId,
+      paymentMethod: 'cod',
+      notes: formData.apartment ? `Apt: ${formData.apartment}` : '',
       dob: formData.dob,
-      items: items.map(i => ({ variantId: i.variantId, quantity: i.qty })),
+      items: [...items],
+      total: `Γé╣${total.toLocaleString()}`,
     });
 
-    if (orderRes.success) {
-      clearCart();
-      navigate.push('/thank-you');
-    } else {
-      setError(orderRes.error);
-      setIsProcessing(false);
-    }
+    clearCart();
+    navigate.push('/thank-you');
   };
 
   const handleBack = () => {
@@ -237,17 +272,27 @@ const Checkout = () => {
 
   const updateFormData = (e) => {
     const { name, value } = e.target;
+
+    // Strict filtering based on field type
     let sanitizedValue = value;
 
     if (name === 'phone' || name === 'postalCode') {
+      // Only digits
       sanitizedValue = value.replace(/\D/g, '');
+      // Max length limits
       if (name === 'phone') sanitizedValue = sanitizedValue.slice(0, 10);
       if (name === 'postalCode') sanitizedValue = sanitizedValue.slice(0, 6);
     } else if (name === 'firstName' || name === 'lastName' || name === 'city') {
+      // Only letters and spaces
       sanitizedValue = value.replace(/[^a-zA-Z\s]/g, '');
     }
 
-    setFormData(prev => ({ ...prev, [name]: sanitizedValue }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: sanitizedValue
+    }));
+
+    // Clear validation error when user types
     if (validationErrors[name]) {
       setValidationErrors(prev => {
         const next = { ...prev };
@@ -333,7 +378,7 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  {!isServiceable && !isCalculating && formData.postalCode.length === 6 && (
+                  {!isServiceable && isServiceable !== null && !isCalculatingShipping && formData.postalCode.length === 6 && (
                     <div className="shipping-error-notice">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" />
@@ -344,14 +389,14 @@ const Checkout = () => {
                     </div>
                   )}
 
-                  {shippingMessage && !isCalculating && formData.postalCode.length === 6 && (
+                  {isServiceable === null && !isCalculatingShipping && formData.postalCode.length === 6 && (
                     <div className="shipping-warning-notice">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         <line x1="12" y1="9" x2="12" y2="13" />
                         <line x1="12" y1="17" x2="12.01" y2="17" />
                       </svg>
-                      <span>{shippingMessage}</span>
+                      <span><b>Technical Notice:</b> Shipping is estimated and <b>COD is temporarily disabled</b>. Final charges will be confirmed after order processing.</span>
                     </div>
                   )}
                 </div>
@@ -366,7 +411,7 @@ const Checkout = () => {
                       onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'razorpay' }))}
                     >
                       <div className="card-info">
-                        <div className="card-icon">💳</div>
+                        <div className="card-icon">≡ƒÆ│</div>
                         <div>
                           <div className="card-type">Razorpay (Cards/UPI/Netbanking)</div>
                           <div className="card-desc">Secure live payment gateway</div>
@@ -380,7 +425,7 @@ const Checkout = () => {
                         onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'cod' }))}
                       >
                         <div className="card-info">
-                          <div className="card-icon">🚚</div>
+                          <div className="card-icon">≡ƒÜÜ</div>
                           <div>
                             <div className="card-type">Cash on Delivery</div>
                             <div className="card-desc">Pay when you receive the product</div>
@@ -433,9 +478,9 @@ const Checkout = () => {
               <div className="checkout-footer-actions">
                 <button
                   key={`step-${activeStep}`}
-                  className={`primary-btn ${isProcessing || isCalculating || (isServiceable === false) ? 'disabled' : ''}`}
+                  className={`primary-btn ${isProcessing || isCalculatingShipping || (isServiceable === false) ? 'disabled' : ''}`}
                   onClick={(e) => handleNext(e)}
-                  disabled={isProcessing || isCalculating || (isServiceable === false)}
+                  disabled={isProcessing || isCalculatingShipping || (isServiceable === false)}
                 >
                   {isProcessing ? 'Processing...' : (activeStep === 3 ? 'Place Order' : 'Continue')}
                 </button>
@@ -456,7 +501,7 @@ const Checkout = () => {
                       <div className="item-name">{item.title}</div>
                       <div className="item-meta">{item.qty} item{item.qty !== 1 ? 's' : ''}</div>
                     </div>
-                    <div className="item-price">₹{Math.round(Number(item.unitPrice) * item.qty).toLocaleString()}</div>
+                    <div className="item-price">{item.priceDisplay || `Γé╣${Math.round(Number(item.unitPrice)).toLocaleString()}`}</div>
                   </div>
                 ))}
               </div>
@@ -464,29 +509,17 @@ const Checkout = () => {
               <div className="summary-lines">
                 <div className="summary-line">
                   <span>Subtotal</span>
-                  <span>₹{Math.round(totals.subtotal).toLocaleString()}</span>
+                  <span>Γé╣{Math.round(subtotal).toLocaleString()}</span>
                 </div>
                 <div className="summary-line">
                   <span>Shipping</span>
-                  <span className={totals.shipping === 0 ? 'free-tag' : ''}>
-                    {isCalculating ? 'Calculating...' : (totals.shipping === 0 ? 'Free' : `₹${Math.round(totals.shipping).toLocaleString()}`)}
+                  <span className={shipping === 0 ? 'free-tag' : ''}>
+                    {isCalculatingShipping ? 'Calculating...' : (shipping === null ? '--' : (shipping === 0 ? 'Free' : `Γé╣${Math.round(shipping).toLocaleString()}`))}
                   </span>
                 </div>
-                {totals.tax > 0 && (
-                  <div className="summary-line">
-                    <span>Tax (GST)</span>
-                    <span>₹{Math.round(totals.tax).toLocaleString()}</span>
-                  </div>
-                )}
-                {totals.discount > 0 && (
-                  <div className="summary-line" style={{ color: '#10b981' }}>
-                    <span>Discount</span>
-                    <span>-₹{Math.round(totals.discount).toLocaleString()}</span>
-                  </div>
-                )}
                 <div className="summary-line total">
                   <span>Total</span>
-                  <span>₹{Math.round(totals.total).toLocaleString()}</span>
+                  <span>Γé╣{total.toLocaleString()}</span>
                 </div>
               </div>
             </div>

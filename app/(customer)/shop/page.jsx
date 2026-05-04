@@ -8,7 +8,7 @@ import Lenis from 'lenis';
 import Link from 'next/link';
 import { fetchProducts } from '../../../lib/api';
 import cmsService from '@/services/cms.service';
-import { getFileUrl } from '@/lib/utils';
+import { getFileUrl, resolveProductImage, getDisplayData } from '@/lib/utils';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -27,7 +27,7 @@ export default function Shop() {
       try {
         const res = await fetchProducts();
         const rawData = res.data || (Array.isArray(res) ? res : []);
-        // ... (hexToRgb logic)
+        
         const hexToRgb = (hex) => {
           if (!hex) return '196, 163, 90';
           const cleanHex = hex.replace('#', '');
@@ -38,21 +38,12 @@ export default function Shop() {
         };
 
         const mapped = rawData.map(p => {
-          let rawHero = p.heroImage || (p.images && p.images[0]);
-          if (!rawHero && p.variants?.length > 0) {
-            const vImg = p.variants[0].variantImages?.find(vi => vi.type === 'MAIN')?.media || p.variants[0].variantImages?.[0]?.media;
-            rawHero = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
-          }
-          if (rawHero && !rawHero.startsWith('http') && !rawHero.startsWith('/') && !rawHero.startsWith('data:')) {
-            rawHero = `/uploads/${rawHero}`;
-          }
-
+          const display = getDisplayData(p);
           return {
             ...p,
-            heroImage: getFileUrl(rawHero) || '/assets/fylex-watch-v2/premium.png',
+            ...display,
             accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
             mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
-            gradient: p.gradient || ''
           };
         });
         setProducts(mapped);
@@ -74,16 +65,9 @@ export default function Shop() {
     loadData();
   }, []);
 
-  const displayProducts = products.length > 0 ? products : [
-    { id: '1', name: 'Master Steel', subtitle: '904L Steel · Black Dial · Oyster Bracelet', price: '14,800', heroImage: '/assets/fylex-watch-v2/premium.png', slug: 'master-steel', bgColor: '#fffbf2', mistRgb: '241, 228, 209' },
-    { id: '2', name: 'Master Gold', subtitle: '18K Rose Gold · Champagne Dial · Leather', price: '38,500', heroImage: '/assets/fylex-watch-v2/goldwatch.png', slug: 'master-gold', bgColor: '#f0f4f8', mistRgb: '209, 217, 230' },
-    { id: '3', name: 'Master Noir', subtitle: 'DLC Coated · Meteorite Dial · Rubber Strap', price: '22,400', heroImage: '/assets/fylex-watch-v2/olive-green.png', slug: 'master-noir', bgColor: '#f0fdf4', mistRgb: '220, 252, 231' }
-  ];
+  const displayProducts = products;
 
-  const watchImages = displayProducts.map(p => {
-    const img = p.heroImage || (p.images && p.images[0]) || '/assets/fylex-watch-v2/premium.png';
-    return getFileUrl(img);
-  });
+  const watchImages = displayProducts.map(p => p.heroImage);
 
   // Lenis Smooth Scroll
   useEffect(() => {
@@ -534,7 +518,7 @@ export default function Shop() {
             <h2 className="hd" style={{ fontSize: 'clamp(28px,2.8vw,44px)', maxWidth: '300px' }}>Our Best<br /><em>Watches</em></h2>
           </div>
           <div className="watch-showcase">
-            <img id="mainWatch" ref={mainWatchRef} src={watchImages[activeWatchIndex]} alt="Fylex Watch" />
+            <img id="mainWatch" ref={mainWatchRef} src={displayProducts[activeWatchIndex]?.image} alt="Fylex Watch" />
           </div>
           <div className="rbtn-wrap r0">
             <Link href="/discover" className="bf">Discover our watches</Link>
@@ -688,7 +672,7 @@ export default function Shop() {
               <div className="vbody">
                 <div className="vname">{p.name}</div>
                 <div className="vsub">{p.subtitle || p.shortDescription}</div>
-                <div className="vprice">{p.price?.toString().startsWith('₹') || p.price?.toString().startsWith('$') ? p.price : `₹${p.price}`}</div>
+                <div className="vprice">{p.isConfigurable ? 'From ' : ''}{p.formattedPrice}</div>
                 <Link href={`/discover?watch=${p.id || p.slug}`} className="vbtn">Discover</Link>
               </div>
             </div>

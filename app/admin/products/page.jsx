@@ -13,7 +13,7 @@ import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import ConfirmModal from '@/components/admin/ui/ConfirmModal';
 import { useToast } from '@/context/ToastContext';
-import { getFileUrl } from '@/lib/utils';
+import { getFileUrl, resolveProductImage, getDisplayData } from '@/lib/utils';
 
 const AdminProducts = () => {
   const toast = useToast();
@@ -61,20 +61,16 @@ const AdminProducts = () => {
           title: 'PRODUCT INFO', field: 'name', minWidth: 250,
           formatter: (cell) => {
             const d = cell.getRow().getData();
-            let rawImg = d.heroImage || (Array.isArray(d.images) && d.images[0]) || d.image || d.image_url || '';
-            if (rawImg && !rawImg.startsWith('http') && !rawImg.startsWith('/') && !rawImg.startsWith('data:')) {
-                rawImg = `/uploads/${rawImg}`;
-            }
-            const imgSrc = getFileUrl(rawImg);
+            const display = getDisplayData(d);
             const cat = d.mainCategory?.name || d.category?.name || 'Uncategorized';
             return `
               <div style="display:flex;align-items:center;gap:14px;padding:6px 0">
                 <div style="width:52px;height:52px;background:#f8fafc;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid #e2e8f0">
-                  ${imgSrc ? `<img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />` : ''}
-                  <i class="fas fa-box" style="color:#cbd5e1;font-size:18px;${imgSrc ? 'display:none' : 'display:block'}"></i>
+                  ${display.image ? `<img src="${display.image}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />` : ''}
+                  <i class="fas fa-box" style="color:#cbd5e1;font-size:18px;${display.image ? 'display:none' : 'display:block'}"></i>
                 </div>
                 <div style="min-width:0">
-                  <div style="font-weight:800;color:#1e293b;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</div>
+                  <div style="font-weight:800;color:#1e293b;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${display.name}</div>
                   <div style="font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:0.04em;margin-top:3px">${cat}</div>
                 </div>
               </div>`;
@@ -84,12 +80,12 @@ const AdminProducts = () => {
           title: 'PRICE / STOCK', field: 'price', width: 180,
           formatter: (cell) => {
             const d = cell.getRow().getData();
-            const price = Number(d.price || 0).toLocaleString('en-IN');
+            const display = getDisplayData(d);
             const stock = d.qty ?? d.stock ?? 0;
             const lowStock = stock <= 5;
             return `
               <div>
-                <div style="font-weight:800;color:#1e293b;font-size:15px">₹${price}</div>
+                <div style="font-weight:800;color:#1e293b;font-size:15px">${display.isConfigurable ? 'From ' : ''}${display.formattedPrice}</div>
                 <div style="font-size:11px;font-weight:700;color:${lowStock ? '#ef4444' : '#64748b'};margin-top:2px">
                   <i class="fas fa-cubes" style="margin-right:4px;opacity:0.6"></i>${stock} in stock
                 </div>

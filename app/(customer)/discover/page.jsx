@@ -13,7 +13,7 @@ import 'swiper/css/free-mode';
 import { fetchProducts } from '../../../lib/api';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
-import { getFileUrl } from '@/lib/utils';
+import { getFileUrl, resolveProductImage, getDisplayData } from '@/lib/utils';
 import localProductsData from '../../../data/productsData';
 
 function DiscoverContent() {
@@ -37,38 +37,29 @@ function DiscoverContent() {
 
   useEffect(() => {
     const loadData = async () => {
-      const data = await fetchProducts();
-      if (data) {
-        const actualData = data.data || (Array.isArray(data) ? data : []);
-        const hexToRgb = (hex) => {
-          if (!hex) return '196, 163, 90';
-          const cleanHex = hex.replace('#', '');
-          const r = parseInt(cleanHex.substring(0, 2), 16);
-          const g = parseInt(cleanHex.substring(2, 4), 16);
-          const b = parseInt(cleanHex.substring(4, 6), 16);
-          return `${r}, ${g}, ${b}`;
-        };
+      try {
+        const data = await fetchProducts();
+        if (data) {
+          const actualData = data.data || (Array.isArray(data) ? data : []);
+          const hexToRgb = (hex) => {
+            if (!hex) return '196, 163, 90';
+            const cleanHex = hex.replace('#', '');
+            const r = parseInt(cleanHex.substring(0, 2), 16);
+            const g = parseInt(cleanHex.substring(2, 4), 16);
+            const b = parseInt(cleanHex.substring(4, 6), 16);
+            return `${r}, ${g}, ${b}`;
+          };
 
-        const mapped = actualData.map(p => {
-            // Main Image Resolution
-            let rawHero = p.heroImage || (p.images?.[0]);
-            if (!rawHero && p.variants?.length > 0) {
-                const vImg = p.variants[0].variantImages?.find(vi => vi.type === 'MAIN')?.media || p.variants[0].variantImages?.[0]?.media;
-                rawHero = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
-            }
-            if (rawHero && !rawHero.startsWith('http') && !rawHero.startsWith('/') && !rawHero.startsWith('data:')) {
-                rawHero = `/uploads/${rawHero}`;
-            }
-
+          const mapped = actualData.map(p => {
+            const display = getDisplayData(p);
             return {
                 ...p,
+                ...display,
                 id: p.id.toString(),
-                title: p.name,
-                subtitle: p.subtitle || 'Luxury Collection',
+                title: display.name,
+                subtitle: display.subtitle || 'Luxury Collection',
                 description: p.shortDescription || p.description || '',
                 longDesc: p.description || p.shortDescription || 'Experience the pinnacle of watchmaking with our masterfully crafted timepiece.',
-                heroImage: getFileUrl(rawHero) || '/assets/fylex-watch-v2/premium.png',
-                image: getFileUrl(rawHero) || '/assets/fylex-watch-v2/premium.png',
                 theme: p.bgColor || 'champagne',
                 accentColor: p.accentColor || '#c4a35a',
                 accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
@@ -86,15 +77,13 @@ function DiscoverContent() {
                     }).filter(Boolean)
                     : (p.images || []).map(img => getFileUrl(img.startsWith('http') || img.startsWith('/') ? img : `/uploads/${img}`)),
                 combinations: (p.variants || []).map(v => {
-                    const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
-                    let vPath = vImg?.url || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
-                    if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
-                        vPath = `/uploads/${vPath}`;
-                    }
+                    const vDisplay = getDisplayData(p, v);
                     return {
                         id: v.id.toString(),
                         name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-                        img: getFileUrl(vPath) || getFileUrl(rawHero) || '/assets/fylex-watch-v2/Olive-green-dial.png',
+                        img: vDisplay.image,
+                        price: vDisplay.price,
+                        formattedPrice: vDisplay.formattedPrice,
                         attributes: v.variantAttributes?.map(va => ({
                             name: va.attributeValue?.attribute?.name?.toLowerCase(),
                             value: va.attributeValue?.label
@@ -111,10 +100,14 @@ function DiscoverContent() {
                     return acc;
                 }, {})
             };
-        });
-        setProductsData(mapped);
+          });
+          setProductsData(mapped);
+        }
+      } catch (err) {
+        console.error("Discover loadData error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     loadData();
   }, []);
@@ -190,30 +183,28 @@ function DiscoverContent() {
   };
   
   const handleBookNow = () => {
-    // Find matching variant based on current configuration
+    const hasConfig = searchParams.get('dial') || searchParams.get('material');
     let targetVariant = null;
-    const variants = product.variants || [];
+    const variants = product?.variants || [];
     
     if (hasConfig) {
         targetVariant = variants.find(v => {
             return (v.variantAttributes || []).every(va => {
                 const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
                 const selectedVal = searchParams.get(attrName);
-                return selectedVal === va.attributeValue?.label;
+                return !selectedVal || selectedVal === va.attributeValue?.label;
             });
         });
     }
 
-    // Fallback to first variant if no exact match (or if not in config mode)
     if (!targetVariant && variants.length > 0) {
         targetVariant = variants[0];
     }
 
     if (targetVariant) {
-        addToCart(targetVariant.id.toString(), 1, { title: product.title });
+        addToCart(targetVariant.id.toString(), 1, { title: product.name });
     } else {
-        // Fallback to adding by productId if no variant exists (Backend handles auto-creation)
-        addToCart(null, 1, { title: product.title }, product.id);
+        throw new Error("ENFORCEMENT: Cannot add to cart without matching variant");
     }
   };
 
@@ -264,23 +255,13 @@ function DiscoverContent() {
   });
 
   if (matchingVariant) {
-    // Store variant ID for wishlist/cart actions
+    const vDisplay = getDisplayData(product, matchingVariant);
     product.currentVariantId = matchingVariant.id.toString();
-    // Store variant name/attributes for local wishlist state
-    product.variantName = matchingVariant.variantAttributes
-        ?.map(va => va.attributeValue?.label)
-        .filter(Boolean)
-        .join(', ');
-    // Update price to variant price
-    product.price = matchingVariant.sellingPrice || matchingVariant.price || product.price;
-    
-    const vMainImg = matchingVariant.variantImages?.find(vi => vi.type === 'MAIN')?.media || matchingVariant.variantImages?.[0]?.media;
-    if (vMainImg) {
-      let vPath = vMainImg.url || vMainImg.path || (vMainImg.fileName ? `/uploads/${vMainImg.fileName}` : '');
-      const finalImg = getFileUrl(vPath);
-      product.heroImage = finalImg;
-      product.image = finalImg;
-    }
+    product.variantName = vDisplay.subtitle;
+    product.price = vDisplay.price;
+    product.formattedPrice = vDisplay.formattedPrice;
+    product.heroImage = vDisplay.image;
+    product.image = vDisplay.image;
     
     const vGallery = (matchingVariant.variantImages || [])
       .filter(vi => vi.type === 'GALLERY' || vi.type === 'gallery')

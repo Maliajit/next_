@@ -12,7 +12,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import { X, RefreshCw, Heart, ChevronRight, ChevronLeft, Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { fetchProducts } from '../../../lib/api';
-import { getFileUrl } from '@/lib/utils';
+import { getFileUrl, resolveProductImage } from '../../../lib/utils';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -40,6 +40,17 @@ function ConfigureContent() {
   const [userSelections, setUserSelections] = useState({});
   const [displayPrice, setDisplayPrice] = useState('');
 
+  // Sync state to URL
+  useEffect(() => {
+    if (Object.keys(userSelections).length > 0) {
+        const params = new URLSearchParams(searchParams.toString());
+        Object.entries(userSelections).forEach(([key, val]) => {
+            if (val) params.set(key, val);
+        });
+        router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [userSelections]);
+
   useEffect(() => {
     const loadProduct = async () => {
       try {
@@ -57,7 +68,7 @@ function ConfigureContent() {
           id: p.id.toString(),
           title: p.name,
           price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
-          heroImage: getFileUrl(p.heroImage || p.images?.[0]) || '/assets/fylex-watch-v2/premium.png',
+          heroImage: resolveProductImage(p),
           galleryImages: [],
           theme: p.bgColor || 'champagne',
           accentColor: p.accentColor || '#c4a35a',
@@ -82,12 +93,10 @@ function ConfigureContent() {
               attrMap[attr.name] = { id: attr.id, title: `Choose your ${attr.name.toLowerCase()}`, options: [] };
             }
             if (!attrMap[attr.name].options.some(o => o.name === va.attributeValue.label)) {
-              const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
-              const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
               attrMap[attr.name].options.push({
                 name: va.attributeValue.label,
-                img: vPath || mappedProduct.heroImage,
-                dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? vPath : null
+                img: resolveProductImage(p, v),
+                dialImg: va.attributeValue.label.toLowerCase().includes('dial') ? resolveProductImage(p, v) : null
               });
             }
           });
@@ -102,14 +111,16 @@ function ConfigureContent() {
         setStepsData(dynamicSteps);
         setVariants(p.variants || []);
 
+        // Load selections from URL or defaults
         const initialSelections = {};
         dynamicSteps.forEach(step => {
-          initialSelections[step.id] = step.options[0]?.name;
+            const urlVal = searchParams.get(step.id);
+            initialSelections[step.id] = urlVal || step.options[0]?.name;
         });
         setUserSelections(initialSelections);
 
-        // Auto-select initial variant image if matches defaults
-        const initialMatch = (p.variants || []).find(v => {
+        // Auto-select variant image based on URL selections
+        const match = (p.variants || []).find(v => {
           const vAttrs = v.variantAttributes || [];
           if (vAttrs.length === 0) return false;
           return vAttrs.every(va => {
@@ -118,13 +129,12 @@ function ConfigureContent() {
           });
         });
 
-        if (initialMatch) {
-          const vImg = initialMatch.variantImages?.find(vi => vi.type === 'MAIN')?.media || initialMatch.variantImages?.[0]?.media;
-          const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
+        if (match) {
+          const vPath = resolveProductImage(p, match);
           if (vPath) setPreviewSrc(vPath);
 
-          const matchGallery = (initialMatch.variantImages || []).map(vi => 
-            getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
+          const matchGallery = (match.variantImages || []).map(vi => 
+            getFileUrl(vi.media?.path || vi.media?.url || vi.media?.fileName)
           ).filter(Boolean);
           setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
         }

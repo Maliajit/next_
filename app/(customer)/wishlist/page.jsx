@@ -262,10 +262,10 @@ export default function Wishlist() {
 
                 <div className="wishlist-item-content">
                   <div className="wishlist-item-info">
-                    <h3>{item.productName || item.title}</h3>
+                    <h3>{item.title}</h3>
                     <span className="variant-name">{item.variantName}</span>
                     <div className="price-container">
-                      <span className="price">{item.price}</span>
+                      <span className="price">{item.formattedPrice}</span>
                     </div>
                   </div>
 

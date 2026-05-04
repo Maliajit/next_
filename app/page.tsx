@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
 import { fetchFeaturedProducts } from '@/lib/api';
 import cmsService from '@/services/cms.service';
-import { getFileUrl } from '@/lib/utils';
+import { getFileUrl, getDisplayData } from '@/lib/utils';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
@@ -880,33 +880,23 @@ const Home = () => {
                 className="featured-swiper"
               >
                   {featuredProducts.map((p) => {
-                    // Logic to find the lowest priced variant's image if heroImage is missing
-                    let displayImage = p.heroImage;
-                    if (!displayImage && p.variants && p.variants.length > 0) {
-                      const sortedVariants = [...p.variants].sort((a, b) => 
-                        parseFloat(a.sellingPrice || a.price) - parseFloat(b.sellingPrice || b.price)
-                      );
-                      const lowestVariant = sortedVariants[0];
-                      if (lowestVariant.variantImages && lowestVariant.variantImages.length > 0) {
-                        displayImage = lowestVariant.variantImages[0].media?.filePath || lowestVariant.variantImages[0].media?.fileName;
-                      }
-                    }
-
+                    const display = getDisplayData(p);
+                    
                     return (
                       <SwiperSlide key={p.id}>
                         <div className="featured-item-v2" style={{ background: p.gradient || p.bgColor || '#f5f5f5' }}>
-                          {getFileUrl(displayImage) && (
+                          {display.image && (
                             <img 
-                              src={getFileUrl(displayImage) as string} 
-                              alt={p.name || p.title} 
+                              src={display.image} 
+                              alt={display.name} 
                               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
                             />
                           )}
                           <div className="featured-content" style={{ color: p.textColor || '#111', zIndex: 2 }}>
                             <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
-                            <div className="f-title" style={{ color: 'inherit' }}>{p.name || p.title} <em>{p.titleAccent || ''}</em></div>
+                            <div className="f-title" style={{ color: 'inherit' }}>{display.name} <em>{p.titleAccent || ''}</em></div>
                             <div className="f-price" style={{ margin: '10px 0 20px', fontSize: '1.2rem', fontWeight: 500 }}>
-                              {p.productType === 'configurable' ? 'From ' : ''}₹{parseFloat(p.price || p.sellingPrice || '0').toLocaleString()}
+                              {display.isConfigurable ? 'From ' : ''}{display.formattedPrice}
                             </div>
                             <Link href={`/discover?watch=${p.id}`} className="f-shop-btn">Shop</Link>
                           </div>

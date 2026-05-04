@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCart, addToCartApi, removeFromCartApi, updateCartQtyApi } from '../lib/api';
 import { useAuth } from './AuthContext';
-import { getFileUrl } from '../lib/utils';
+import { resolveProductImage, getDisplayData } from '../lib/utils';
 import { eventBus, EVENTS } from '../lib/events';
 
 const CartContext = createContext(null);
@@ -26,21 +26,24 @@ export function CartProvider({ children }) {
             const variant = item.productVariant;
             const product = variant?.product;
             
-            const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN' || vi.isPrimary === 1)?.media || variant?.variantImages?.[0]?.media;
-            const imgPath = vImg?.url || vImg?.filePath || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : (product?.heroImage || ''));
+            if (!variant || !product) return null;
+
+            const display = getDisplayData(product, variant);
 
             return {
-                ...item,
-                id: item.id.toString(),
-                productId: product?.id?.toString(),
-                variantId: variant?.id?.toString(),
-                title: product?.name || 'Watch',
-                subtitle: variant?.sku || 'Custom Configuration',
+                id: item.id.toString(), // Database CartItem ID
+                productId: product.id.toString(),
+                variantId: variant.id.toString(),
+                sku: display.sku,
+                title: display.name,
+                subtitle: display.subtitle,
                 unitPrice: Number(item.unitPrice || 0),
-                image: getFileUrl(imgPath) || '/assets/fylex-watch-v2/premium.png',
+                image: display.image,
                 qty: item.quantity,
+                // Full display data for UI convenience
+                ...display
             };
-        });
+        }).filter(Boolean);
         setItems(mapped);
     }
     setLoading(false);
