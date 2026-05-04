@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchOrders, createOrderApi } from '../lib/api';
 import { useAuth } from './AuthContext';
+import { getFileUrl } from '../lib/utils';
 
 const OrderContext = createContext(null);
 
@@ -27,16 +28,29 @@ export function OrderProvider({ children }) {
       ...order,
       id: order.id?.toString() || order.orderNumber || Date.now().toString(),
       date: order.createdAt 
-        ? new Date(order.createdAt).toLocaleDateString() 
-        : (order.date || new Date().toLocaleDateString()),
+        ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) 
+        : (order.date || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })),
       total: order.total || formatCurrency(order.grandTotal || order.amount || 0),
-      items: rawItems.map(item => ({
-        ...item,
-        price: item.price || formatCurrency(item.unitPrice || 0),
-        image: item.product?.heroImage || item.image || '/assets/fylex-watch-v2/premium.png',
-        title: item.title || item.productName || item.product?.name || 'Luxury Timepiece',
-        qty: item.qty || item.quantity || 1
-      }))
+      items: rawItems.map(item => {
+        const variant = item.productVariant;
+        const product = item.product;
+        
+        // Use consistent variant image extraction logic
+        const vImg = variant?.variantImages?.find(vi => vi.type === 'MAIN' || vi.isPrimary === 1)?.media || variant?.variantImages?.[0]?.media;
+        let imgPath = vImg?.url || vImg?.filePath || vImg?.path || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
+        
+        if (!imgPath) {
+            imgPath = product?.heroImage || item.image || '/assets/fylex-watch-v2/premium.png';
+        }
+
+        return {
+            ...item,
+            price: item.price || formatCurrency(item.unitPrice || 0),
+            image: getFileUrl(imgPath),
+            title: item.title || item.productName || item.product?.name || 'Luxury Timepiece',
+            qty: item.qty || item.quantity || 1
+        };
+      })
     };
   };
 

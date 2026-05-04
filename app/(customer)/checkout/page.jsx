@@ -222,11 +222,10 @@ const Checkout = () => {
               dob: formData.dob,
               items: [...items],
               total: `₹${total.toLocaleString()}`,
-              date: new Date().toLocaleDateString(),
             });
 
             clearCart();
-            navigate.push('/my-purchases');
+            navigate.push('/thank-you');
           } else {
             throw new Error('Payment verification failed');
           }
@@ -260,11 +259,10 @@ const Checkout = () => {
       dob: formData.dob,
       items: [...items],
       total: `₹${total.toLocaleString()}`,
-      date: new Date().toLocaleDateString(),
     });
 
     clearCart();
-    navigate.push('/my-purchases');
+    navigate.push('/thank-you');
   };
 
   const handleBack = () => {
@@ -480,7 +478,7 @@ const Checkout = () => {
               <div className="checkout-footer-actions">
                 <button
                   key={`step-${activeStep}`}
-                  className={`primary-btn ${isProcessing || isCalculatingShipping || (isServiceable === false) ? 'disabled' : 'pulse'}`}
+                  className={`primary-btn ${isProcessing || isCalculatingShipping || (isServiceable === false) ? 'disabled' : ''}`}
                   onClick={(e) => handleNext(e)}
                   disabled={isProcessing || isCalculatingShipping || (isServiceable === false)}
                 >

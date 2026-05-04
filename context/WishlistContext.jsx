@@ -41,6 +41,8 @@ export function WishlistProvider({ children }) {
                         imgPath = variant.heroImage || product.heroImage || item.heroImage || item.image || '';
                     }
 
+                    const finalImage = getFileUrl(imgPath);
+
                     // Build redirect URL
                     let redirectUrl = `/discover?watch=${product.slug || product.id || item.productId}`;
                     if (variant.variantAttributes) {
@@ -61,7 +63,7 @@ export function WishlistProvider({ children }) {
                         productName: product.name || item.title || 'Fylex Watch',
                         variantName: vName,
                         price: variant.price ? `₹${Number(variant.price).toLocaleString()}` : (item.price ? `₹${Number(item.price).toLocaleString()}` : '₹0'),
-                        image: getFileUrl(imgPath) || '/assets/fylex-watch-v2/premium.png',
+                        image: finalImage || '/assets/fylex-watch-v2/premium.png',
                         redirectUrl
                     };
                 })
