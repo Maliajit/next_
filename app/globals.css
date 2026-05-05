@@ -148,11 +148,9 @@ body {
 }
 
 .cta-v1:hover, .cta-v1:active {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
@@ -178,10 +176,9 @@ body {
 }
 
 .btn-glass:hover, .btn-glass:active {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }

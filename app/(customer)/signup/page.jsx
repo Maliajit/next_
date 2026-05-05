@@ -11,7 +11,7 @@ const ORBS = [
   { w: 300, h: 300, top: '55%', left: '8%', c: 'rgba(67,160,215,0.09)', dur: 15 },
 ];
 
-const STEPS = ['Account', 'Profile', 'Confirm'];
+const STEPS = ['Account', 'Verify', 'Profile'];
 
 function StepIndicator({ current }) {
   return (
@@ -65,7 +65,7 @@ function InputField({ label, type = 'text', id, value, onChange, placeholder, ic
   );
 }
 
-function Step0({ data, setData }) {
+function StepAccount({ data, setData }) {
   return (
     <div className="sp-step-content">
       <InputField
@@ -77,6 +77,19 @@ function Step0({ data, setData }) {
         icon={
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+          </svg>
+        }
+      />
+      <InputField
+        label="Mobile Number"
+        type="tel"
+        id="sp-mobile"
+        value={data.mobile}
+        onChange={e => setData(p => ({ ...p, mobile: e.target.value }))}
+        placeholder="Enter 10-digit number"
+        icon={
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
           </svg>
         }
       />
@@ -93,25 +106,35 @@ function Step0({ data, setData }) {
           </svg>
         }
       />
+    </div>
+  );
+}
+
+function StepVerify({ data, setData }) {
+  return (
+    <div className="sp-step-content">
+      <div className="sp-verify-header">
+        <h3 className="sp-verify-title">Verify Mobile Number</h3>
+        <p className="sp-verify-sub">We've sent a 4-digit code to <strong>{data.mobile}</strong></p>
+      </div>
       <InputField
-        label="Password"
-        type="password"
-        id="sp-pass"
-        value={data.password}
-        onChange={e => setData(p => ({ ...p, password: e.target.value }))}
-        placeholder="Min. 8 characters"
-        hint="Use uppercase, numbers and symbols for best security"
+        label="Verification Code"
+        id="sp-otp"
+        value={data.otp}
+        onChange={e => setData(p => ({ ...p, otp: e.target.value }))}
+        placeholder="••••"
         icon={
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" strokeLinecap="round" />
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
         }
+        hint="Default OTP is 1234 for testing"
       />
     </div>
   );
 }
 
-function Step1({ data, setData }) {
+function StepProfile({ data, setData }) {
   return (
     <div className="sp-step-content">
       <div className="sp-avatar-section">
@@ -124,19 +147,6 @@ function Step1({ data, setData }) {
         </div>
         <p className="sp-avatar-label">Profile Photo <span>(optional)</span></p>
       </div>
-      <InputField
-        label="Phone Number"
-        type="tel"
-        id="sp-phone"
-        value={data.phone}
-        onChange={e => setData(p => ({ ...p, phone: e.target.value }))}
-        placeholder="+1 (555) 000-0000"
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <rect x="5" y="2" width="14" height="20" rx="2" /><circle cx="12" cy="18" r="1" fill="currentColor" />
-          </svg>
-        }
-      />
       <div className="sp-field-wrapper">
         <label className="sp-field-label">Preferred Style</label>
         <div className="sp-style-grid">
@@ -164,44 +174,6 @@ function Step1({ data, setData }) {
           </svg>
         }
       />
-    </div>
-  );
-}
-
-function Step2({ data }) {
-  return (
-    <div className="sp-step-content sp-confirm-step">
-      <div className="sp-confirm-ring">
-        <svg width="56" height="56" viewBox="0 0 56 56">
-          <circle cx="28" cy="28" r="26" fill="none" stroke="url(#confirmGrad)" strokeWidth="2" />
-          <defs>
-            <linearGradient id="confirmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#4a6fa5" />
-              <stop offset="100%" stopColor="#764ba2" />
-            </linearGradient>
-          </defs>
-          <path d="M17 29l8 8 14-16" stroke="#4a6fa5" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-
-      <h3 className="sp-confirm-title">Review your details</h3>
-      <p className="sp-confirm-sub">Almost there — verify everything looks good before creating your account.</p>
-
-      <div className="sp-confirm-list">
-        {[
-          { label: 'Name', val: data.name || '—' },
-          { label: 'Email', val: data.email || '—' },
-          { label: 'Phone', val: data.phone || '—' },
-          { label: 'Style', val: data.style || '—' },
-          { label: 'Country', val: data.country || '—' },
-        ].map(row => (
-          <div key={row.label} className="sp-confirm-row">
-            <span className="sp-confirm-key">{row.label}</span>
-            <span className="sp-confirm-val">{row.val}</span>
-          </div>
-        ))}
-      </div>
-
       <label className="sp-terms-label" htmlFor="sp-terms-check">
         <input type="checkbox" className="sp-terms-check" id="sp-terms-check" />
         <span className="sp-terms-custom" />
@@ -220,7 +192,7 @@ export default function Signup() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: '', email: '', password: '',
-    phone: '', style: '', country: '',
+    mobile: '', style: 'Minimalist', country: '', otp: '',
   });
   const [loaded, setLoaded] = useState(false);
   const [contentKey, setContentKey] = useState(0);
@@ -247,22 +219,21 @@ export default function Signup() {
     setError('');
     if (step === 0) {
       if (!data.name.trim()) return setError('Please enter your full name');
+      if (!data.mobile.trim() || data.mobile.length < 10) return setError('Please enter a valid 10-digit mobile number');
       if (!data.email.trim()) return setError('Please enter your email address');
       if (!validateEmail(data.email)) return setError('Please enter a valid email address');
-      if (!data.password) return setError('Please enter a password');
-      if (data.password.length < 8) return setError('Password must be at least 8 characters long');
     }
 
     if (step === 1) {
-      if (!data.phone.trim()) return setError('Please enter your phone number');
-      if (!data.country.trim()) return setError('Please enter your country');
+      if (!data.otp || data.otp.length !== 4) return setError('Please enter the 4-digit verification code');
+      if (data.otp !== '1234') return setError('Invalid verification code');
     }
 
     if (step < 2) {
       setStep(s => s + 1);
       setContentKey(k => k + 1);
     } else {
-      // Check terms on last step
+      // Final Step Profile & Terms
       const termsCheck = document.getElementById('sp-terms-check');
       if (termsCheck && !termsCheck.checked) {
         return setError('You must agree to the Terms and Conditions');
@@ -273,13 +244,14 @@ export default function Signup() {
         console.log('[auth-ui] signup submit', {
           email: data.email,
           name: data.name,
-          mobile: data.phone || null,
+          mobile: data.mobile,
+          otp: data.otp,
         });
         await signup({
           name: data.name,
           email: data.email,
-          password: data.password,
-          mobile: data.phone,
+          mobile: data.mobile,
+          otp: data.otp,
         });
         setDone(true);
         console.log('[auth-ui] navigation trigger', { target: '/login', reason: 'verified signup success' });
@@ -297,7 +269,7 @@ export default function Signup() {
     if (step > 0) { setStep(s => s - 1); setContentKey(k => k + 1); }
   };
 
-  const btnLabel = step === 2 ? 'Create Account' : 'Continue';
+  const btnLabel = step === 2 ? 'Complete Signup' : 'Continue';
 
   return (
     <div className="sp-page">
@@ -376,9 +348,9 @@ export default function Signup() {
                   key={contentKey}
                   style={{ animation: 'spSlideIn 0.45s ease both' }}
                 >
-                  {step === 0 && <Step0 data={data} setData={setData} />}
-                  {step === 1 && <Step1 data={data} setData={setData} />}
-                  {step === 2 && <Step2 data={data} />}
+                  {step === 0 && <StepAccount data={data} setData={setData} />}
+                  {step === 1 && <StepVerify data={data} setData={setData} />}
+                  {step === 2 && <StepProfile data={data} setData={setData} />}
                 </div>
 
                 {error && (
@@ -531,7 +503,7 @@ export default function Signup() {
         }
         .sp-step-label-active { color: #4a6fa5; font-weight: 600; }
         .sp-step-connector {
-          width: 60px; height: 2px;
+          width: 50px; height: 2px;
           background: rgba(99,130,201,0.2);
           margin: 0 6px; margin-bottom: 20px;
           border-radius: 2px;
@@ -561,6 +533,10 @@ export default function Signup() {
 
         /* Step content */
         .sp-step-content { display: flex; flex-direction: column; gap: 20px; }
+
+        .sp-verify-header { text-align: center; margin-bottom: 10px; }
+        .sp-verify-title { font-family: 'Playfair Display', serif; font-size: 20px; color: #1C2E4A; margin-bottom: 6px; }
+        .sp-verify-sub { font-size: 13px; color: #7a8aa0; }
 
         /* Avatar */
         .sp-avatar-section {
@@ -630,34 +606,11 @@ export default function Signup() {
         .sp-input::placeholder { color: #b0bdd0; }
         .sp-field-hint { font-size: 11px; color: #9aaabe; }
 
-        /* Confirm step */
-        .sp-confirm-step { align-items: center; text-align: center; }
-        .sp-confirm-ring {
-          width: 80px; height: 80px; border-radius: 50%;
-          background: linear-gradient(135deg, rgba(74,111,165,0.1), rgba(118,75,162,0.1));
-          display: flex; align-items: center; justify-content: center;
-          margin-bottom: 4px;
-        }
-        .sp-confirm-title {
-          font-family: 'Playfair Display', serif;
-          font-size: 22px; color: #1C2E4A; margin-bottom: 4px;
-        }
-        .sp-confirm-sub { font-size: 13px; color: #7a8aa0; margin-bottom: 4px; }
-        .sp-confirm-list {
-          width: 100%; background: rgba(240,244,252,0.6);
-          border-radius: 16px; padding: 16px 20px;
-          display: flex; flex-direction: column; gap: 10px;
-        }
-        .sp-confirm-row {
-          display: flex; justify-content: space-between;
-          font-size: 13px;
-        }
-        .sp-confirm-key { color: #7a8aa0; font-weight: 500; }
-        .sp-confirm-val { color: #1C2E4A; font-weight: 600; }
+        /* Terms */
         .sp-terms-label {
           display: flex; align-items: flex-start; gap: 10px;
           font-size: 12px; color: #5a6a80; cursor: pointer;
-          text-align: left; width: 100%; margin-top: 4px;
+          text-align: left; width: 100%; margin-top: 10px;
           user-select: none;
         }
         .sp-terms-check { display: none; }
@@ -722,8 +675,8 @@ export default function Signup() {
           flex: 1;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           padding: 8px 16px; border-radius: 999px;
-          background: #1a1a1a;
-          color: white; border: 1px solid #1a1a1a;
+          background: #ffffff;
+          color: #000000; border: 1px solid #ffffff;
           font-size: 10px; letter-spacing: 0.15em;
           text-transform: uppercase; font-weight: 700;
           cursor: pointer; font-family: 'Montserrat', sans-serif;
@@ -732,10 +685,9 @@ export default function Signup() {
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .sp-next-btn:hover, .sp-next-btn:active {
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #000000 !important;
+          color: #ffffff !important;
+          border-color: #000000;
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
@@ -752,6 +704,7 @@ export default function Signup() {
 
         .sp-login-row {
           text-align: center; font-size: 13px; color: #7a8aa0;
+          margin-top: 10px;
         }
         .sp-login-link {
           color: #4a6fa5; font-weight: 600;

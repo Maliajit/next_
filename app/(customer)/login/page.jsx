@@ -14,7 +14,7 @@ const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
   opacity: 0.08 + Math.random() * 0.14,
 }));
 
-function InputField({ label, type, id, value, onChange, placeholder, icon }) {
+function InputField({ label, type, id, value, onChange, placeholder, icon, autoComplete }) {
   const [focused, setFocused] = useState(false);
   return (
     <div className="lp-field-wrapper">
@@ -30,7 +30,7 @@ function InputField({ label, type, id, value, onChange, placeholder, icon }) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className="lp-input"
-          autoComplete={type === 'password' ? 'current-password' : 'email'}
+          autoComplete={autoComplete}
         />
       </div>
     </div>
@@ -38,15 +38,15 @@ function InputField({ label, type, id, value, onChange, placeholder, icon }) {
 }
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState(1); // 1: Mobile, 2: OTP
   const [loaded, setLoaded] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [shake, setShake] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { loginOtp } = useAuth();
   const navigate = useRouter();
 
   useEffect(() => {
@@ -55,23 +55,35 @@ export default function Login() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleMobileSubmit = (e) => {
     e.preventDefault();
     setError('');
-    if (!email || !password) {
-      setError('Please enter both your email and password.');
+    if (!mobile || mobile.length < 10) {
+      setError('Please enter a valid 10-digit mobile number.');
+      setShake(true);
+      setTimeout(() => setShake(false), 600);
+      return;
+    }
+    setStep(2);
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!otp || otp.length !== 4) {
+      setError('Please enter the 4-digit OTP.');
       setShake(true);
       setTimeout(() => setShake(false), 600);
       return;
     }
     setSubmitting(true);
     try {
-      console.log('[auth-ui] login submit', { email, passwordLength: password.length });
-      await login({ email, password });
-      console.log('[auth-ui] navigation trigger', { target: '/profile', reason: 'verified login success' });
+      console.log('[auth-ui] otp login submit', { mobile, otp });
+      await loginOtp({ mobile, otp });
+      console.log('[auth-ui] navigation trigger', { target: '/profile', reason: 'verified otp success' });
       navigate.push('/profile');
     } catch (err) {
-      setError(err?.message || 'Invalid email or password');
+      setError(err?.message || 'Invalid mobile number or OTP');
       setShake(true);
       setTimeout(() => setShake(false), 600);
     } finally {
@@ -114,7 +126,7 @@ export default function Login() {
           }}
         >
           <div className="lp-brand">
-           <span className="lp-brand-name">FYLEXX</span>
+            <span className="lp-brand-name">FYLEXX</span>
           </div>
 
           <div className="lp-left-copy">
@@ -124,8 +136,6 @@ export default function Login() {
               Sign in to your account to explore exclusive collections, track orders,
               and manage your personalized timepieces.
             </p>
-
-
           </div>
         </div>
 
@@ -140,77 +150,83 @@ export default function Login() {
         >
           <div className="lp-form-card">
             <div className="lp-form-header">
-              <h2 className="lp-form-title">Welcome back</h2>
-              <p className="lp-form-subtitle">Sign in to your Fylexx account</p>
+              <h2 className="lp-form-title">
+                {step === 1 ? 'Welcome back' : 'Verify Identity'}
+              </h2>
+              <p className="lp-form-subtitle">
+                {step === 1
+                  ? 'Sign in to your Fylexx account'
+                  : `Enter the 4-digit code sent to ${mobile}`}
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="lp-form" noValidate>
-              <InputField
-                label="Email Address"
-                type="email"
-                id="login-email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                icon={
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <rect x="2" y="4" width="20" height="16" rx="3" />
-                    <path d="m2 7 10 7 10-7" strokeLinecap="round" />
-                  </svg>
-                }
-              />
-              <InputField
-                label="Password"
-                type="password"
-                id="login-password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                icon={
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <rect x="5" y="11" width="14" height="10" rx="2" />
-                    <path d="M8 11V7a4 4 0 0 1 8 0v4" strokeLinecap="round" />
-                  </svg>
-                }
-              />
-
-              {error && (
-                <div className="lp-error-box">
-                  {error}
-                </div>
-              )}
-
-              <div className="lp-row-options">
-                <label className="lp-remember">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={e => setRemember(e.target.checked)}
-                    className="lp-checkbox"
-                  />
-                  <span className="lp-checkbox-custom" />
-                  Remember me
-                </label>
-                <Link href="/forgot-password" className="lp-forgot">Forgot password?</Link>
-              </div>
-
-              <button
-                type="submit"
-                className={`lp-submit-btn ${submitting ? 'lp-submitting' : ''}`}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <span className="lp-spinner" />
-                ) : (
-                  <>
-                    <span>Sign In</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+            {step === 1 ? (
+              <form onSubmit={handleMobileSubmit} className="lp-form" noValidate>
+                <InputField
+                  label="Mobile Number"
+                  type="tel"
+                  id="login-mobile"
+                  value={mobile}
+                  onChange={e => setMobile(e.target.value)}
+                  placeholder="Enter 10-digit number"
+                  autoComplete="tel"
+                  icon={
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                     </svg>
-                  </>
-                )}
-              </button>
-            </form>
+                  }
+                />
+
+                {error && <div className="lp-error-box">{error}</div>}
+
+                <button type="submit" className="lp-submit-btn">
+                  <span>Send OTP</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleOtpSubmit} className="lp-form" noValidate>
+                <InputField
+                  label="Enter OTP"
+                  type="text"
+                  id="login-otp"
+                  value={otp}
+                  onChange={e => setOtp(e.target.value)}
+                  placeholder="••••"
+                  autoComplete="one-time-code"
+                  icon={
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                  }
+                />
+
+                {error && <div className="lp-error-box">{error}</div>}
+
+                <div className="lp-row-options">
+                  <button type="button" onClick={() => setStep(1)} className="lp-forgot">Change Number</button>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`lp-submit-btn ${submitting ? 'lp-submitting' : ''}`}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <span className="lp-spinner" />
+                  ) : (
+                    <>
+                      <span>Verify & Sign In</span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
 
             <p className="lp-switch-text" style={{ marginTop: '24px' }}>
               Don&apos;t have an account?{' '}
@@ -461,8 +477,8 @@ export default function Login() {
 
         .lp-submit-btn {
           width: 100%; padding: 8px 16px;
-          background: #1a1a1a;
-          color: white; border: 1px solid #1a1a1a; border-radius: 999px;
+          background: #000000ff;
+          color: #ffffffff; border: 1px solid #ffffff; border-radius: 999px;
           font-size: 10px; letter-spacing: 0.15em;
           text-transform: uppercase; font-weight: 700;
           cursor: pointer;
@@ -473,10 +489,9 @@ export default function Login() {
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .lp-submit-btn:hover, .lp-submit-btn:active {
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #ffffffff !important;
+          color: #000000ff !important;
+          border-color: #000000;
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
@@ -491,8 +506,6 @@ export default function Login() {
           display: inline-block;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        }
 
         .lp-switch-text {
           text-align: center; font-size: 13px; color: #7a8aa0;

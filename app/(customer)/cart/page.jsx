@@ -9,8 +9,9 @@ const watchGold = '/assets/fylex-watch-v2/goldwatch.png';
 
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useWishlist } from '@/context/WishlistContext';
 
-function CartItemRow({ item, index, onQtyChange, onRemove, isProcessing }) {
+function CartItemRow({ item, index, onQtyChange, onRemove, onMoveToWishlist, isProcessing }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), index * 120 + 80);
@@ -73,20 +74,33 @@ function CartItemRow({ item, index, onQtyChange, onRemove, isProcessing }) {
           >+</button>
         </div>
 
-        <button 
-          className={`cart-remove-btn ${isProcessing ? 'processing' : ''}`} 
-          onClick={() => !isProcessing && onRemove(item.id)} 
-          disabled={isProcessing}
-          title="Remove"
-        >
-          {isProcessing ? (
-             <div className="cart-spinner-small" />
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+        <div className="cart-row-secondary-actions">
+          <button 
+            className={`cart-wishlist-btn ${isProcessing ? 'processing' : ''}`}
+            onClick={() => !isProcessing && onMoveToWishlist(item)}
+            disabled={isProcessing}
+            title="Move to Wishlist"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
             </svg>
-          )}
-        </button>
+          </button>
+
+          <button 
+            className={`cart-remove-btn ${isProcessing ? 'processing' : ''}`} 
+            onClick={() => !isProcessing && onRemove(item.id)} 
+            disabled={isProcessing}
+            title="Remove"
+          >
+            {isProcessing ? (
+               <div className="cart-spinner-small" />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -95,6 +109,7 @@ function CartItemRow({ item, index, onQtyChange, onRemove, isProcessing }) {
 export default function Cart() {
   const navigate = useRouter();
   const { items, updateQty, removeFromCart, totals, processingItems } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [heroVisible, setHeroVisible] = useState(false);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const summaryRef = useRef(null);
@@ -119,6 +134,16 @@ export default function Cart() {
 
   const handleRemove = (id) => {
     removeFromCart(id);
+  };
+
+  const handleMoveToWishlist = async (item) => {
+    // 1. Add to wishlist
+    await toggleWishlist({
+      variantId: item.variantId,
+      productId: item.productId
+    });
+    // 2. Remove from cart
+    removeFromCart(item.id);
   };
 
   const subtotal = totals.subtotal;
@@ -166,6 +191,7 @@ export default function Cart() {
                 index={i}
                 onQtyChange={handleQty}
                 onRemove={handleRemove}
+                onMoveToWishlist={handleMoveToWishlist}
                 isProcessing={processingItems.has(item.id)}
               />
             ))
@@ -346,9 +372,20 @@ export default function Cart() {
           font-size: 15px; font-weight: 600;
           color: #4a6fa5;
         }
+        /* Actions layout for Desktop */
+        @media (min-width: 861px) {
+          .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-left: auto;
+            flex-shrink: 0;
+          }
+        }
+
         .cart-qty-block {
           display: flex; align-items: center;
-          gap: 10px; margin-right: 10px;
+          gap: 10px;
         }
         .cart-qty-btn {
           width: 32px; height: 32px;
@@ -367,13 +404,29 @@ export default function Cart() {
           font-size: 15px; font-weight: 600;
           color: #1C2E4A; width: 24px; text-align: center;
         }
-        .cart-remove-btn {
-          // background: none; border: none;
-          // color: #adb5c8; 
+        .cart-row-secondary-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .cart-wishlist-btn {
           cursor: pointer;
-          padding: 6px; border-radius: 50%;
-          // transition: color 0.2s, background 0.2s, transform 0.2s;
+          padding: 8px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
+          color: #adb5c8;
+          transition: all 0.3s ease;
+        }
+        .cart-wishlist-btn:hover {
+          color: #e05c6b;
+          background: #fdf2f3;
+          transform: scale(1.1);
+        }
+        .cart-remove-btn {
+          cursor: pointer;
+          padding: 8px; border-radius: 50%;
+          color: #adb5c8; 
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.3s ease;
         }
         .cart-remove-btn:hover {
           color: #e05c6b; background: #fce8ea; transform: scale(1.1);
@@ -398,10 +451,9 @@ export default function Cart() {
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .cart-empty-cta:hover, .cart-empty-cta:active { 
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #ffffff !important;
+          color: #000000 !important;
+          border-color: #ffffff;
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
@@ -459,10 +511,9 @@ export default function Cart() {
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .cart-checkout-btn:hover, .cart-checkout-btn:active {
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #ffffff !important;
+          color: #000000 !important;
+          border-color: #ffffff;
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }

@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-import { signupApi, loginApi, fetchCurrentUserApi } from '@/lib/api';
+import { signupApi, loginApi, loginOtpApi, fetchCurrentUserApi } from '@/lib/api';
 
 const AuthContext = createContext();
 
@@ -83,6 +83,25 @@ export const AuthProvider = ({ children }) => {
     return persistSession(payload.access_token, payload.user);
   };
 
+  const loginOtp = async (credentials) => {
+    console.log('[auth] login-otp request payload', { mobile: credentials?.mobile });
+    const result = await loginOtpApi(credentials);
+    console.log('[auth] login-otp response', result);
+
+    if (!result?.success) {
+      clearSession();
+      throw new Error(result?.error || 'Something went wrong');
+    }
+
+    const payload = result.data;
+    if (!payload?.access_token || !payload?.user) {
+      clearSession();
+      throw new Error('Invalid login response from server');
+    }
+
+    return persistSession(payload.access_token, payload.user);
+  };
+
   const logout = () => {
     clearSession();
   };
@@ -100,7 +119,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, signup, loading, verifySession, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, loginOtp, logout, signup, loading, verifySession, isAuthenticated: !!user }}>
       {!loading && children}
     </AuthContext.Provider>
   );

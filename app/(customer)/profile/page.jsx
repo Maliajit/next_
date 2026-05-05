@@ -159,17 +159,16 @@ const Profile = () => {
     <div className="profile-page-wrapper">
       <style>{`
         .profile-page-wrapper {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
+          position: relative;
+          min-height: 100vh;
           background: #F9F9F7;
-          overflow-y: auto;
           z-index: 1000;
           font-family: 'Inter', sans-serif;
           --fylex-gold: #c4a35a;
           --fylex-navy: #1C2E4A;
         }
         .profile-bg-blob {
-          position: fixed; border-radius: 50%;
+          position: absolute; border-radius: 50%;
           filter: blur(100px); pointer-events: none; opacity: 0.15; z-index: -1;
         }
         .blob-1 { width: 500px; height: 500px; background: var(--fylex-gold); top: -100px; right: -100px; }
@@ -183,7 +182,7 @@ const Profile = () => {
           gap: 40px;
         }
         @media (max-width: 1024px) {
-          .profile-container { flex-direction: column; padding-top: 80px; }
+          .profile-container { flex-direction: column; padding: 80px 20px 40px; gap: 20px; }
         }
         .profile-sidebar {
           width: 320px;
@@ -272,6 +271,9 @@ const Profile = () => {
           font-size: 3rem; color: var(--fylex-navy);
           margin-bottom: 30px; line-height: 1;
         }
+        @media (max-width: 768px) {
+          .section-title { font-size: 2rem; margin-bottom: 20px; }
+        }
         .stats-cluster {
           display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
           margin-bottom: 60px;
@@ -292,6 +294,9 @@ const Profile = () => {
           margin-bottom: 20px; transition: all 0.3s;
           background: #fff;
         }
+        @media (max-width: 640px) {
+          .order-card-premium { flex-direction: column; gap: 15px; text-align: center; padding: 20px; }
+        }
         .order-card-premium:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.04); border-color: #ddd; }
         .item-thumb {
           width: 80px; height: 80px; object-fit: contain;
@@ -309,9 +314,9 @@ const Profile = () => {
           background: var(--fylex-navy); padding: 50px; border-radius: 30px; color: white;
           position: relative; overflow: hidden;
         }
-        .tracking-viz::after {
-          content: 'FYLEXX'; position: absolute; bottom: -20px; right: -20px;
-          font-size: 10rem; opacity: 0.03; font-weight: 900; pointer-events: none;
+        @media (max-width: 768px) {
+          .tracking-viz { padding: 30px 20px; border-radius: 20px; }
+          .tracking-viz::after { font-size: 5rem; }
         }
         .track-progress-container {
           position: relative; height: 4px; background: rgba(255,255,255,0.1);
@@ -319,6 +324,10 @@ const Profile = () => {
         }
         .track-bar { position: absolute; left: 0; top: 0; height: 100%; background: var(--fylex-gold); border-radius: 10px; box-shadow: 0 0 15px var(--fylex-gold); }
         .track-nodes { display: flex; justify-content: space-between; position: relative; top: -11px; }
+        @media (max-width: 640px) {
+          .track-progress-container { margin: 60px 0 80px; }
+          .node-label { font-size: 0.65rem; width: 70px; margin-left: -26px; }
+        }
         .node { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--fylex-navy); background: #333; }
         .node.completed { background: var(--fylex-gold); box-shadow: 0 0 10px var(--fylex-gold); }
         .node-label { margin-top: 15px; font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; width: 96px; margin-left: -39px; }
@@ -471,10 +480,10 @@ const Profile = () => {
                     {orderHistory.length > 0 ? orderHistory.map((order) => (
                       <tr key={order.id} className="bg-gray-50 hover:bg-gray-100 transition-colors">
                         <td className="p-5 pl-8 rounded-l-2xl font-mono text-xs">{order.orderNumber || order.id}</td>
-                        <td className="p-5 text-gray-600 text-sm">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : 'N/A'}</td>
-                        <td className="p-5 font-semibold text-[#1C2E4A]">{order.preview?.title || 'Watch'}</td>
-                        <td className="p-5 font-bold text-[#1C2E4A]">₹{Number(order.grandTotal || 0).toLocaleString('en-IN')}</td>
-                        <td className="p-5 text-sm text-gray-600">{order.paymentStatus}</td>
+                        <td className="p-5 text-gray-600 text-sm md:text-base">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : 'N/A'}</td>
+                        <td className="p-5 font-semibold text-[#1C2E4A] text-sm md:text-base">{order.preview?.title || 'Watch'}</td>
+                        <td className="p-5 font-bold text-[#1C2E4A] text-sm md:text-base">₹{Number(order.grandTotal || 0).toLocaleString('en-IN')}</td>
+                        <td className="p-5 text-xs md:text-sm text-gray-600">{order.paymentStatus}</td>
                         <td className="p-5 rounded-r-2xl">
                           <span className={`item-status-pill ${statusStyles[order.status] || 'status-processing'}`}>
                             {order.status}
@@ -540,7 +549,7 @@ const Profile = () => {
                     </div>
                   </div>
 
-                  <div className="mt-12 grid grid-cols-2 gap-10">
+                  <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                     {tracking.timeline.map((step) => (
                       <div key={step.label} className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
                         <span className="text-[10px] uppercase opacity-50 tracking-widest">{step.label}</span>

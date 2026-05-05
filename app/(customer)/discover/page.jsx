@@ -53,54 +53,54 @@ function DiscoverContent() {
           const mapped = actualData.map(p => {
             const display = getDisplayData(p);
             return {
-                ...p,
-                ...display,
-                id: p.id.toString(),
-                variantId: display.variantId,
-                heroImage: display.image, // Resolve heroImage using display logic
-                title: display.name,
-                subtitle: display.subtitle || 'Luxury Collection',
-                description: p.shortDescription || p.description || '',
-                longDesc: p.description || p.shortDescription || 'Experience the pinnacle of watchmaking with our masterfully crafted timepiece.',
-                theme: p.bgColor || 'champagne',
-                accentColor: p.accentColor || '#c4a35a',
-                accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
-                mistColor: p.mistColor || '',
-                mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
-                textColor: p.textColor || '#1a1a1a',
-                videoUrl: p.videoUrl || null,
-                heritageText: p.heritageText || 'Founded on the principles of precision and timeless elegance, Fylex has been at the forefront of horological innovation for generations.',
-                sold: (p.soldCount !== undefined && p.soldCount !== null) ? p.soldCount : Math.min((p.id % 100) + 120, p.qty || p.stockCount || 500),
-                totalStock: p.qty || p.stockCount || 500,
-                galleryImages: (p.productMedia?.length > 0) 
-                    ? p.productMedia.map(m => {
-                        let mPath = m.media?.url || (m.media?.fileName ? `/uploads/${m.media.fileName}` : '');
-                        return getFileUrl(mPath);
-                    }).filter(Boolean)
-                    : (p.images || []).map(img => getFileUrl(img.startsWith('http') || img.startsWith('/') ? img : `/uploads/${img}`)),
-                combinations: (p.variants || []).map(v => {
-                    const vDisplay = getDisplayData(p, v);
-                    return {
-                        id: v.id.toString(),
-                        name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-                        img: vDisplay.image,
-                        price: vDisplay.price,
-                        formattedPrice: vDisplay.formattedPrice,
-                        attributes: v.variantAttributes?.map(va => ({
-                            name: va.attributeValue?.attribute?.name?.toLowerCase(),
-                            value: va.attributeValue?.label
-                        })) || []
-                    };
-                }),
-                specs: (p.specifications || []).reduce((acc, s) => {
-                    const gName = s.specification?.groups?.[0]?.group?.name || 'Technical Specifications';
-                    if (!acc[gName]) acc[gName] = [];
-                    acc[gName].push({
-                        label: s.specification?.name,
-                        value: s.value
-                    });
-                    return acc;
-                }, {})
+              ...p,
+              ...display,
+              id: p.id.toString(),
+              variantId: display.variantId,
+              heroImage: display.image, // Resolve heroImage using display logic
+              title: display.name,
+              subtitle: display.subtitle || 'Luxury Collection',
+              description: p.shortDescription || p.description || '',
+              longDesc: p.description || p.shortDescription || 'Experience the pinnacle of watchmaking with our masterfully crafted timepiece.',
+              theme: p.bgColor || 'champagne',
+              accentColor: p.accentColor || '#c4a35a',
+              accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
+              mistColor: p.mistColor || '',
+              mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
+              textColor: p.textColor || '#1a1a1a',
+              videoUrl: p.videoUrl || null,
+              heritageText: p.heritageText || 'Founded on the principles of precision and timeless elegance, Fylex has been at the forefront of horological innovation for generations.',
+              sold: (p.soldCount !== undefined && p.soldCount !== null) ? p.soldCount : Math.min((p.id % 100) + 120, p.qty || p.stockCount || 500),
+              totalStock: p.qty || p.stockCount || 500,
+              galleryImages: (p.productMedia?.length > 0)
+                ? p.productMedia.map(m => {
+                  let mPath = m.media?.url || (m.media?.fileName ? `/uploads/${m.media.fileName}` : '');
+                  return getFileUrl(mPath);
+                }).filter(Boolean)
+                : (p.images || []).map(img => getFileUrl(img.startsWith('http') || img.startsWith('/') ? img : `/uploads/${img}`)),
+              combinations: (p.variants || []).map(v => {
+                const vDisplay = getDisplayData(p, v);
+                return {
+                  id: v.id.toString(),
+                  name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
+                  img: vDisplay.image,
+                  price: vDisplay.price,
+                  formattedPrice: vDisplay.formattedPrice,
+                  attributes: v.variantAttributes?.map(va => ({
+                    name: va.attributeValue?.attribute?.name?.toLowerCase(),
+                    value: va.attributeValue?.label
+                  })) || []
+                };
+              }),
+              specs: (p.specifications || []).reduce((acc, s) => {
+                const gName = s.specification?.groups?.[0]?.group?.name || 'Technical Specifications';
+                if (!acc[gName]) acc[gName] = [];
+                acc[gName].push({
+                  label: s.specification?.name,
+                  value: s.value
+                });
+                return acc;
+              }, {})
             };
           });
           setProductsData(mapped);
@@ -150,7 +150,7 @@ function DiscoverContent() {
     };
 
     const observer = new IntersectionObserver(handleIntersect, observerOptions);
-    
+
     // We need a small timeout to ensure the DOM is fully ready after loading
     const timeoutId = setTimeout(() => {
       sections.forEach(id => {
@@ -169,44 +169,44 @@ function DiscoverContent() {
     setActiveModalData({ ...p, combinations: templates });
   };
   const closeInfoModal = () => setActiveModalData(null);
-  
+
   const handleComboClick = (combo) => {
     const params = new URLSearchParams(searchParams.toString());
     if (activeModalData?.id) {
-        params.set('watch', activeModalData.id);
+      params.set('watch', activeModalData.id);
     }
     (combo.attributes || []).forEach(attr => {
-        if (attr.name && attr.value) {
-            params.set(attr.name, attr.value);
-        }
+      if (attr.name && attr.value) {
+        params.set(attr.name, attr.value);
+      }
     });
     router.push(`?${params.toString()}`);
     closeInfoModal();
   };
-  
+
   const handleBookNow = () => {
     const hasConfig = searchParams.get('dial') || searchParams.get('material');
     let targetVariant = null;
     const variants = product?.variants || [];
-    
+
     if (hasConfig) {
-        targetVariant = variants.find(v => {
-            return (v.variantAttributes || []).every(va => {
-                const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
-                const selectedVal = searchParams.get(attrName);
-                return !selectedVal || selectedVal === va.attributeValue?.label;
-            });
+      targetVariant = variants.find(v => {
+        return (v.variantAttributes || []).every(va => {
+          const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+          const selectedVal = searchParams.get(attrName);
+          return !selectedVal || selectedVal === va.attributeValue?.label;
         });
+      });
     }
 
     if (!targetVariant && variants.length > 0) {
-        targetVariant = variants[0];
+      targetVariant = variants[0];
     }
 
     if (targetVariant) {
-        addToCart(targetVariant.id.toString(), 1, { title: product.name });
+      addToCart(targetVariant.id.toString(), 1, { title: product.name });
     } else {
-        throw new Error("ENFORCEMENT: Cannot add to cart without matching variant");
+      throw new Error("ENFORCEMENT: Cannot add to cart without matching variant");
     }
   };
 
@@ -242,7 +242,7 @@ function DiscoverContent() {
   // ── DYNAMIC VARIANT MATCHING ──
   const selections = {};
   const variantIdParam = searchParams.get('variant');
-  
+
   searchParams.forEach((value, key) => {
     if (key !== 'watch' && key !== 'mode' && key !== 'variant') {
       selections[key.toLowerCase()] = value;
@@ -252,11 +252,11 @@ function DiscoverContent() {
   let matchingVariant = (product.variants || []).find(v => {
     // 1. Try to match by variant ID if provided in URL
     if (variantIdParam && v.id.toString() === variantIdParam) return true;
-    
+
     // 2. Otherwise match by attributes
     const vAttrs = v.variantAttributes || [];
     if (vAttrs.length === 0) return false;
-    
+
     // Check if ALL selected attributes match this variant
     return Object.keys(selections).every(key => {
       const va = vAttrs.find(a => a.attributeValue?.attribute?.name?.toLowerCase() === key);
@@ -272,7 +272,7 @@ function DiscoverContent() {
     product.formattedPrice = vDisplay.formattedPrice;
     product.heroImage = vDisplay.image;
     product.image = vDisplay.image;
-    
+
     const vGallery = (matchingVariant.variantImages || [])
       .filter(vi => vi.type === 'GALLERY' || vi.type === 'gallery')
       .map(vi => {
@@ -281,7 +281,7 @@ function DiscoverContent() {
         return getFileUrl(p);
       })
       .filter(Boolean);
-    
+
     if (vGallery.length > 0) {
       product.galleryImages = vGallery;
     }
@@ -319,8 +319,8 @@ function DiscoverContent() {
     const match = (product.variants || []).find(v => {
       const vAttrs = v.variantAttributes || [];
       // Must have the target attribute value
-      const hasTarget = vAttrs.some(va => 
-        va.attributeValue?.attribute?.name?.toLowerCase() === attrName.toLowerCase() && 
+      const hasTarget = vAttrs.some(va =>
+        va.attributeValue?.attribute?.name?.toLowerCase() === attrName.toLowerCase() &&
         va.attributeValue?.label === valName
       );
       if (!hasTarget) return false;
@@ -340,7 +340,7 @@ function DiscoverContent() {
     if (!vImg) return null;
     let vPath = vImg.url || vImg.path || (vImg.fileName ? `/uploads/${vImg.fileName}` : '');
     if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
-        vPath = `/uploads/${vPath}`;
+      vPath = `/uploads/${vPath}`;
     }
     return getFileUrl(vPath);
   };
@@ -540,9 +540,11 @@ function DiscoverContent() {
           position: absolute;
           bottom: 60px;
           left: 40px;
+          right: 40px;
           z-index: 100;
-          text-align: left;
-          max-width: 400px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
         }
         .cfg-details-title {
           font-family: 'Inter', sans-serif;
@@ -584,7 +586,31 @@ function DiscoverContent() {
           font-weight: 700;
         }
 
-        /* Middle Right Variations */
+        /* Add to Cart Button */
+        .cfg-add-cart-btn {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          background: transparent;
+          color: inherit;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          border: none;
+        }
+        .cfg-add-cart-btn:hover, .cfg-add-cart-btn:active {
+          background: #ffffff !important;
+          color: #000000 !important;
+          transform: scale(1.1);
+          border: 1px solid #ffffff;
+        }
+        .cfg-add-cart-btn svg {
+          width: 24px;
+          height: 24px;
+        }
+
         .cfg-variations-btn {
           position: absolute;
           right: 40px;
@@ -1200,9 +1226,11 @@ function DiscoverContent() {
           box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
         .cfg-book-btn:hover {
-          background: #c4a35a;
+          background: #ffffff !important;
+          color: #000000 !important;
           transform: translateY(-3px);
-          box-shadow: 0 15px 40px rgba(196, 163, 90, 0.3);
+          box-shadow: 0 15px 40px rgba(255, 255, 255, 0.3);
+          border: 1px solid #ffffff;
         }
         .cfg-book-btn svg {
           transition: transform 0.3s;
@@ -1392,18 +1420,18 @@ function DiscoverContent() {
       <div className="cfg-content-wrapper">
         <section id="hero" className="cfg-hero" ref={heroRef}>
           <div className="cfg-hero-aura"></div>
-          
+
           {/* Top Left Favourites */}
-          <div 
-            className={`cfg-fav-toggle ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`} 
+          <div
+            className={`cfg-fav-toggle ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
             onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
           >
-            <svg 
-              viewBox="0 0 24 24" 
-              width="10" 
-              height="10" 
-              fill={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "none"} 
-              stroke={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "currentColor"} 
+            <svg
+              viewBox="0 0 24 24"
+              width="10"
+              height="10"
+              fill={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "none"}
+              stroke={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "currentColor"}
               strokeWidth="2"
             >
               <path d={isInWishlist(product.currentVariantId || product.variantId) ? "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" : "M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"} />
@@ -1413,13 +1441,22 @@ function DiscoverContent() {
 
           {/* Bottom Left Details */}
           <div className="cfg-details-box">
-            <h1 className="cfg-details-title">{product.title}</h1>
-            <p className="cfg-details-specs">{product.subtitle}</p>
-            <p className="cfg-details-ref">Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
-            <div className="cfg-details-price">
-              ₹ {product.price?.toLocaleString() || '7,838,000'}
-              <div className="cfg-info-icon">i</div>
+            <div className="cfg-details-left">
+              <h1 className="cfg-details-title">{product.title}</h1>
+              <p className="cfg-details-specs">{product.subtitle}</p>
+              <p className="cfg-details-ref">Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
+              <div className="cfg-details-price">
+                ₹ {product.price?.toLocaleString() || '7,838,000'}
+                <div className="cfg-info-icon">i</div>
+              </div>
             </div>
+
+            <button className="cfg-add-cart-btn" onClick={handleBookNow} title="Add to Cart">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
           </div>
 
           {/* Center Watch Image */}
@@ -1439,8 +1476,8 @@ function DiscoverContent() {
           {isGeneralMode && (
             <div className="cfg-vert-nav">
               {productsData.map((p, idx) => (
-                <div 
-                  key={p.id} 
+                <div
+                  key={p.id}
                   className={`cfg-nav-dash ${initialIndex === idx ? 'active' : ''}`}
                   onClick={() => {
                     const params = new URLSearchParams(searchParams);
@@ -1527,7 +1564,7 @@ function DiscoverContent() {
               <div className="cfg-spec-accordion">
                 {Object.keys(product.specs || {}).map((groupName, idx) => (
                   <div key={groupName} className={`cfg-spec-item ${activeSpecGroup === groupName ? 'active' : ''}`}>
-                    <button 
+                    <button
                       className="cfg-spec-trigger"
                       onClick={() => setActiveSpecGroup(activeSpecGroup === groupName ? null : groupName)}
                     >
@@ -1560,10 +1597,10 @@ function DiscoverContent() {
           <div className="cfg-heritage-right">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', alignItems: 'flex-end', width: '100%' }}>
               {product.galleryImages?.[2] && (
-                <img 
-                  src={product.galleryImages[2]} 
-                  alt="Heritage" 
-                  style={{ width: '100%', maxWidth: '400px', borderRadius: '16px', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.1))' }} 
+                <img
+                  src={product.galleryImages[2]}
+                  alt="Heritage"
+                  style={{ width: '100%', maxWidth: '400px', borderRadius: '16px', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.1))' }}
                 />
               )}
               <div className="cfg-sold-stats" onClick={() => openInfoModal(product)}>

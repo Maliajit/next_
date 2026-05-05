@@ -645,10 +645,9 @@ const Checkout = () => {
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .primary-btn:hover:not(:disabled), .primary-btn:active:not(:disabled) { 
-          background: rgba(255, 255, 255, 0.1) !important;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: #ffffff !important;
+          color: #000000 !important;
+          border-color: #ffffff;
           transform: translateY(-2px); 
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
         }
