@@ -32,6 +32,8 @@ export function OrderProvider({ children }) {
         return {
             id: item.id?.toString(),
             variantId: variant?.id?.toString(),
+            productId: product?.id?.toString(),
+            productVariant: variant,
             sku: variant?.sku || item.sku,
             price: item.unitPrice || item.price || 0,
             formattedPrice: `₹${Number(item.unitPrice || item.price || 0).toLocaleString('en-IN')}`,
@@ -67,19 +69,18 @@ export function OrderProvider({ children }) {
 
   const addOrder = async (orderData) => {
     try {
-      const apiResponse = await createOrderApi(orderData);
+      const response = await createOrderApi(orderData);
       
-      // The API should now return the created order from the database
-      // If it doesn't, normalize the sent data as a fallback (but only on success)
-      const newOrder = apiResponse || orderData;
-      const normalized = normalizeOrder(newOrder);
-      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to place order');
+      }
+
+      const normalized = normalizeOrder(response.data);
       setOrders(prev => [normalized, ...prev]);
-      return normalized;
+      return { success: true, data: normalized };
     } catch (err) {
       console.error('Order creation failed:', err.message);
-      // Rethrow to allow the checkout page to show the error
-      throw err;
+      return { success: false, error: err.message };
     }
   };
 

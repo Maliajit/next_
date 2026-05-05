@@ -28,8 +28,15 @@ export function WishlistProvider({ children }) {
 
             const display = getDisplayData(product, variant);
 
+            const attrParams = (variant.variantAttributes || []).map(va => {
+                const name = va.attributeValue?.attribute?.name?.toLowerCase();
+                const label = va.attributeValue?.label;
+                return name && label ? `${name}=${encodeURIComponent(label)}` : null;
+            }).filter(Boolean).join('&');
+
             return {
-                id: item.id.toString(), // WishlistItem ID
+                ...display,
+                id: item.id.toString(), // WishlistItem ID (Must be last to avoid being overwritten by display.id)
                 productId: product.id.toString(),
                 variantId: variant.id.toString(),
                 title: display.name,
@@ -37,8 +44,7 @@ export function WishlistProvider({ children }) {
                 price: display.price,
                 formattedPrice: display.formattedPrice,
                 image: display.image,
-                redirectUrl: `/discover?watch=${product.id}&variant=${variant.id}`,
-                ...display
+                redirectUrl: `/discover?watch=${product.id}&variant=${variant.id}${attrParams ? `&${attrParams}` : ''}`,
             };
         }).filter(Boolean);
         setWishlist(mapped);

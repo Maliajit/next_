@@ -377,7 +377,7 @@ function ConfigureContent() {
         .f-add-cart-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; border: none; background: none; padding: 5px 10px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
         .f-add-cart-btn:hover { transform: translateY(-2px); opacity: 0.8; }
         .f-add-cart-btn:active { transform: scale(0.96); }
-        .f-add-cart-text { font-size: 12px; font-weight: 700; color: #008767; letter-spacing: 0.1em; text-transform: uppercase; }
+        .f-add-cart-text { font-size: 9px; font-weight: 800; color: #008767; letter-spacing: 0.05em; text-transform: uppercase; }
       `}</style>
 
       <section id="configurator" ref={configuratorRef}>

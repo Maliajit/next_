@@ -454,6 +454,9 @@ const Checkout = () => {
                     </div>
                     <div className="item-info">
                       <div className="item-name">{item.title}</div>
+                      <div className="item-variant" style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        {item.subtitle}
+                      </div>
                       <div className="item-meta">{item.qty} item{item.qty !== 1 ? 's' : ''}</div>
                     </div>
                     <div className="item-price">₹{Math.round(Number(item.unitPrice) * item.qty).toLocaleString()}</div>

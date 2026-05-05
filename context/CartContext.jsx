@@ -9,9 +9,42 @@ const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
+  const [totals, setTotals] = useState({ subtotal: 0, grandTotal: 0 });
   const [loading, setLoading] = useState(false);
+  const [processingItems, setProcessingItems] = useState(new Set()); // IDs of items currently being updated
   const { user } = useAuth() || {};
   const userId = user?.id;
+
+  const mapCartData = (data) => {
+    console.log('DEBUG: Cart Items Order from API:', data?.items?.map(i => i.id.toString()));
+    const cartItems = data?.items || [];
+    const mapped = cartItems.map(item => {
+        const variant = item.productVariant;
+        const product = variant?.product;
+        if (!variant || !product) return null;
+
+        const display = getDisplayData(product, variant);
+        return {
+            ...display,
+            id: item.id.toString(),
+            productId: product.id.toString(),
+            variantId: variant.id.toString(),
+            sku: display.sku,
+            title: display.name,
+            subtitle: display.subtitle, // Already standardized in utils.js
+            unitPrice: Number(item.unitPrice || 0),
+            total: Number(item.total || 0),
+            image: display.image,
+            qty: item.quantity,
+        };
+    }).filter(Boolean);
+
+    setItems(mapped);
+    setTotals({
+        subtotal: Number(data?.subtotal || 0),
+        grandTotal: Number(data?.grandTotal || 0)
+    });
+  };
 
   const loadCart = async () => {
     if (!userId) {
@@ -19,34 +52,14 @@ export function CartProvider({ children }) {
       return;
     }
     setLoading(true);
-    const result = await fetchCart(userId);
-    if (result.success) {
-        const cartItems = result.data?.items || [];
-        const mapped = cartItems.map(item => {
-            const variant = item.productVariant;
-            const product = variant?.product;
-            
-            if (!variant || !product) return null;
-
-            const display = getDisplayData(product, variant);
-
-            return {
-                id: item.id.toString(), // Database CartItem ID
-                productId: product.id.toString(),
-                variantId: variant.id.toString(),
-                sku: display.sku,
-                title: display.name,
-                subtitle: display.subtitle,
-                unitPrice: Number(item.unitPrice || 0),
-                image: display.image,
-                qty: item.quantity,
-                // Full display data for UI convenience
-                ...display
-            };
-        }).filter(Boolean);
-        setItems(mapped);
+    try {
+        const result = await fetchCart(userId);
+        if (result.success) {
+            mapCartData(result.data);
+        }
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -58,18 +71,34 @@ export function CartProvider({ children }) {
   const addToCart = async (variantId, quantity = 1) => {
     if (!userId) return { success: false, error: 'Login required' };
     
-    const result = await addToCartApi(userId, variantId, quantity);
-    if (result.success) {
-        eventBus.emit(EVENTS.CART_UPDATED);
+    setLoading(true);
+    try {
+        const result = await addToCartApi(userId, variantId, quantity);
+        if (result.success) {
+            mapCartData(result.data);
+            eventBus.emit(EVENTS.CART_UPDATED);
+        }
+        return result;
+    } finally {
+        setLoading(false);
     }
-    return result;
   };
 
   const removeFromCart = async (id) => {
     if (!userId) return;
-    const result = await removeFromCartApi(userId, id);
-    if (result.success) {
-        eventBus.emit(EVENTS.CART_UPDATED);
+    setProcessingItems(prev => new Set(prev).add(id));
+    try {
+        const result = await removeFromCartApi(userId, id);
+        if (result.success) {
+            mapCartData(result.data);
+            eventBus.emit(EVENTS.CART_UPDATED);
+        }
+    } finally {
+        setProcessingItems(prev => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+        });
     }
   };
 
@@ -79,18 +108,44 @@ export function CartProvider({ children }) {
     if (!item) return;
     
     const newQty = Math.max(1, item.qty + delta);
-    const result = await updateCartQtyApi(userId, id, newQty);
-    if (result.success) {
-        eventBus.emit(EVENTS.CART_UPDATED);
+    if (newQty === item.qty) return;
+
+    setProcessingItems(prev => new Set(prev).add(id));
+    try {
+        const result = await updateCartQtyApi(userId, id, newQty);
+        if (result.success) {
+            mapCartData(result.data);
+            eventBus.emit(EVENTS.CART_UPDATED);
+        }
+    } finally {
+        setProcessingItems(prev => {
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+        });
     }
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = async () => {
+    setItems([]);
+    setTotals({ subtotal: 0, grandTotal: 0 });
+  };
 
   const totalCount = items.reduce((s, i) => s + (i.qty || 0), 0);
 
   return (
-    <CartContext.Provider value={{ items, loading, addToCart, removeFromCart, updateQty, clearCart, totalCount, refreshCart: loadCart }}>
+    <CartContext.Provider value={{ 
+        items, 
+        totals,
+        loading, 
+        processingItems,
+        addToCart, 
+        removeFromCart, 
+        updateQty, 
+        clearCart, 
+        totalCount, 
+        refreshCart: loadCart 
+    }}>
       {children}
     </CartContext.Provider>
   );

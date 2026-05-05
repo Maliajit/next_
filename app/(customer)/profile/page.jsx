@@ -1,25 +1,122 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useOrder } from '@/context/OrderContext';
-import { useWishlist } from '@/context/WishlistContext';
+import { fetchProfileDashboardApi, updateMyProfileApi } from '@/lib/api';
+
+const emptyDashboard = {
+  profile: null,
+  stats: {
+    totalOrders: 0,
+    activeOrders: 0,
+    totalSpent: 0,
+    wishlistCount: 0,
+  },
+  recentOrders: [],
+  orderHistory: [],
+  trackingOrders: [],
+  latestOrderTracking: null,
+};
+
+const statusStyles = {
+  PENDING: 'status-processing',
+  CONFIRMED: 'status-processing',
+  PROCESSING: 'status-processing',
+  SHIPPED: 'status-processing',
+  DELIVERED: 'status-delivered',
+  CANCELLED: 'status-cancelled',
+  FAILED: 'status-cancelled',
+};
 
 const Profile = () => {
-  const { user, logout, loading } = useAuth();
-  const { orders } = useOrder();
-  const { wishlist } = useWishlist();
+  const { user, logout, loading, isAuthenticated, verifySession } = useAuth();
   const navigate = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
+  const [dashboard, setDashboard] = useState(emptyDashboard);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [selectedTrackingOrderId, setSelectedTrackingOrderId] = useState('');
+  const [settingsForm, setSettingsForm] = useState({
+    name: '',
+    mobile: '',
+    dob: '',
+  });
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate.push('/login');
+    if (!loading && !isAuthenticated) {
+      console.log('[auth-ui] navigation trigger', { target: '/login', reason: 'profile route requires auth' });
+      navigate.replace('/login');
     }
-  }, [user, loading, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
-  if (loading || !user) {
+  const loadDashboard = async () => {
+    setDashboardLoading(true);
+    setDashboardError('');
+
+    const result = await fetchProfileDashboardApi();
+    console.log('[profile] dashboard response', result);
+
+    if (!result?.success || !result?.data?.profile) {
+      setDashboardError(result?.error || 'Unable to load your profile right now.');
+      setDashboardLoading(false);
+      return;
+    }
+
+    setDashboard(result.data);
+    setSelectedTrackingOrderId(result.data.latestOrderTracking?.orderId || result.data.trackingOrders?.[0]?.orderId || '');
+    setSettingsForm({
+      name: result.data.profile.name || '',
+      mobile: result.data.profile.mobile || '',
+      dob: result.data.profile.dob ? result.data.profile.dob.slice(0, 10) : '',
+    });
+    setDashboardLoading(false);
+  };
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      const timer = window.setTimeout(() => {
+        void loadDashboard();
+      }, 0);
+
+      return () => window.clearTimeout(timer);
+    }
+  }, [loading, isAuthenticated]);
+
+  const handleProfileUpdate = async () => {
+    setSaveMessage('');
+    setDashboardError('');
+
+    if (!settingsForm.name.trim()) {
+      setDashboardError('Full name is required.');
+      return;
+    }
+
+    setSaving(true);
+
+    const result = await updateMyProfileApi({
+      name: settingsForm.name.trim(),
+      mobile: settingsForm.mobile.trim() || undefined,
+      dob: settingsForm.dob || undefined,
+    });
+
+    console.log('[profile] update response', result);
+
+    if (!result?.success) {
+      setDashboardError(result?.error || 'Unable to update your profile right now.');
+      setSaving(false);
+      return;
+    }
+
+    await verifySession();
+    await loadDashboard();
+    setSaveMessage('Profile updated successfully.');
+    setSaving(false);
+  };
+
+  if (loading || !isAuthenticated || !user || dashboardLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F9F9F7]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#c4a35a]"></div>
@@ -27,13 +124,12 @@ const Profile = () => {
     );
   }
 
-  // Calculate dynamic stats
-  const totalInvestment = orders.reduce((acc, order) => {
-      const val = parseFloat(String(order.total || '0').replace(/[^0-9.]/g, '')) || 0;
-      return acc + val;
-  }, 0);
-
-  const recentOrders = orders.slice(0, 3);
+  const profile = dashboard.profile;
+  const stats = dashboard.stats;
+  const recentOrders = dashboard.recentOrders || [];
+  const orderHistory = dashboard.orderHistory || [];
+  const trackingOrders = dashboard.trackingOrders || [];
+  const tracking = trackingOrders.find((order) => order.orderId === selectedTrackingOrderId) || dashboard.latestOrderTracking;
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: (
@@ -72,14 +168,12 @@ const Profile = () => {
           --fylex-gold: #c4a35a;
           --fylex-navy: #1C2E4A;
         }
-        
         .profile-bg-blob {
           position: fixed; border-radius: 50%;
           filter: blur(100px); pointer-events: none; opacity: 0.15; z-index: -1;
         }
         .blob-1 { width: 500px; height: 500px; background: var(--fylex-gold); top: -100px; right: -100px; }
         .blob-2 { width: 400px; height: 400px; background: var(--fylex-navy); bottom: -100px; left: -100px; }
-
         .profile-container {
           max-width: 1400px;
           margin: 0 auto;
@@ -88,11 +182,9 @@ const Profile = () => {
           padding: 100px 40px 40px;
           gap: 40px;
         }
-
         @media (max-width: 1024px) {
           .profile-container { flex-direction: column; padding-top: 80px; }
         }
-
         .profile-sidebar {
           width: 320px;
           flex-shrink: 0;
@@ -111,7 +203,6 @@ const Profile = () => {
         @media (max-width: 1024px) {
           .profile-sidebar { width: 100%; position: relative; top: 0; }
         }
-
         .user-profile-header {
           text-align: center;
           padding-bottom: 30px;
@@ -139,7 +230,6 @@ const Profile = () => {
           font-size: 0.7rem; color: var(--fylex-gold);
           text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700;
         }
-
         .profile-nav-list { list-style: none; padding: 0; margin: 0; }
         .profile-nav-item {
           padding: 18px 40px;
@@ -157,7 +247,6 @@ const Profile = () => {
           content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
           background: var(--fylex-gold); border-radius: 0 4px 4px 0;
         }
-
         .back-to-home {
           margin-top: auto;
           padding: 20px 40px;
@@ -166,7 +255,6 @@ const Profile = () => {
           text-decoration: none; border-top: 1px solid rgba(0,0,0,0.03);
         }
         .back-to-home:hover { color: var(--fylex-navy); }
-
         .profile-main-content {
           flex: 1;
           background: white;
@@ -179,17 +267,16 @@ const Profile = () => {
         @media (max-width: 768px) {
           .profile-main-content { padding: 40px 25px; border-radius: 30px; }
         }
-
         .section-title {
           font-family: 'Playfair Display', serif;
           font-size: 3rem; color: var(--fylex-navy);
           margin-bottom: 30px; line-height: 1;
         }
-
         .stats-cluster {
-          display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+          display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
           margin-bottom: 60px;
         }
+        @media (max-width: 960px) { .stats-cluster { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 640px) { .stats-cluster { grid-template-columns: 1fr; } }
         .stat-box {
           padding: 30px; border-radius: 24px; background: #f8f9fb;
@@ -199,7 +286,6 @@ const Profile = () => {
         .stat-box:hover { transform: translateY(-5px); border-color: var(--fylex-gold); }
         .stat-val { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--fylex-navy); display: block; }
         .stat-lbl { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em; }
-
         .order-card-premium {
           display: flex; align-items: center; gap: 30px;
           padding: 25px; border: 1px solid #f0f0f0; border-radius: 24px;
@@ -218,7 +304,7 @@ const Profile = () => {
         }
         .status-delivered { background: #E6F9F0; color: #0EA271; }
         .status-processing { background: #FFF9E6; color: #D4A017; }
-
+        .status-cancelled { background: #FDECEC; color: #C0392B; }
         .tracking-viz {
           background: var(--fylex-navy); padding: 50px; border-radius: 30px; color: white;
           position: relative; overflow: hidden;
@@ -235,17 +321,32 @@ const Profile = () => {
         .track-nodes { display: flex; justify-content: space-between; position: relative; top: -11px; }
         .node { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--fylex-navy); background: #333; }
         .node.completed { background: var(--fylex-gold); box-shadow: 0 0 10px var(--fylex-gold); }
-        .node-label { margin-top: 15px; font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; width: 80px; margin-left: -31px; }
+        .node-label { margin-top: 15px; font-size: 0.75rem; color: rgba(255,255,255,0.4); text-align: center; width: 96px; margin-left: -39px; }
         .node-label.active { color: white; font-weight: 600; }
-        
         .logout-pill {
           margin-top: 20px; cursor: pointer;
           display: flex; align-items: center; gap: 10px;
           padding: 15px 40px; color: #ef4444; font-weight: 600;
-          transition: background 0.3s; 
+          transition: background 0.3s;
         }
         .logout-pill:hover { background: rgba(239, 68, 68, 0.05); }
-
+        .profile-message {
+          margin: 18px 0;
+          padding: 14px 16px;
+          border-radius: 14px;
+          font-size: 13px;
+          font-weight: 500;
+        }
+        .profile-message.error {
+          background: rgba(239,68,68,0.08);
+          border: 1px solid rgba(239,68,68,0.18);
+          color: #b91c1c;
+        }
+        .profile-message.success {
+          background: rgba(22,163,74,0.08);
+          border: 1px solid rgba(22,163,74,0.18);
+          color: #166534;
+        }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade { animation: fadeIn 0.6s ease forwards; }
       `}</style>
@@ -257,15 +358,15 @@ const Profile = () => {
         <aside className="profile-sidebar animate-fade" style={{ animationDelay: '0.1s' }}>
           <div className="user-profile-header">
             <div className="profile-avatar-large">
-              {user.name ? user.name[0] : (user.email ? user.email[0] : '?')}
+              {profile?.name ? profile.name[0] : (profile?.email ? profile.email[0] : '?')}
             </div>
-            <h2 className="profile-name-title">{user.name || 'Member'}</h2>
+            <h2 className="profile-name-title">{profile?.name || 'Member'}</h2>
             <div className="flex flex-col items-center gap-1">
               <span className="profile-tag">Heritage Member</span>
-              {user.status === 1 ? (
+              {profile?.status === 'ACTIVE' && !profile?.isBlock ? (
                 <span className="text-[10px] text-green-600 font-bold uppercase tracking-widest">Active Account</span>
               ) : (
-                <span className="text-[10px] text-red-600 font-bold uppercase tracking-widest">Status: {user.status}</span>
+                <span className="text-[10px] text-red-600 font-bold uppercase tracking-widest">Inactive Account</span>
               )}
             </div>
           </div>
@@ -299,38 +400,46 @@ const Profile = () => {
         </aside>
 
         <main className="profile-main-content animate-fade" style={{ animationDelay: '0.3s' }}>
+          {dashboardError && <div className="profile-message error">{dashboardError}</div>}
+          {saveMessage && <div className="profile-message success">{saveMessage}</div>}
+
           {activeTab === 'overview' && (
             <div key="overview">
               <h1 className="section-title">The Collection Overview</h1>
               <p className="text-gray-500 mb-10 max-w-lg">Welcome back to your curated space. Here you can monitor your heritage pieces and manage your Fylexx journey.</p>
-              
+
               <div className="stats-cluster">
                 <div className="stat-box">
-                  <span className="stat-lbl">Active Orders</span>
-                  <span className="stat-val">{orders.length.toString().padStart(2, '0')}</span>
+                  <span className="stat-lbl">Total Orders</span>
+                  <span className="stat-val">{stats.totalOrders.toString().padStart(2, '0')}</span>
                 </div>
                 <div className="stat-box">
-                  <span className="stat-lbl">Collection Worth</span>
-                  <span className="stat-val">₹{totalInvestment.toLocaleString()}</span>
+                  <span className="stat-lbl">Active Orders</span>
+                  <span className="stat-val">{stats.activeOrders.toString().padStart(2, '0')}</span>
+                </div>
+                <div className="stat-box">
+                  <span className="stat-lbl">Total Spent</span>
+                  <span className="stat-val">₹{Number(stats.totalSpent || 0).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="stat-box">
                   <span className="stat-lbl">Wishlist Items</span>
-                  <span className="stat-val">{wishlist.length.toString().padStart(2, '0')}</span>
+                  <span className="stat-val">{stats.wishlistCount.toString().padStart(2, '0')}</span>
                 </div>
               </div>
+              <p className="text-xs text-gray-400 -mt-8 mb-10">Total spent is calculated from paid orders only. The history table below includes pending and unpaid orders too.</p>
 
               <h3 className="text-sm font-bold uppercase tracking-widest text-[#1C2E4A] mb-6">Recent Acquisitions</h3>
               <div className="space-y-4">
-                {recentOrders.length > 0 ? recentOrders.map((order, i) => (
-                  <div key={i} className="order-card-premium">
-                    <img src={order.items?.[0]?.image || '/assets/fylex-watch-v2/premium.png'} alt={order.items?.[0]?.title} className="item-thumb" />
+                {recentOrders.length > 0 ? recentOrders.map((order) => (
+                  <div key={order.id} className="order-card-premium">
+                    <img src={order.preview?.image || '/assets/fylex-watch-v2/premium.png'} alt={order.preview?.title || 'Product'} className="item-thumb" />
                     <div className="item-meta">
-                      <span className="text-xs text-gray-400 font-mono">#{order.id}</span>
-                      <h4 className="text-lg font-semibold text-[#1C2E4A] mt-1">{order.items?.[0]?.title || 'Bespoke Timepiece'}</h4>
+                      <span className="text-xs text-gray-400 font-mono">#{order.orderNumber || order.id}</span>
+                      <h4 className="text-lg font-semibold text-[#1C2E4A] mt-1">{order.preview?.title || 'Bespoke Timepiece'}</h4>
                     </div>
                     <div>
-                      <span className={`item-status-pill status-delivered`}>
-                        Delivered
+                      <span className={`item-status-pill ${statusStyles[order.status] || 'status-processing'}`}>
+                        {order.status}
                       </span>
                     </div>
                   </div>
@@ -344,8 +453,8 @@ const Profile = () => {
           {activeTab === 'orders' && (
             <div key="orders">
               <h1 className="section-title">Acquisition History</h1>
-              <p className="text-gray-500 mb-10">A detailed record of every timepiece and accessory added to your collection.</p>
-              
+              <p className="text-gray-500 mb-10">A detailed record of all {stats.totalOrders} orders placed on your account.</p>
+
               <div className="overflow-x-auto">
                 <table className="w-full border-separate border-spacing-y-4">
                   <thead>
@@ -354,26 +463,28 @@ const Profile = () => {
                       <th className="pb-2">Date</th>
                       <th className="pb-2">Timepiece</th>
                       <th className="pb-2">Investment</th>
+                      <th className="pb-2">Payment</th>
                       <th className="pb-2">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.length > 0 ? orders.map((order, i) => (
-                      <tr key={i} className="bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <td className="p-5 pl-8 rounded-l-2xl font-mono text-xs">{order.id}</td>
-                        <td className="p-5 text-gray-600 text-sm">{order.date}</td>
-                        <td className="p-5 font-semibold text-[#1C2E4A]">{order.items?.[0]?.title || 'Watch'}</td>
-                        <td className="p-5 font-bold text-[#1C2E4A]">{order.total}</td>
+                    {orderHistory.length > 0 ? orderHistory.map((order) => (
+                      <tr key={order.id} className="bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <td className="p-5 pl-8 rounded-l-2xl font-mono text-xs">{order.orderNumber || order.id}</td>
+                        <td className="p-5 text-gray-600 text-sm">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : 'N/A'}</td>
+                        <td className="p-5 font-semibold text-[#1C2E4A]">{order.preview?.title || 'Watch'}</td>
+                        <td className="p-5 font-bold text-[#1C2E4A]">₹{Number(order.grandTotal || 0).toLocaleString('en-IN')}</td>
+                        <td className="p-5 text-sm text-gray-600">{order.paymentStatus}</td>
                         <td className="p-5 rounded-r-2xl">
-                          <span className={`item-status-pill status-delivered`}>
-                            Delivered
+                          <span className={`item-status-pill ${statusStyles[order.status] || 'status-processing'}`}>
+                            {order.status}
                           </span>
                         </td>
                       </tr>
                     )) : (
-                        <tr>
-                            <td colSpan="5" className="text-center py-10 text-gray-400">No history available.</td>
-                        </tr>
+                      <tr>
+                        <td colSpan="6" className="text-center py-10 text-gray-400">No history available.</td>
+                      </tr>
                     )}
                   </tbody>
                 </table>
@@ -382,80 +493,125 @@ const Profile = () => {
           )}
 
           {activeTab === 'track' && (
-             <div key="track">
-                <h1 className="section-title">Timeline & Tracking</h1>
-                <p className="text-gray-500 mb-10">Monitor the journey of your newest addition from our atelier to your hands.</p>
-                
-                {orders.length > 0 ? (
-                    <div className="tracking-viz">
-                      <div className="flex justify-between items-end mb-4">
-                         <div>
-                            <span className="text-xs text-[#c4a35a] uppercase tracking-tighter">Current Journey</span>
-                            <h4 className="text-xl font-serif mt-1">Order #{orders[0].id}</h4>
-                         </div>
-                         <span className="text-sm font-medium opacity-80">Estimated: Delivered</span>
-                      </div>
+            <div key="track">
+              <h1 className="section-title">Timeline & Tracking</h1>
+              <p className="text-gray-500 mb-6">Select any order to view its backend-generated timeline. Active orders are shown first.</p>
 
-                      <div className="track-progress-container">
-                        <div className="track-bar" style={{ width: '100%' }}></div>
-                        <div className="track-nodes">
-                           <div className="node completed"><div className="node-label active">Ordered</div></div>
-                           <div className="node completed"><div className="node-label active">Atelier</div></div>
-                           <div className="node completed"><div className="node-label active">Transit</div></div>
-                           <div className="node completed"><div className="node-label active">Home</div></div>
-                        </div>
-                      </div>
+              {trackingOrders.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Track Order</label>
+                  <select
+                    value={selectedTrackingOrderId}
+                    onChange={(e) => setSelectedTrackingOrderId(e.target.value)}
+                    className="w-full max-w-xl bg-gray-50 p-4 rounded-xl border border-gray-200 outline-none focus:ring-1 focus:ring-[#c4a35a]"
+                  >
+                    {trackingOrders.map((order) => (
+                      <option key={order.orderId} value={order.orderId}>
+                        {order.orderNumber} | {order.preview?.title || 'Watch'} | {order.currentStatus}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-                      <div className="mt-12 grid grid-cols-2 gap-10">
-                        <div className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
-                          <span className="text-[10px] uppercase opacity-50 tracking-widest">Last Update</span>
-                          <p className="text-sm mt-1">Successfully Delivered</p>
+              {tracking ? (
+                <div className="tracking-viz">
+                  <div className="flex justify-between items-end mb-4">
+                    <div>
+                      <span className="text-xs text-[#c4a35a] uppercase tracking-tighter">Current Journey</span>
+                      <h4 className="text-xl font-serif mt-1">Order #{tracking.orderNumber}</h4>
+                    </div>
+                    <span className="text-sm font-medium opacity-80">Current Status: {tracking.currentStatus}</span>
+                  </div>
+
+                  <div className="track-progress-container">
+                    <div
+                      className="track-bar"
+                      style={{
+                        width: `${Math.max(20, (tracking.timeline.filter(step => step.completed).length / tracking.timeline.length) * 100)}%`,
+                      }}
+                    ></div>
+                    <div className="track-nodes">
+                      {tracking.timeline.map((step) => (
+                        <div key={step.label} className={`node ${step.completed ? 'completed' : ''}`}>
+                          <div className={`node-label ${step.completed ? 'active' : ''}`}>{step.label}</div>
                         </div>
-                        <div className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
-                          <span className="text-[10px] uppercase opacity-50 tracking-widest">Signed By</span>
-                          <p className="text-sm mt-1">{user.name}</p>
-                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-12 grid grid-cols-2 gap-10">
+                    {tracking.timeline.map((step) => (
+                      <div key={step.label} className="p-6 rounded-2xl bg-white bg-opacity-5 border border-white border-opacity-10">
+                        <span className="text-[10px] uppercase opacity-50 tracking-widest">{step.label}</span>
+                        <p className="text-sm mt-1">{step.date ? new Date(step.date).toLocaleString('en-IN') : 'Pending'}</p>
                       </div>
-                    </div>
-                ) : (
-                    <div className="p-20 text-center bg-gray-50 rounded-3xl">
-                        <p className="text-gray-400">No active shipments to track.</p>
-                    </div>
-                )}
-             </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-20 text-center bg-gray-50 rounded-3xl">
+                  <p className="text-gray-400">No order timelines available yet.</p>
+                </div>
+              )}
+            </div>
           )}
 
           {activeTab === 'settings' && (
             <div key="settings">
               <h1 className="section-title">Security & Profile</h1>
               <p className="text-gray-500 mb-10">Maintain your heritage profile and secure your digital experience with Fylexx.</p>
-              
+
               <div className="max-w-xl space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Full Name</label>
-                    <input type="text" defaultValue={user.name} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
+                    <input
+                      type="text"
+                      value={settingsForm.name}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, name: e.target.value }))}
+                      className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none"
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Mobile Number</label>
-                    <input type="text" defaultValue={user.mobile} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" />
+                    <input
+                      type="text"
+                      value={settingsForm.mobile}
+                      onChange={(e) => setSettingsForm((prev) => ({ ...prev, mobile: e.target.value }))}
+                      className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none"
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Digital Address</label>
-                    <input type="email" defaultValue={user.email} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" disabled />
+                    <input type="email" value={profile?.email || ''} className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none" disabled />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Member Since</label>
-                    <input type="text" defaultValue={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'} className="w-full bg-gray-50 p-4 rounded-xl border-none outline-none" disabled />
+                    <input type="text" value={profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-IN') : 'N/A'} className="w-full bg-gray-50 p-4 rounded-xl border-none outline-none" disabled />
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-tighter text-gray-400">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={settingsForm.dob}
+                    onChange={(e) => setSettingsForm((prev) => ({ ...prev, dob: e.target.value }))}
+                    className="w-full bg-gray-50 p-4 rounded-xl border-none focus:ring-1 focus:ring-[#c4a35a] outline-none"
+                  />
+                </div>
+
                 <div className="pt-4">
-                  <button className="bg-[#1C2E4A] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:bg-opacity-10 hover:backdrop-blur-md border border-[#1C2E4A] hover:border-white hover:border-opacity-20 transition-all duration-500 shadow-lg hover:shadow-2xl">
-                    Update Registry
+                  <button
+                    onClick={handleProfileUpdate}
+                    disabled={saving}
+                    className="bg-[#1C2E4A] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-white hover:bg-opacity-10 hover:backdrop-blur-md border border-[#1C2E4A] hover:border-white hover:border-opacity-20 transition-all duration-500 shadow-lg hover:shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {saving ? 'Updating...' : 'Update Registry'}
                   </button>
                 </div>
               </div>

@@ -206,7 +206,7 @@ function Step2({ data }) {
         <input type="checkbox" className="sp-terms-check" id="sp-terms-check" />
         <span className="sp-terms-custom" />
         <span>
-          I agree to Fylexx's{' '}
+          I agree to Fylexx&apos;s{' '}
           <a href="#" className="sp-terms-link">Terms of Service</a>{' '}
           and{' '}
           <a href="#" className="sp-terms-link">Privacy Policy</a>
@@ -270,6 +270,11 @@ export default function Signup() {
 
       setSubmitting(true);
       try {
+        console.log('[auth-ui] signup submit', {
+          email: data.email,
+          name: data.name,
+          mobile: data.phone || null,
+        });
         await signup({
           name: data.name,
           email: data.email,
@@ -277,7 +282,8 @@ export default function Signup() {
           mobile: data.phone,
         });
         setDone(true);
-        setTimeout(() => navigate.push('/profile'), 2000);
+        console.log('[auth-ui] navigation trigger', { target: '/login', reason: 'verified signup success' });
+        setTimeout(() => navigate.push('/login'), 2000);
       } catch (err) {
         console.error('Signup error:', err);
         setError(err.message || 'Signup failed. Please check your details and try again.');

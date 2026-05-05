@@ -14,14 +14,17 @@ export default function MyPurchases() {
     let url = `/discover?watch=${productId}`;
     const variant = item.productVariant || item.variant;
     
-    if (variant?.variantAttributes) {
-      variant.variantAttributes.forEach(va => {
-        const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
-        const valLabel = va.attributeValue?.label;
-        if (attrName && valLabel) {
-          url += `&${attrName}=${encodeURIComponent(valLabel)}`;
-        }
-      });
+    if (variant) {
+      url += `&variant=${variant.id}`;
+      if (variant.variantAttributes) {
+        variant.variantAttributes.forEach(va => {
+          const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
+          const valLabel = va.attributeValue?.label;
+          if (attrName && valLabel) {
+            url += `&${attrName.replace(/\s+/g, '+')}=${encodeURIComponent(valLabel)}`;
+          }
+        });
+      }
     }
     return url;
   };

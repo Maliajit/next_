@@ -15,7 +15,7 @@ const Header = () => {
   const { user } = useAuth() || { user: null };
   const wishlistCtx = useWishlist();
   const cartCtx = useCart();
-  
+
   const wishlist = wishlistCtx?.wishlist || [];
   const cartCount = cartCtx?.totalCount || 0;
   const wishlistCount = wishlist.length;
@@ -318,17 +318,12 @@ const Header = () => {
             <div className="nav-link-group">
               <Link href="/products" className="primary" onClick={closeAll}>Fylex Watches</Link>
               <Link href="/my-purchases" className="primary" onClick={closeAll}>Your Collection</Link>
-              <Link href="/shop" className="primary" onClick={closeAll}>Explore Shop</Link>
-              <Link href="#" className="primary" onClick={closeAll}>About Us</Link>
+              <Link href="/shop" className="primary" onClick={closeAll}>About Us</Link>
               <Link href="/#gallery" className="primary" onClick={(e) => handleLinkClick(e, 'gallery')}>Community</Link>
             </div>
             <div className="nav-link-group" style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '24px', width: '100%', paddingBottom: '20px' }}>
-              <Link href="/care-support" className="secondary" onClick={closeAll} style={{ fontSize: '0.9rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                Care & Support
-              </Link>
               {user ? (
-                <Link href="/profile" className="secondary" onClick={closeAll} style={{ fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <Link href="/profile" className="secondary" onClick={closeAll} style={{ fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                   My Profile
                 </Link>
@@ -341,6 +336,10 @@ const Header = () => {
                   <Link href="/signup" className="secondary" onClick={closeAll} style={{ fontSize: '0.95rem', opacity: 0.7, paddingLeft: '30px' }}>Create Account</Link>
                 </div>
               )}
+              <Link href="/care-support" className="secondary" onClick={closeAll} style={{ fontSize: '0.9rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                Care & Support
+              </Link>
             </div>
           </div>
         </div>

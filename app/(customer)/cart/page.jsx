@@ -10,7 +10,7 @@ const watchGold = '/assets/fylex-watch-v2/goldwatch.png';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 
-function CartItemRow({ item, index, onQtyChange, onRemove }) {
+function CartItemRow({ item, index, onQtyChange, onRemove, isProcessing }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), index * 120 + 80);
@@ -59,16 +59,33 @@ function CartItemRow({ item, index, onQtyChange, onRemove }) {
       </Link>
 
       <div className="cart-item-actions">
-        <div className="cart-qty-block">
-          <button className="cart-qty-btn" onClick={() => onQtyChange(item.id, -1)}>−</button>
-          <span className="cart-qty-val">{item.qty}</span>
-          <button className="cart-qty-btn" onClick={() => onQtyChange(item.id, 1)}>+</button>
+        <div className={`cart-qty-block ${isProcessing ? 'processing' : ''}`}>
+          <button 
+            className="cart-qty-btn" 
+            onClick={() => !isProcessing && onQtyChange(item.id, -1)}
+            disabled={isProcessing}
+          >−</button>
+          <span className="cart-qty-val">{isProcessing ? '...' : item.qty}</span>
+          <button 
+            className="cart-qty-btn" 
+            onClick={() => !isProcessing && onQtyChange(item.id, 1)}
+            disabled={isProcessing}
+          >+</button>
         </div>
 
-        <button className="cart-remove-btn" onClick={() => onRemove(item.id)} title="Remove">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
-          </svg>
+        <button 
+          className={`cart-remove-btn ${isProcessing ? 'processing' : ''}`} 
+          onClick={() => !isProcessing && onRemove(item.id)} 
+          disabled={isProcessing}
+          title="Remove"
+        >
+          {isProcessing ? (
+             <div className="cart-spinner-small" />
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+            </svg>
+          )}
         </button>
       </div>
     </div>
@@ -77,7 +94,7 @@ function CartItemRow({ item, index, onQtyChange, onRemove }) {
 
 export default function Cart() {
   const navigate = useRouter();
-  const { items, updateQty, removeFromCart } = useCart();
+  const { items, updateQty, removeFromCart, totals, processingItems } = useCart();
   const [heroVisible, setHeroVisible] = useState(false);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const summaryRef = useRef(null);
@@ -104,12 +121,9 @@ export default function Cart() {
     removeFromCart(id);
   };
 
-  const subtotal = items.reduce((s, i) => {
-    return s + (i.unitPrice || 0) * (i.qty || 1);
-  }, 0);
+  const subtotal = totals.subtotal;
   const shippingPlaceholder = subtotal > 150000 ? 0 : 500;
-  // In cart, we show the total without dynamic shipping to avoid confusion
-  const total = subtotal;
+  const total = totals.grandTotal;
 
   return (
     <div className="cart-page">
@@ -152,6 +166,7 @@ export default function Cart() {
                 index={i}
                 onQtyChange={handleQty}
                 onRemove={handleRemove}
+                isProcessing={processingItems.has(item.id)}
               />
             ))
           )}
@@ -338,8 +353,8 @@ export default function Cart() {
         .cart-qty-btn {
           width: 32px; height: 32px;
           border-radius: 50%;
-          border: 1.5px solid rgba(99,130,201,0.3);
-          background: white; color: #1C2E4A;
+          // border: 1.5px solid rgba(99,130,201,0.3);
+          // background: white; color: #1C2E4A;
           font-size: 18px; cursor: pointer;
           display: flex; align-items: center; justify-content: center;
           transition: background 0.2s, border-color 0.2s, transform 0.2s;
@@ -353,10 +368,11 @@ export default function Cart() {
           color: #1C2E4A; width: 24px; text-align: center;
         }
         .cart-remove-btn {
-          background: none; border: none;
-          color: #adb5c8; cursor: pointer;
+          // background: none; border: none;
+          // color: #adb5c8; 
+          cursor: pointer;
           padding: 6px; border-radius: 50%;
-          transition: color 0.2s, background 0.2s, transform 0.2s;
+          // transition: color 0.2s, background 0.2s, transform 0.2s;
           display: flex; align-items: center; justify-content: center;
         }
         .cart-remove-btn:hover {
@@ -516,7 +532,7 @@ export default function Cart() {
              border-top: 1px solid rgba(0,0,0,0.05);
           }
           .cart-qty-block { margin: 0; }
-          .cart-remove-btn { padding: 8px; background: rgba(0,0,0,0.03); }
+          // .cart-remove-btn { padding: 8px; background: rgba(0,0,0,0.03); }
           .cart-summary-card {
             padding: 24px 20px;
           }
@@ -529,6 +545,21 @@ export default function Cart() {
             text-align: left;
             padding: 12px 16px;
           }
+        }
+
+        .cart-spinner-small {
+          width: 14px; height: 14px;
+          border: 2px solid rgba(224, 92, 107, 0.2);
+          border-top-color: #e05c6b;
+          border-radius: 50%;
+          animation: cart-spin 0.6s linear infinite;
+        }
+        @keyframes cart-spin { to { transform: rotate(360deg); } }
+
+        .processing {
+          opacity: 0.5;
+          pointer-events: none;
+          filter: grayscale(0.5);
         }
       `}</style>
     </div>

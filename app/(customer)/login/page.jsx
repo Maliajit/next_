@@ -45,6 +45,7 @@ export default function Login() {
   const [formVisible, setFormVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [shake, setShake] = useState(false);
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useRouter();
 
@@ -56,16 +57,21 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     if (!email || !password) {
+      setError('Please enter both your email and password.');
       setShake(true);
       setTimeout(() => setShake(false), 600);
       return;
     }
     setSubmitting(true);
     try {
+      console.log('[auth-ui] login submit', { email, passwordLength: password.length });
       await login({ email, password });
+      console.log('[auth-ui] navigation trigger', { target: '/profile', reason: 'verified login success' });
       navigate.push('/profile');
     } catch (err) {
+      setError(err?.message || 'Invalid email or password');
       setShake(true);
       setTimeout(() => setShake(false), 600);
     } finally {
@@ -168,6 +174,12 @@ export default function Login() {
                 }
               />
 
+              {error && (
+                <div className="lp-error-box">
+                  {error}
+                </div>
+              )}
+
               <div className="lp-row-options">
                 <label className="lp-remember">
                   <input
@@ -179,7 +191,7 @@ export default function Login() {
                   <span className="lp-checkbox-custom" />
                   Remember me
                 </label>
-                <a href="#" className="lp-forgot">Forgot password?</a>
+                <Link href="/forgot-password" className="lp-forgot">Forgot password?</Link>
               </div>
 
               <button
@@ -201,7 +213,7 @@ export default function Login() {
             </form>
 
             <p className="lp-switch-text" style={{ marginTop: '24px' }}>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/signup" className="lp-switch-link">Sign up</Link>
             </p>
           </div>
@@ -437,6 +449,15 @@ export default function Login() {
           transition: color 0.2s;
         }
         .lp-forgot:hover { color: #1C2E4A; }
+        .lp-error-box {
+          border: 1px solid rgba(239,68,68,0.2);
+          background: rgba(239,68,68,0.06);
+          color: #b91c1c;
+          border-radius: 12px;
+          padding: 12px 14px;
+          font-size: 13px;
+          font-weight: 500;
+        }
 
         .lp-submit-btn {
           width: 100%; padding: 8px 16px;

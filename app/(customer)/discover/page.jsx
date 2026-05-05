@@ -56,6 +56,8 @@ function DiscoverContent() {
                 ...p,
                 ...display,
                 id: p.id.toString(),
+                variantId: display.variantId,
+                heroImage: display.image, // Resolve heroImage using display logic
                 title: display.name,
                 subtitle: display.subtitle || 'Luxury Collection',
                 description: p.shortDescription || p.description || '',
@@ -239,18 +241,26 @@ function DiscoverContent() {
   }
   // ── DYNAMIC VARIANT MATCHING ──
   const selections = {};
+  const variantIdParam = searchParams.get('variant');
+  
   searchParams.forEach((value, key) => {
-    if (key !== 'watch' && key !== 'mode') {
+    if (key !== 'watch' && key !== 'mode' && key !== 'variant') {
       selections[key.toLowerCase()] = value;
     }
   });
 
-  const matchingVariant = (product.variants || []).find(v => {
+  let matchingVariant = (product.variants || []).find(v => {
+    // 1. Try to match by variant ID if provided in URL
+    if (variantIdParam && v.id.toString() === variantIdParam) return true;
+    
+    // 2. Otherwise match by attributes
     const vAttrs = v.variantAttributes || [];
     if (vAttrs.length === 0) return false;
-    return vAttrs.every(va => {
-      const attrName = va.attributeValue?.attribute?.name?.toLowerCase();
-      return selections[attrName] === va.attributeValue?.label;
+    
+    // Check if ALL selected attributes match this variant
+    return Object.keys(selections).every(key => {
+      const va = vAttrs.find(a => a.attributeValue?.attribute?.name?.toLowerCase() === key);
+      return va && va.attributeValue?.label === selections[key];
     });
   });
 
@@ -505,15 +515,25 @@ function DiscoverContent() {
           z-index: 100;
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
           cursor: pointer;
-          color: #006039; /* Rolex green */
-          font-weight: 500;
-          font-size: 14px;
-          transition: opacity 0.3s;
+          color: #10b981; /* Default gray */
+          font-weight: 700;
+          font-size: 9px;
+          transition: all 0.3s;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .cfg-fav-toggle.active {
+          color: #10b981; /* Green when active */
         }
         .cfg-fav-toggle:hover { opacity: 0.8; }
-        .cfg-fav-toggle svg { width: 22px; height: 22px; fill: currentColor; }
+        .cfg-fav-toggle svg { 
+          width: 22px; 
+          height: 22px; 
+          transition: transform 0.3s;
+        }
+        .cfg-fav-toggle:active svg { transform: scale(0.9); }
 
         /* Bottom Left Details */
         .cfg-details-box {
@@ -1374,11 +1394,21 @@ function DiscoverContent() {
           <div className="cfg-hero-aura"></div>
           
           {/* Top Left Favourites */}
-          <div className="cfg-fav-toggle" onClick={() => toggleWishlist({ ...product, id: product.currentVariantId || product.id })}>
-            <svg viewBox="0 0 24 24">
-              <path d={isInWishlist(product.currentVariantId || product.id) ? "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" : "M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"} />
+          <div 
+            className={`cfg-fav-toggle ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`} 
+            onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
+          >
+            <svg 
+              viewBox="0 0 24 24" 
+              width="10" 
+              height="10" 
+              fill={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "none"} 
+              stroke={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "currentColor"} 
+              strokeWidth="2"
+            >
+              <path d={isInWishlist(product.currentVariantId || product.variantId) ? "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" : "M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"} />
             </svg>
-            <span>{isInWishlist(product.currentVariantId || product.id) ? 'Remove from favourites' : 'Add to favourites'}</span>
+            <span>{isInWishlist(product.currentVariantId || product.variantId) ? 'ADDED TO FAVOURITE' : 'ADD TO FAVOURITE'}</span>
           </div>
 
           {/* Bottom Left Details */}
