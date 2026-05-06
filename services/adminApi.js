@@ -3,7 +3,7 @@
  * All API calls go through here. Never call fetch/axios directly in pages.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 /**
  * Core request handler with unified error handling.
