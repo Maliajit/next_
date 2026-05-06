@@ -237,7 +237,7 @@ const Home = () => {
       try {
         const { data: settings } = await cmsService.getVideoSettings();
         if (settings) {
-          const videoMap = {};
+          const videoMap: Record<string, any> = {};
           settings.forEach((s: any) => {
             if (s.group === 'video') videoMap[s.key] = s.value;
           });
