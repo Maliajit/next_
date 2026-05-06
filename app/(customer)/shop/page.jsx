@@ -67,7 +67,7 @@ export default function Shop() {
 
   const displayProducts = products;
 
-  const watchImages = displayProducts.map(p => p.heroImage);
+  const watchImages = displayProducts.map(p => p.image);
 
   // Lenis Smooth Scroll
   useEffect(() => {
@@ -209,11 +209,13 @@ export default function Shop() {
 
   // Watch rotator interval logic
   useEffect(() => {
+    if (!watchImages || watchImages.length === 0) return;
+    
     const interval = setInterval(() => {
       handleWatchChange((activeWatchIndex + 1) % watchImages.length);
     }, 12000);
     return () => clearInterval(interval);
-  }, [activeWatchIndex]);
+  }, [activeWatchIndex, watchImages.length]);
 
   const handleWatchChange = (index) => {
     if (index === activeWatchIndex) return;
@@ -312,6 +314,7 @@ export default function Shop() {
         }
         .bf:hover, .bf:active { 
           background: rgba(255, 255, 255, 0.1) !important;
+          color: #000000 !important;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           border-color: rgba(255, 255, 255, 0.2);
@@ -403,6 +406,7 @@ export default function Shop() {
         }
         .vbtn:hover, .vbtn:active { 
           background: rgba(255, 255, 255, 0.1) !important;
+          color: #000000 !important;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           border-color: rgba(255, 255, 255, 0.2);
@@ -664,7 +668,7 @@ export default function Shop() {
               {idx === 1 && <div className="vbdg">Best Seller</div>}
               <div className="vcimg">
                 <img 
-                  src={getFileUrl(p.heroImage) || getFileUrl(p.images && p.images[0]) || 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=700&q=84'} 
+                  src={p.image || 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=700&q=84'} 
                   alt={p.name} 
                   loading="lazy" 
                 />

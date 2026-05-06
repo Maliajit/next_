@@ -746,6 +746,7 @@ export default function Signup() {
         }
         .sp-success-btn:hover, .sp-success-btn:active {
           background: rgba(255, 255, 255, 0.1) !important;
+          color: #000000 !important;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           border-color: rgba(255, 255, 255, 0.2);

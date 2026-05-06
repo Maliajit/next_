@@ -444,6 +444,7 @@ function DiscoverContent() {
         }
         .cfg-cta-pill:hover, .cfg-cta-pill:active {
           background: rgba(255, 255, 255, 0.1) !important;
+          color: #000000 !important;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           border-color: rgba(255, 255, 255, 0.2);
@@ -470,6 +471,7 @@ function DiscoverContent() {
         }
         .cfg-book-btn:hover, .cfg-book-btn:active {
           background: rgba(255, 255, 255, 0.1) !important;
+          color: #000000 !important;
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
           border-color: rgba(255, 255, 255, 0.2);
