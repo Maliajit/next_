@@ -62,7 +62,7 @@ function DiscoverContent() {
               subtitle: display.subtitle || 'Luxury Collection',
               description: p.shortDescription || p.description || '',
               longDesc: p.description || p.shortDescription || 'Experience the pinnacle of watchmaking with our masterfully crafted timepiece.',
-              theme: p.bgColor || 'champagne',
+              theme: p.theme || 'champagne',
               accentColor: p.accentColor || '#c4a35a',
               accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
               mistColor: p.mistColor || '',
@@ -493,20 +493,24 @@ function DiscoverContent() {
         
         .cfg-hero-aura {
           position: absolute;
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
-          z-index: 1;
+          inset: 0;
+          background: radial-gradient(circle at center, rgba(255,255,255,0.4) 0%, transparent 70%);
+          z-index: 2;
           pointer-events: none;
         }
 
-        .cfg-hero-image {
-          width: 100%;
-          max-width: 500px;
-          filter: drop-shadow(0 30px 60px rgba(0,0,0,0.12));
-          position: relative;
-          z-index: 5;
-          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        .cfg-hero-bg {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          transition: background-image 0.8s ease-in-out;
+        }
+
+        .cfg-hero-image-hidden {
+          display: none;
         }
 
         /* Top Left Favourites */
@@ -1421,6 +1425,14 @@ function DiscoverContent() {
 
       <div className="cfg-content-wrapper">
         <section id="hero" className="cfg-hero" ref={heroRef}>
+          {/* Immersive Background Image */}
+          <div 
+            className="cfg-hero-bg" 
+            style={{ 
+              backgroundImage: `url(${product.heroImage})`,
+              backgroundColor: product.bgColor || '#f8f6f1'
+            }} 
+          />
           <div className="cfg-hero-aura"></div>
 
           {/* Top Left Favourites */}
@@ -1461,8 +1473,7 @@ function DiscoverContent() {
             </button>
           </div>
 
-          {/* Center Watch Image */}
-          <img src={product.heroImage} alt={product.title} className="cfg-hero-image" />
+          {/* The image is now the background, so we don't need the central tag */}
 
           {/* Middle Right Variations */}
           {product.combinations?.length > 0 && (

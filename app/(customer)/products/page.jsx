@@ -59,7 +59,7 @@ const Products = () => {
                 price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
                 totalStock: p.qty || 0,
                 sold: 0,
-                theme: p.bgColor || 'champagne',
+                theme: p.theme || 'champagne',
                 bgColor: p.bgColor || '#ffffff',
                 accentColor: p.accentColor || '#c4a35a',
                 accentRgb: hexToRgb(p.accentColor || '#c4a35a'),

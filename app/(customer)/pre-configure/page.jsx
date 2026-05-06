@@ -28,7 +28,7 @@ const PreConfigure = () => {
                 titleAccent: nameParts.length > 1 ? ` ${nameParts[nameParts.length - 1]}` : '',
                 price: `₹${p.price.toLocaleString()}`,
                 heroImage: p.heroImage || p.images?.[0] || '/assets/fylex-watch-v2/premium.png',
-                theme: p.bgColor || 'champagne'
+                theme: p.theme || 'champagne'
             };
         });
         setProducts(mapped);

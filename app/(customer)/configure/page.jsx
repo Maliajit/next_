@@ -70,7 +70,7 @@ function ConfigureContent() {
           price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
           heroImage: resolveProductImage(p),
           galleryImages: [],
-          theme: p.bgColor || 'champagne',
+          theme: p.theme || 'champagne',
           accentColor: p.accentColor || '#c4a35a',
           textColor: p.textColor || '#1a1a1a',
         };

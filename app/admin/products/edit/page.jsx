@@ -398,7 +398,7 @@ const ProductEditPageContent = () => {
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
 
             <MediaPickerModal 
                 isOpen={!!pickerTarget} 
