@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useWishlist } from '@/context/WishlistContext';
 import { fetchProducts } from '../../../lib/api';
-import { getFileUrl } from '@/lib/utils';
+import { getFileUrl, resolveProductImage, getDisplayData } from '@/lib/utils';
 import cmsService from '@/services/cms.service';
 
 const Products = () => {
@@ -32,31 +32,17 @@ const Products = () => {
         };
 
         const mapped = rawData.map((p, idx) => {
-            // Pick parent image or first variant's main image
-            let rawImg = p.heroImage || (p.images?.[0]);
-            
-            if (!rawImg && p.variants?.length > 0) {
-                const firstVar = p.variants[0];
-                const varMain = firstVar.variantImages?.find(vi => vi.type === 'MAIN')?.media;
-                if (varMain) {
-                    rawImg = varMain.url || (varMain.fileName ? `/uploads/${varMain.fileName}` : '');
-                }
-            }
-
-            if (rawImg && !rawImg.startsWith('http') && !rawImg.startsWith('/') && !rawImg.startsWith('data:')) {
-                rawImg = `/uploads/${rawImg}`;
-            }
-
+            const display = getDisplayData(p);
             return {
                 id: p.id.toString(),
                 num: String(idx + 1).padStart(2, '0'),
-                title: p.name,
+                title: display.name,
                 titleAccent: '',
                 subtitle: p.subtitle || 'Luxury Collection',
                 tagline: p.tagline || '',
                 description: p.description || p.shortDescription || '',
-                image: getFileUrl(rawImg) || '/assets/fylex-watch-v2/premium.png',
-                price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
+                image: display.image,
+                price: display.formattedPrice,
                 totalStock: p.qty || 0,
                 sold: 0,
                 theme: p.theme || 'champagne',
@@ -68,15 +54,11 @@ const Products = () => {
                 mistColor: p.mistColor || '',
                 mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
                 combinations: (p.variants || []).map(v => {
-                    const vImg = v.variantImages?.find(vi => vi.type === 'MAIN')?.media || v.variantImages?.[0]?.media;
-                    let vPath = vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : '');
-                    if (vPath && !vPath.startsWith('http') && !vPath.startsWith('/') && !vPath.startsWith('data:')) {
-                        vPath = `/uploads/${vPath}`;
-                    }
+                    const vDisplay = getDisplayData(p, v);
                     return {
                         id: v.id.toString(),
                         name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-                        img: getFileUrl(vPath) || '/assets/fylex-watch-v2/Olive-green-dial.png'
+                        img: vDisplay.image
                     };
                 })
             };

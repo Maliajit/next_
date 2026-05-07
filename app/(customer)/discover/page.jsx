@@ -484,7 +484,7 @@ function DiscoverContent() {
           min-height: 100vh;
           background: radial-gradient(circle at center, #ffffff 0%, #e8edf3 100%);
           display: flex;
-          align-items: center;
+          align-items: flex-start; /* Changed from center to start */
           justify-content: center;
           position: relative;
           padding: 80px 40px;
@@ -500,13 +500,49 @@ function DiscoverContent() {
         }
 
         .cfg-hero-bg {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          transition: background-image 0.8s ease-in-out;
+          display: none;
+        }
+
+        .cfg-hero-main-visual {
+          position: relative;
+          z-index: 10;
+          width: 100%;
+          max-width: 800px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+          margin-top: 40px; /* Even closer to top actions */
+          height: 62vh; /* Expanded height to 'pull' till the title */
+        }
+
+        .cfg-hero-visual-box {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          // background: #ffffff;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: visible;
+          box-shadow: 0 40px 100px rgba(0,0,0,0.03);
+          // background: 
+          //   radial-gradient(circle at 70% 30%, rgba(255,255,255,1) 0%, rgba(248, 250, 252, 0.8) 100%);
+        }
+
+        .cfg-hero-product-img {
+          height: 90%;
+          width: auto;
+          max-width: 100%;
+          object-fit: contain;
+          z-index: 12;
+          filter: drop-shadow(0 30px 60px rgba(0,0,0,0.12));
+          transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .cfg-hero-product-img:hover {
+          transform: scale(1.02);
         }
 
         .cfg-hero-image-hidden {
@@ -619,33 +655,36 @@ function DiscoverContent() {
 
         .cfg-variations-btn {
           position: absolute;
-          right: 40px;
-          top: 58%;
-          transform: translateY(-50%);
+          right: 20px;
+          bottom: 20px;
           z-index: 100;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
           cursor: pointer;
-          transition: all 0.3s;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
         .cfg-variations-btn:hover {
-            transform: translateY(-52%);
+            transform: translateY(-5px);
         }
         .cfg-var-thumb {
-          width: 76px;
-          height: 76px;
+          width: 80px;
+          height: 80px;
           border-radius: 50%;
           background: #fff;
-          border: 1px solid #eee;
-          padding: 8px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+          border: 1px solid #f0f0f0;
+          padding: 10px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
-        .cfg-var-thumb img { width: 90%; height: 90%; object-fit: contain; }
+        .cfg-var-thumb:hover {
+          box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        }
+        .cfg-var-thumb img { width: 85%; height: 85%; object-fit: contain; }
         .cfg-var-label {
           font-size: 10px;
           font-weight: 700;
@@ -1425,15 +1464,28 @@ function DiscoverContent() {
 
       <div className="cfg-content-wrapper">
         <section id="hero" className="cfg-hero" ref={heroRef}>
-          {/* Immersive Background Image */}
-          <div 
-            className="cfg-hero-bg" 
-            style={{ 
-              backgroundImage: `url(${product.heroImage})`,
-              backgroundColor: product.bgColor || '#f8f6f1'
-            }} 
-          />
           <div className="cfg-hero-aura"></div>
+
+          {/* New Focused Visual Container */}
+          <div className="cfg-hero-main-visual">
+            <div className="cfg-hero-visual-box">
+              <img
+                src={product.heroImage}
+                alt={product.title}
+                className="cfg-hero-product-img"
+              />
+
+              {/* Variations Button moved inside the visual box */}
+              {product.combinations?.length > 0 && (
+                <div className="cfg-variations-btn" onClick={() => openInfoModal(product)}>
+                  <div className="cfg-var-thumb">
+                    <img src={product.combinations[0].img} alt="Variation" />
+                  </div>
+                  <span className="cfg-var-label">View variations</span>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Top Left Favourites */}
           <div
@@ -1473,17 +1525,7 @@ function DiscoverContent() {
             </button>
           </div>
 
-          {/* The image is now the background, so we don't need the central tag */}
-
-          {/* Middle Right Variations */}
-          {product.combinations?.length > 0 && (
-            <div className="cfg-variations-btn" onClick={() => openInfoModal(product)}>
-              <div className="cfg-var-thumb">
-                <img src={product.combinations[0].img} alt="Variation" />
-              </div>
-              <span className="cfg-var-label">View variations</span>
-            </div>
-          )}
+          {/* The image is now a central element, no longer background */}
 
           {/* Far Right Vertical Nav */}
           {isGeneralMode && (
