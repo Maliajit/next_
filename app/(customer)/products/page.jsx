@@ -417,7 +417,7 @@ const Products = () => {
           text-transform: uppercase;
           color: #ffffff;
           opacity: 0.5;
-          margin-bottom: 20px;
+          // margin-bottom: 20px;
           display: block;
         }
         .p-title {
@@ -437,7 +437,7 @@ const Products = () => {
           font-size: 1.35rem;
           font-weight: 300;
           color: #e0e0e0; 
-          margin-top: 12px;
+          // margin-top: 12px;
           display: block;
         }
         .p-description {
@@ -453,7 +453,7 @@ const Products = () => {
           align-items: center !important;
           gap: 10px !important;
           color: #ffffff !important; 
-          text-decoration: underline dashed rgba(255,255,255,0.3);
+          // text-decoration: underline dashed rgba(255,255,255,0.3);
           font-size: 0.85rem;
           font-weight: 400;
           letter-spacing: 0.02em;
@@ -478,7 +478,7 @@ const Products = () => {
           flex-direction: row !important;
           align-items: center !important;
           gap: 20px !important;
-          margin-top: 32px;
+          // margin-top: 32px;
           flex-wrap: nowrap !important;
         }
         .p-fav-btn {
@@ -511,7 +511,7 @@ const Products = () => {
           font-weight: 400;
           color: #ffffff;
           letter-spacing: -0.02em;
-          margin-bottom: 2px;
+          // margin-bottom: 2px;
           display: block;
         }
         .p-inventory-status {
@@ -831,25 +831,55 @@ const Products = () => {
           }
           .p-price-tag {
             font-size: 1.4rem;
-            margin-bottom: 12px;
+            // margin-bottom: 12px;
           }
           .p-actions-row {
-            margin-top: 16px;
+            // margin-top: 16px;
             gap: 12px;
           }
         }
 
         @media (max-width: 640px) {
-           .p-section { padding: 40px 5%; }
-           .p-section-inner {
-              gap: 20px;
+           .p-section { 
+             height: 33.33vh; 
+             padding: 0; 
+             display: flex; 
+             align-items: stretch;
+             border-bottom: 1px solid rgba(255,255,255,0.05);
            }
-           .p-title { font-size: 1.4rem; }
-           .p-description { display: none !important; } /* Hide description on very small screens to maintain layout */
-           .p-tagline { font-size: 0.85rem; }
-           .p-price-tag { font-size: 1.1rem; }
-           .p-inventory-status { font-size: 0.75rem; }
-           .p-link-luxury { font-size: 0.85rem; padding-bottom: 4px; }
+           .p-section-inner {
+              height: 100%;
+              width: 100%;
+              gap: 15px;
+              padding: 20px 5%;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              align-items: flex-end; /* Stuck to bottom */
+              position: relative;
+           }
+           
+           .p-watch-wrap {
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: relative;
+              bottom: 10px; /* Slight offset to look better */
+           }
+           .p-watch-image {
+              max-height: 160px;
+              width: auto;
+              object-fit: contain;
+           }
+           .p-title { font-size: 1.10rem; line-height: 1.1; margin-bottom: 4px; }
+           .p-description { display: none !important; }
+           .p-tagline { font-size: 0.75rem;  opacity: 0.7; }
+           .p-price-tag { font-size: 1rem;  }
+           .p-inventory-status { font-size: 0.65rem; margin-bottom: 12px; }
+           .p-link-luxury { font-size: 0.8rem; padding: 6px 12px; }
+           
+           .p-subtitle { font-size: 0.55rem; margin-bottom: 4px; }
+           .p-diffusion-glow { scale: 0.6; }
         }
       `}</style>
 

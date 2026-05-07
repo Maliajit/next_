@@ -433,7 +433,7 @@ const Home = () => {
           opacity: 0.9;
         }
         .f-title {
-          font-family: 'Inter', sans-serif; font-size: 2rem;
+          font-family: 'Inter', sans-serif; font-size: 1.6rem;
           font-weight: 600;
           line-height: 1.2;
         }
@@ -886,13 +886,13 @@ const Home = () => {
                             <img 
                               src={display.image} 
                               alt={display.name} 
-                              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
+                              style={{ position: 'absolute', top: '-40px', left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
                             />
                           )}
                           <div className="featured-content" style={{ color: p.textColor || '#111', zIndex: 2 }}>
                             <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
                             <div className="f-title" style={{ color: 'inherit' }}>{display.name} <em>{p.titleAccent || ''}</em></div>
-                            <div className="f-price" style={{ margin: '10px 0 20px', fontSize: '1.2rem', fontWeight: 500 }}>
+                            <div className="f-price" style={{ margin: '4px 0 14px', fontSize: '1.1rem', fontWeight: 500 }}>
                               {display.isConfigurable ? 'From ' : ''}{display.formattedPrice}
                             </div>
                             <Link href={`/discover?watch=${p.id}`} className="f-shop-btn">Shop</Link>
