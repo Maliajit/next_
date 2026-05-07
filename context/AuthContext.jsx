@@ -7,6 +7,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [guestId, setGuestId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const clearSession = useCallback(() => {
@@ -57,6 +58,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     void bootstrap();
+
+    // Initialize or retrieve Guest ID
+    let gid = localStorage.getItem('fylexx_guest_id');
+    if (!gid) {
+      gid = `gst_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
+      localStorage.setItem('fylexx_guest_id', gid);
+    }
+    setGuestId(gid);
 
     return () => {
       mounted = false;
@@ -119,7 +128,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginOtp, logout, signup, loading, verifySession, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, guestId, login, loginOtp, logout, signup, loading, verifySession, isAuthenticated: !!user }}>
       {!loading && children}
     </AuthContext.Provider>
   );

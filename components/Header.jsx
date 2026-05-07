@@ -178,7 +178,7 @@ const Header = () => {
         .overlay-screen-v1 {
           position: fixed; top: 0; left: 0; width: 100%;
           z-index: 2500;
-          background: #0c0c0cff;
+          background: #000000;
           display: flex;
           transform: translateY(-100%);
           transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);

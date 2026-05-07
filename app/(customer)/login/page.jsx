@@ -80,8 +80,8 @@ export default function Login() {
     try {
       console.log('[auth-ui] otp login submit', { mobile, otp });
       await loginOtp({ mobile, otp });
-      console.log('[auth-ui] navigation trigger', { target: '/profile', reason: 'verified otp success' });
-      navigate.push('/profile');
+      console.log('[auth-ui] navigation trigger', { target: '/', reason: 'verified otp success' });
+      navigate.push('/');
     } catch (err) {
       setError(err?.message || 'Invalid mobile number or OTP');
       setShake(true);

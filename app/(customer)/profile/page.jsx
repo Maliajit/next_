@@ -187,9 +187,9 @@ const Profile = () => {
         .profile-sidebar {
           width: 320px;
           flex-shrink: 0;
-          background: rgba(255, 255, 255, 0.7);
+          background: #000000;
           backdrop-filter: blur(15px);
-          border: 1px solid rgba(255, 255, 255, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 30px;
           padding: 40px 0;
           height: fit-content;
@@ -206,7 +206,7 @@ const Profile = () => {
           text-align: center;
           padding-bottom: 30px;
           margin-bottom: 20px;
-          border-bottom: 1px solid rgba(0,0,0,0.05);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .profile-avatar-large {
           width: 100px; height: 100px;
@@ -217,12 +217,12 @@ const Profile = () => {
           display: flex; align-items: center; justify-content: center;
           font-family: 'Playfair Display', serif;
           font-size: 3rem;
-          box-shadow: 0 15px 30px rgba(28,46,74,0.15);
-          border: 4px solid white;
+          box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+          border: 4px solid rgba(255,255,255,0.1);
         }
         .profile-name-title {
           font-family: 'Playfair Display', serif;
-          font-size: 1.8rem; color: var(--fylex-navy);
+          font-size: 1.8rem; color: #fff;
           font-weight: 500; margin-bottom: 5px;
         }
         .profile-tag {
@@ -233,7 +233,7 @@ const Profile = () => {
         .profile-nav-item {
           padding: 18px 40px;
           display: flex; align-items: center; gap: 15px;
-          color: #666; font-weight: 500; font-size: 0.95rem;
+          color: rgba(255,255,255,0.6); font-weight: 500; font-size: 0.95rem;
           cursor: pointer; transition: all 0.3s;
           position: relative;
         }

@@ -9,8 +9,8 @@ const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
-  const { user } = useAuth();
-  const userId = user?.id;
+  const { user, guestId } = useAuth() || {};
+  const userId = user?.id || guestId;
 
   const loadWishlist = async () => {
     if (!userId) {
@@ -62,9 +62,13 @@ export function WishlistProvider({ children }) {
     const variantId = product.variantId || product.currentVariantId;
     if (!variantId) throw new Error("ENFORCEMENT: Cannot wishlist without variantId");
 
-    const result = await toggleWishlistApi(userId, product);
-    if (result.success) {
-        eventBus.emit(EVENTS.WISHLIST_UPDATED);
+    try {
+      const result = await toggleWishlistApi(userId, product);
+      if (result.success) {
+          eventBus.emit(EVENTS.WISHLIST_UPDATED);
+      }
+    } catch (err) {
+      console.error('Wishlist toggle failed:', err);
     }
   };
 

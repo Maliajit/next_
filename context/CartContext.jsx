@@ -12,8 +12,8 @@ export function CartProvider({ children }) {
   const [totals, setTotals] = useState({ subtotal: 0, grandTotal: 0 });
   const [loading, setLoading] = useState(false);
   const [processingItems, setProcessingItems] = useState(new Set()); // IDs of items currently being updated
-  const { user } = useAuth() || {};
-  const userId = user?.id;
+  const { user, guestId } = useAuth() || {};
+  const userId = user?.id || guestId;
 
   const mapCartData = (data) => {
     console.log('DEBUG: Cart Items Order from API:', data?.items?.map(i => i.id.toString()));
@@ -79,6 +79,9 @@ export function CartProvider({ children }) {
             eventBus.emit(EVENTS.CART_UPDATED);
         }
         return result;
+    } catch (err) {
+        console.error('Add to cart failed:', err);
+        return { success: false, error: err.message };
     } finally {
         setLoading(false);
     }
@@ -93,6 +96,8 @@ export function CartProvider({ children }) {
             mapCartData(result.data);
             eventBus.emit(EVENTS.CART_UPDATED);
         }
+    } catch (err) {
+        console.error('Remove from cart failed:', err);
     } finally {
         setProcessingItems(prev => {
             const next = new Set(prev);
@@ -117,6 +122,8 @@ export function CartProvider({ children }) {
             mapCartData(result.data);
             eventBus.emit(EVENTS.CART_UPDATED);
         }
+    } catch (err) {
+        console.error('Update cart qty failed:', err);
     } finally {
         setProcessingItems(prev => {
             const next = new Set(prev);

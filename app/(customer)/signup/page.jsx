@@ -254,8 +254,8 @@ export default function Signup() {
           otp: data.otp,
         });
         setDone(true);
-        console.log('[auth-ui] navigation trigger', { target: '/login', reason: 'verified signup success' });
-        setTimeout(() => navigate.push('/login'), 2000);
+        console.log('[auth-ui] navigation trigger', { target: '/', reason: 'verified signup success' });
+        setTimeout(() => navigate.push('/'), 2000);
       } catch (err) {
         console.error('Signup error:', err);
         setError(err.message || 'Signup failed. Please check your details and try again.');
