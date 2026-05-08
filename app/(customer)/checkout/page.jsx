@@ -8,9 +8,10 @@ import { addAddressApi, initiatePaymentApi, verifyPaymentApi, calculateTotalApi 
 
 const Checkout = () => {
   const navigate = useRouter();
-  const { items, clearCart } = useCart();
+  const { items, totals: cartTotals, clearCart } = useCart();
   const { addOrder } = useOrder();
-  const { user } = useAuth();
+  const { user, guestId } = useAuth();
+  const currentUserId = user?.id || guestId;
 
   const [activeStep, setActiveStep] = useState(1);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -18,11 +19,11 @@ const Checkout = () => {
   
   // SERVER-SIDE TRUTH
   const [totals, setTotals] = useState({
-      subtotal: 0,
+      subtotal: cartTotals.subtotal || 0,
       shipping: 0,
       tax: 0,
       discount: 0,
-      total: 0
+      total: cartTotals.subtotal || 0
   });
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState(null);
@@ -71,36 +72,37 @@ const Checkout = () => {
     };
   }, [user]);
 
-  // REFRESH TOTALS FROM BACKEND ONLY
+  // REFRESH TOTALS FROM BACKEND
   useEffect(() => {
     const refreshTotals = async () => {
-        if (!user?.id || items.length === 0) return;
+        if (!currentUserId || items.length === 0) return;
         
-        if (formData.postalCode.length === 6) {
-            setIsCalculating(true);
-            const res = await calculateTotalApi(user.id, formData.postalCode);
-            if (res.success) {
-                setTotals(res.data);
-                setIsServiceable(res.data.serviceable !== false);
-                setIsCodAvailable(res.data.codAvailable !== false);
-                setShippingMessage(res.data.message || '');
-                setError(null);
+        setIsCalculating(true);
+        // Call API even with incomplete pincode to get latest subtotal/tax/discount
+        const res = await calculateTotalApi(currentUserId, formData.postalCode.length === 6 ? formData.postalCode : null);
+        
+        if (res.success) {
+            setTotals(res.data);
+            setIsServiceable(res.data.serviceable !== false);
+            setIsCodAvailable(res.data.codAvailable !== false);
+            setShippingMessage(res.data.message || '');
+            setError(null);
 
-                if (res.data.codAvailable === false && formData.paymentMethod === 'cod') {
-                    setFormData(prev => ({ ...prev, paymentMethod: 'razorpay' }));
-                }
-            } else {
-                setError(res.error);
+            if (res.data.codAvailable === false && formData.paymentMethod === 'cod') {
+                setFormData(prev => ({ ...prev, paymentMethod: 'razorpay' }));
             }
-            setIsCalculating(false);
         } else {
-            // Reset if pincode is incomplete
-            setIsServiceable(true);
-            setIsCodAvailable(true);
+            // Fallback to cart totals if API fails
+            setTotals(prev => ({
+                ...prev,
+                subtotal: cartTotals.subtotal,
+                total: cartTotals.subtotal + prev.shipping
+            }));
         }
+        setIsCalculating(false);
     };
     refreshTotals();
-  }, [items, formData.postalCode, user?.id]);
+  }, [items, formData.postalCode, currentUserId, cartTotals.subtotal]);
 
   const steps = [
     { id: 1, name: 'Shipping' },
@@ -151,7 +153,7 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      const addrRes = await addAddressApi(user.id, {
+      const addrRes = await addAddressApi(currentUserId, {
         name: `${formData.firstName} ${formData.lastName}`,
         mobile: formData.phone,
         address: formData.address,
@@ -176,7 +178,7 @@ const Checkout = () => {
   };
 
   const handleRazorpayPayment = async (addressId) => {
-    const payRes = await initiatePaymentApi(user.id, formData.postalCode, `rcpt_${Date.now()}`);
+    const payRes = await initiatePaymentApi(currentUserId, formData.postalCode, `rcpt_${Date.now()}`);
     if (!payRes.success) throw new Error(payRes.error);
 
     const options = {
@@ -213,7 +215,7 @@ const Checkout = () => {
 
   const finalizeOrder = async (addressId, method, paymentId = null) => {
     const orderRes = await addOrder({
-      customerId: user.id,
+      customerId: currentUserId,
       shippingAddressId: addressId,
       paymentMethod: method,
       paymentId: paymentId,
@@ -333,7 +335,7 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  {!isServiceable && !isCalculating && formData.postalCode.length === 6 && (
+                  {/* {!isServiceable && !isCalculating && formData.postalCode.length === 6 && (
                     <div className="shipping-error-notice">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" />
@@ -342,9 +344,9 @@ const Checkout = () => {
                       </svg>
                       <span><b>Delivery Unavailable:</b> Sorry, we cannot deliver to pincode <b>{formData.postalCode}</b> at this time.</span>
                     </div>
-                  )}
+                  )} */}
 
-                  {shippingMessage && !isCalculating && formData.postalCode.length === 6 && (
+                  {/* {shippingMessage && !isCalculating && formData.postalCode.length === 6 && (
                     <div className="shipping-warning-notice">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
@@ -353,7 +355,7 @@ const Checkout = () => {
                       </svg>
                       <span>{shippingMessage}</span>
                     </div>
-                  )}
+                  )} */}
                 </div>
               )}
 
@@ -433,9 +435,9 @@ const Checkout = () => {
               <div className="checkout-footer-actions">
                 <button
                   key={`step-${activeStep}`}
-                  className={`primary-btn ${isProcessing || isCalculating || (isServiceable === false) ? 'disabled' : ''}`}
+                  className={`primary-btn ${isProcessing || isCalculating || (isServiceable === false) || totals.total <= 0 ? 'disabled' : ''}`}
                   onClick={(e) => handleNext(e)}
-                  disabled={isProcessing || isCalculating || (isServiceable === false)}
+                  disabled={isProcessing || isCalculating || (isServiceable === false) || totals.total <= 0}
                 >
                   {isProcessing ? 'Processing...' : (activeStep === 3 ? 'Place Order' : 'Continue')}
                 </button>
