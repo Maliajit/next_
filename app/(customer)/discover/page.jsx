@@ -1547,14 +1547,16 @@ function DiscoverContent() {
       </div>
 
       <div className="cfg-content-wrapper">
-        <div className="top-actions">
-          <button onClick={() => router.push(`/products`)} className="close-btn">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
+        {hasConfig && (
+          <div className="top-actions">
+            <button onClick={() => router.push(`/products`)} className="close-btn">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+        )}
 
         <section id="hero" className="cfg-hero" ref={heroRef}>
           <div className="cfg-hero-aura"></div>

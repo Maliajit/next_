@@ -56,8 +56,8 @@ export default function MyPurchases() {
       <style>{`
         .purchases-page {
           min-height: 100vh;
-          padding: 140px 8% 80px;
-          background: #fdfdfd;
+          padding: 160px 5% 80px;
+          background: #ffffff;
           font-family: 'Inter', sans-serif;
         }
         .purchases-container {
@@ -65,96 +65,84 @@ export default function MyPurchases() {
           margin: 0 auto;
         }
         .purchases-header {
-          margin-bottom: 60px;
+          margin-bottom: 30px;
           text-align: center;
         }
         .purchases-header h1 {
-          font-family: 'Playfair Display', serif;
-          font-size: 3.5rem;
-          font-weight: 400;
-          color: #1a1a1a;
-          margin-bottom: 15px;
+          font-size: 2rem;
+          font-weight: 700;
+          color: #000;
+          margin-bottom: 10px;
+          letter-spacing: -0.02em;
         }
         .purchases-header p {
-          color: #888;
+          color: #666;
           font-size: 1.1rem;
-          font-weight: 300;
         }
 
         .purchases-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 30px;
         }
 
         .purchase-card {
-          background: #fff;
-          border-radius: 16px;
+          background: #f8f8f8;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+          cursor: pointer;
+          transition: transform 0.3s ease;
           overflow: hidden;
           text-decoration: none;
-          color: inherit;
-          display: flex;
-          align-items: center;
-          border: 1px solid rgba(0,0,0,0.04);
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-          padding: 15px 25px;
         }
         .purchase-card:hover {
-          transform: translateX(10px);
-          box-shadow: 0 15px 40px rgba(0,0,0,0.06);
-          border-color: rgba(0,0,0,0.1);
+          transform: translateY(-5px);
         }
 
         .purchase-img-wrap {
-          width: 80px;
-          height: 80px;
-          background: #f8f8f8;
-          border-radius: 12px;
+          width: 100%;
+          height: 450px;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 10px;
-          flex-shrink: 0;
+          padding: 40px;
+          background: transparent;
         }
         .purchase-img-wrap img {
           max-width: 100%;
           max-height: 100%;
           object-fit: contain;
-          filter: drop-shadow(0 5px 15px rgba(0,0,0,0.05));
-          transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .purchase-card:hover .purchase-img-wrap img {
-          transform: scale(1.1);
         }
 
         .purchase-info {
-          padding: 0 25px;
+          padding: 0 40px 40px;
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          flex: 1;
+          flex-grow: 1;
         }
+
         .purchase-date {
-          font-size: 0.7rem;
-          font-weight: 600;
-          color: #c4a35a;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #666;
           text-transform: uppercase;
           letter-spacing: 0.1em;
+          margin-bottom: 8px;
         }
         .purchase-name {
-          font-family: 'Playfair Display', serif;
-          font-size: 1.25rem;
-          font-weight: 400;
-          color: #1a1a1a;
-          margin: 0;
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: #000;
+          margin: 0 0 8px;
           line-height: 1.2;
         }
         .v-accent {
-          font-size: 1rem;
-          color: #888;
-          font-weight: 300;
-          font-family: 'Inter', sans-serif;
+          display: block;
+          color: #666;
+          font-size: 1.1rem;
+          font-weight: 400;
+          margin-bottom: 8px;
         }
 
         .purchases-empty {
@@ -166,36 +154,63 @@ export default function MyPurchases() {
           margin-bottom: 30px;
         }
         .purchases-empty h2 {
-          font-family: 'Playfair Display', serif;
           font-size: 2.5rem;
           margin-bottom: 20px;
+          font-weight: 700;
+          color: #000;
+        }
+        .purchases-empty p {
+          color: #666;
+          margin-bottom: 40px;
         }
         .empty-cta {
           display: inline-block;
-          padding: 12px 30px;
-          background: #1a1a1a;
+          padding: 15px 40px;
+          background: #000;
           color: #fff;
           text-decoration: none;
-          border-radius: 999px;
-          font-size: 0.8rem;
-          font-weight: 700;
+          font-size: 1rem;
+          font-weight: 600;
+          transition: background 0.3s;
           text-transform: uppercase;
-          letter-spacing: 0.15em;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          margin-top: 20px;
-          border: 1px solid #1a1a1a;
         }
         .empty-cta:hover {
-          background: #fff;
-          color: #1a1a1a;
+          background: #333;
         }
 
-        @media (max-width: 768px) {
-          .purchases-page { padding: 100px 5% 60px; }
-          .purchases-header h1 { font-size: 2rem; }
-          .purchase-card { padding: 12px 15px; gap: 0; }
-          .purchase-info { padding: 0 15px; }
-          .purchase-name { font-size: 1.1rem; }
+        @media (max-width: 1024px) {
+          .purchases-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .purchase-img-wrap {
+            height: 350px;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .purchases-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+          }
+          .purchases-page {
+            padding: 120px 3% 60px;
+          }
+          .purchase-info {
+            padding: 0 15px 15px;
+          }
+          .purchase-img-wrap {
+            height: 150px;
+            padding: 20px;
+          }
+          .purchase-name {
+            font-size: 1.1rem;
+          }
+          .v-accent {
+            font-size: 0.9rem;
+          }
+          .purchase-date {
+            font-size: 0.7rem;
+          }
         }
       `}</style>
 
@@ -227,9 +242,9 @@ export default function MyPurchases() {
                 <div className="purchase-info">
                   <span className="purchase-date">{unit.orderDate}</span>
                   <h3 className="purchase-name">
-                    {unit.title} 
-                    {unit.variantDisplay && <span className="v-accent"> — {unit.variantDisplay}</span>}
+                    {unit.title}
                   </h3>
+                  {unit.variantDisplay && <span className="v-accent">{unit.variantDisplay}</span>}
                 </div>
               </Link>
             ))}
