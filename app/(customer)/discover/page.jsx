@@ -478,6 +478,33 @@ function DiscoverContent() {
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
+        .top-actions { 
+          position: fixed; 
+          top: 100px; 
+          right: 30px; 
+          display: flex; 
+          align-items: center; 
+          gap: 15px; 
+          z-index: 999; 
+        }
+        .close-btn { 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          color: #1a1a1a; 
+          cursor: pointer; 
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.2);
+          backdrop-filter: blur(8px);
+          border: none;
+          transition: all 0.3s;
+        }
+        .close-btn:hover {
+          transform: scale(1.1);
+          background: rgba(255,255,255,0.4);
+        }
 
         /* ═══ NEW PREMIUM HERO ═══ */
         .cfg-hero {
@@ -487,7 +514,7 @@ function DiscoverContent() {
           align-items: flex-start; /* Changed from center to start */
           justify-content: center;
           position: relative;
-          padding: 80px 40px;
+          padding: 80px 0;
           overflow: hidden;
         }
         
@@ -507,13 +534,13 @@ function DiscoverContent() {
           position: relative;
           z-index: 10;
           width: 100%;
-          max-width: 800px;
+          max-width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-          margin-top: 40px; /* Even closer to top actions */
-          height: 62vh; /* Expanded height to 'pull' till the title */
+          margin-top: 0; /* Touch the top area */
+          height: 65vh; 
         }
 
         .cfg-hero-visual-box {
@@ -532,9 +559,8 @@ function DiscoverContent() {
         }
 
         .cfg-hero-product-img {
-          height: 90%;
-          width: auto;
-          max-width: 100%;
+          width: 100%;
+          height: auto;
           object-fit: contain;
           z-index: 12;
           filter: drop-shadow(0 30px 60px rgba(0,0,0,0.12));
@@ -549,34 +575,6 @@ function DiscoverContent() {
           display: none;
         }
 
-        /* Top Left Favourites */
-        .cfg-fav-toggle {
-          position: absolute;
-          top: 94px; /* Aligned with Configure button */
-          left: 40px;
-          z-index: 100;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-          color: #10b981; /* Default gray */
-          font-weight: 700;
-          font-size: 9px;
-          transition: all 0.3s;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-        .cfg-fav-toggle.active {
-          color: #10b981; /* Green when active */
-        }
-        .cfg-fav-toggle:hover { opacity: 0.8; }
-        .cfg-fav-toggle svg { 
-          width: 22px; 
-          height: 22px; 
-          transition: transform 0.3s;
-        }
-        .cfg-fav-toggle:active svg { transform: scale(0.9); }
-
         /* Bottom Left Details */
         .cfg-details-box {
           position: absolute;
@@ -587,13 +585,22 @@ function DiscoverContent() {
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
+          pointer-events: none;
+        }
+        .cfg-details-left, .cfg-details-right {
+          pointer-events: auto;
+        }
+        .cfg-details-right {
+          display: flex;
+          align-items: center;
+          margin-bottom: 4px; /* Slight lift to match Add to Cart button level */
         }
         .cfg-details-title {
           font-family: 'Inter', sans-serif;
-          font-size: clamp(2rem, 4vw, 2.8rem);
+          font-size: clamp(1.8rem, 3.5vw, 2.4rem);
           font-weight: 700;
           color: #1a1a1a;
-          margin-bottom: 12px;
+          // margin-bottom: 12px;
           letter-spacing: -0.02em;
         }
         .cfg-details-specs {
@@ -605,7 +612,7 @@ function DiscoverContent() {
         .cfg-details-ref {
           font-size: 1.1rem;
           color: #666;
-          margin-bottom: 15px;
+          // margin-bottom: 15px;
           font-weight: 300;
         }
         .cfg-details-price {
@@ -626,6 +633,10 @@ function DiscoverContent() {
           justify-content: center;
           font-size: 10px;
           font-weight: 700;
+          color: #1a1a1a !important;
+          flex-shrink: 0;
+          line-height: 1;
+          text-transform: lowercase;
         }
 
         /* Add to Cart Button */
@@ -780,13 +791,12 @@ function DiscoverContent() {
 
         /* ── DESCRIPTION SECTION ── */
         .cfg-desc-section {
-          padding: 100px 8%;
+          padding: 80px 0;
           max-width: 100%;
           margin: 0 auto;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 60px;
-          align-items: center;
+          display: flex;
+          flex-direction: column;
+          gap: 40px;
           background: #000;
           position: relative;
           overflow: hidden;
@@ -797,32 +807,104 @@ function DiscoverContent() {
           pointer-events: none;
           z-index: 1;
         }
-        .cfg-desc-eyebrow {
-          font-size: 0.8rem;
-          font-weight: 600;
-          letter-spacing: 0.3em;
-          text-transform: uppercase;
-          color: ${product.accentColor};
-          margin-bottom: 24px;
+        .cfg-desc-content {
+          padding: 0 8%;
+          max-width: 1000px;
+          margin: 0 auto;
         }
-        .cfg-desc-heading {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(2rem, 4vw, 3rem);
-          font-weight: 400;
-          margin: 0 0 30px;
-          line-height: 1.2;
-          color: #ffffff;
-        }
-        .cfg-desc-text {
-          font-size: 1.15rem;
-          line-height: 1.9;
-          color: #eeeeee;
-          font-weight: 300;
+        .cfg-desc-img-wrap {
+          width: 100vw;
+          margin: 40px 0 0;
+          padding: 0;
+          position: relative;
+          left: 50%;
+          right: 50%;
+          margin-left: -50vw;
+          margin-right: -50vw;
         }
         .cfg-desc-img {
           width: 100%;
-          max-width: 450px;
-          filter: drop-shadow(0 20px 50px rgba(0,0,0,0.1));
+          max-width: 100%;
+          height: auto;
+          display: block;
+          filter: none;
+        }
+        
+        .cfg-see-variants {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #666;
+          cursor: pointer;
+          margin-top: 10px;
+          transition: color 0.3s;
+        }
+        .cfg-see-variants:hover {
+          color: #1a1a1a;
+        }
+        .cfg-see-variants svg {
+          width: 14px;
+          height: 14px;
+        }
+        
+        .cfg-price-add-row {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 20px;
+          margin-top: 10px;
+        }
+        .cfg-actions-group {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .cfg-fav-inline {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #000;
+          transition: all 0.3s;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.2);
+          backdrop-filter: blur(8px);
+          border: none;
+        }
+        .cfg-fav-inline:hover {
+          transform: scale(1.1);
+          background: rgba(255,255,255,0.4);
+        }
+        .cfg-fav-inline.active {
+          color: #000;
+        }
+        .cfg-fav-inline svg {
+          width: 20px;
+          height: 20px;
+          transition: transform 0.3s;
+        }
+        .cfg-fav-inline:active svg { transform: scale(0.9); }
+        .cfg-add-now-btn {
+          background: #1a1a1a;
+          color: #fff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: all 0.4s;
+        }
+        .cfg-add-now-btn:hover {
+          background: #333;
+          transform: translateY(-2px);
         }
 
         /* ═══ VIDEO SECTION ═══ */
@@ -871,7 +953,6 @@ function DiscoverContent() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          border-radius: 16px;
           box-shadow: 0 20px 50px rgba(0,0,0,0.1);
           background: #fff;
         }
@@ -897,20 +978,23 @@ function DiscoverContent() {
 
         /* ═══ HERITAGE / FINAL TEXT ═══ */
         .cfg-heritage-section {
-          padding: 100px 8%;
-          max-width: 1200px;
-          margin: 0 auto;
-          display: grid;
-          grid-template-columns: 1.3fr 0.7fr;
+          padding: 100px 0;
+          width: 100%;
+          max-width: 100%;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
           gap: 60px;
           align-items: center;
         }
         .cfg-heritage-left {
-          max-width: 500px;
+          width: 100%;
+          padding: 0 8%;
         }
         .cfg-heritage-right {
           display: flex;
-          justify-content: flex-end;
+          flex-direction: column;
+          width: 100%;
           align-items: center;
         }
         .cfg-sold-stats {
@@ -1184,18 +1268,16 @@ function DiscoverContent() {
         /* ═══ RESPONSIVE FIXES ═══ */
         @media (max-width: 900px) {
           .cfg-desc-section {
-            grid-template-columns: 1fr;
+            padding: 60px 0;
             text-align: left;
-            padding: 60px 8%;
           }
           .cfg-desc-img-wrap {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
+            width: 100vw;
+            margin-top: 30px;
           }
           .cfg-desc-img {
-            max-width: 400px !important;
-            width: 90% !important;
+            width: 100% !important;
+            max-width: 100% !important;
           }
           .cfg-heritage-section {
             grid-template-columns: 1fr;
@@ -1292,13 +1374,14 @@ function DiscoverContent() {
           position: relative;
         }
         .cfg-specs-container {
-          max-width: 1400px;
-          margin: 0 auto;
-          padding: 0 20px;
+          width: 100%;
+          max-width: 100%;
+          margin: 0;
+          padding: 0;
         }
         .cfg-specs-header {
           margin-bottom: 80px;
-          max-width: 800px;
+          padding: 0 8%;
         }
         .cfg-specs-title {
           font-family: 'Outfit', sans-serif;
@@ -1321,19 +1404,19 @@ function DiscoverContent() {
           margin-top: 20px;
         }
         .cfg-specs-grid {
-          display: grid;
-          grid-template-columns: 1fr 1.2fr;
-          gap: 120px;
-          align-items: start;
+          display: flex;
+          flex-direction: column;
+          gap: 60px;
+          align-items: center;
         }
         .cfg-specs-img-wrap {
-          position: sticky;
-          top: 150px;
+          width: 100vw;
+          margin: 0;
           display: flex;
           justify-content: center;
         }
         .cfg-specs-img {
-          width: 90%;
+          width: 100%;
           height: auto;
           filter: drop-shadow(0 40px 80px rgba(0,0,0,0.12));
         }
@@ -1438,14 +1521,15 @@ function DiscoverContent() {
 
       `}</style>
 
-      {/* ── TOP-RIGHT CTA ── */}
-      <div className={`cfg-top-right-cta ${scrollDir === 'down' && isScrolled ? 'hidden' : ''}`}>
-        {product.productType === 'simple' ? (
-          <button onClick={handleBookNow} className="cfg-cta-pill">Book Now</button>
-        ) : (
-          <Link href={`/configure?watch=${product.id}`} className="cfg-cta-pill">Configure</Link>
-        )}
-      </div>
+      {!hasConfig && (
+        <div className={`cfg-top-right-cta ${scrollDir === 'down' && isScrolled ? 'hidden' : ''}`}>
+          {product.productType === 'simple' ? (
+            <button onClick={handleBookNow} className="cfg-cta-pill">Book Now</button>
+          ) : (
+            <Link href={`/configure?watch=${product.id}`} className="cfg-cta-pill">Configure</Link>
+          )}
+        </div>
+      )}
 
       <div className="cfg-page-pagination">
         {['hero', 'description', 'specs', 'heritage'].map((id) => (
@@ -1463,6 +1547,15 @@ function DiscoverContent() {
       </div>
 
       <div className="cfg-content-wrapper">
+        <div className="top-actions">
+          <button onClick={() => router.push(`/products`)} className="close-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
         <section id="hero" className="cfg-hero" ref={heroRef}>
           <div className="cfg-hero-aura"></div>
 
@@ -1474,35 +1567,7 @@ function DiscoverContent() {
                 alt={product.title}
                 className="cfg-hero-product-img"
               />
-
-              {/* Variations Button moved inside the visual box */}
-              {product.combinations?.length > 0 && (
-                <div className="cfg-variations-btn" onClick={() => openInfoModal(product)}>
-                  <div className="cfg-var-thumb">
-                    <img src={product.combinations[0].img} alt="Variation" />
-                  </div>
-                  <span className="cfg-var-label">View variations</span>
-                </div>
-              )}
             </div>
-          </div>
-
-          {/* Top Left Favourites */}
-          <div
-            className={`cfg-fav-toggle ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
-            onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="10"
-              height="10"
-              fill={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "none"}
-              stroke={isInWishlist(product.currentVariantId || product.variantId) ? "#10b981" : "currentColor"}
-              strokeWidth="2"
-            >
-              <path d={isInWishlist(product.currentVariantId || product.variantId) ? "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" : "M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"} />
-            </svg>
-            <span>{isInWishlist(product.currentVariantId || product.variantId) ? 'ADDED TO FAVOURITE' : 'ADD TO FAVOURITE'}</span>
           </div>
 
           {/* Bottom Left Details */}
@@ -1511,18 +1576,39 @@ function DiscoverContent() {
               <h1 className="cfg-details-title">{product.title}</h1>
               <p className="cfg-details-specs">{product.subtitle}</p>
               <p className="cfg-details-ref">Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
-              <div className="cfg-details-price">
-                ₹ {product.price?.toLocaleString() || '7,838,000'}
-                <div className="cfg-info-icon">i</div>
+
+              <div className="cfg-price-add-row">
+                <div className="cfg-details-price">
+                  ₹ {product.price?.toLocaleString() || '7,838,000'}
+                  {/* <div className="cfg-info-icon">i</div> */}
+                </div>
+
+                <div className="cfg-actions-group">
+                  {hasConfig && (
+                    <button className="cfg-add-now-btn" onClick={handleBookNow}>Add to Cart</button>
+                  )}
+                </div>
               </div>
             </div>
 
-            <button className="cfg-add-cart-btn" onClick={handleBookNow} title="Add to Cart">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
+            <div className="cfg-details-right">
+              <div
+                className={`cfg-fav-inline ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
+                onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
+                title={isInWishlist(product.currentVariantId || product.variantId) ? 'Remove from Favourite' : 'Add to Favourite'}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill={isInWishlist(product.currentVariantId || product.variantId) ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+              </div>
+            </div>
           </div>
 
           {/* The image is now a central element, no longer background */}
@@ -1655,14 +1741,21 @@ function DiscoverContent() {
                 <img
                   src={product.galleryImages[2]}
                   alt="Heritage"
-                  style={{ width: '100%', maxWidth: '400px', borderRadius: '16px', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.1))' }}
+                  style={{ width: '100%', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.1))' }}
                 />
               )}
               <div className="cfg-sold-stats" onClick={() => openInfoModal(product)}>
                 <span className="shimmer-sweep"></span>
                 <span className="stats-numbers">{product.sold}/{product.totalStock}</span>
                 <span className="stats-label">Configurations Sold</span>
-                <p className="stats-description">Explore the unique combinations and personalized touches chosen by our discerning clients around the globe. Click to view the registry.</p>
+                <div className="cfg-see-variants">
+                  {/* <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg> */}
+                  <span>see variants</span>
+                  <div className="cfg-info-icon">i</div>
+                </div>
               </div>
             </div>
           </div>

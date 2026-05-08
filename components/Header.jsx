@@ -114,7 +114,7 @@ const Header = () => {
           flex-direction: column;
           justify-content: space-between;
           width: 22px;
-          height: 12px;
+          height: 8px;
           cursor: pointer;
         }
 
@@ -128,11 +128,11 @@ const Header = () => {
         }
 
         .hamburger-v1.open span:nth-child(1) {
-          transform: translateY(5.25px) rotate(45deg);
+          transform: translateY(3.25px) rotate(45deg);
         }
 
         .hamburger-v1.open span:nth-child(2) {
-          transform: translateY(-5.25px) rotate(-45deg);
+          transform: translateY(-3.25px) rotate(-45deg);
         }
 
         .trigger-text {

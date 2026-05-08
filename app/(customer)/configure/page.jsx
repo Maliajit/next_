@@ -374,24 +374,32 @@ function ConfigureContent() {
         }
         .alert-footer-btn:active { transform: scale(0.96); opacity: 0.9; }
 
-        .f-add-cart-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; border: none; background: none; padding: 5px 10px; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
-        .f-add-cart-btn:hover { transform: translateY(-2px); opacity: 0.8; }
+        .f-add-cart-btn { 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          cursor: pointer; 
+          border: none; 
+          background: rgba(255,255,255,0.2); 
+          backdrop-filter: blur(8px);
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); 
+        }
+        .f-add-cart-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.4); }
         .f-add-cart-btn:active { transform: scale(0.96); }
-        .f-add-cart-text { font-size: 9px; font-weight: 800; color: #008767; letter-spacing: 0.05em; text-transform: uppercase; }
       `}</style>
 
       <section id="configurator" ref={configuratorRef}>
         <div className="top-left-actions">
-          <button className="f-add-cart-btn" onClick={handleWishlistClick}>
+          <button className="f-add-cart-btn" onClick={handleWishlistClick} title={isCurrentVariantInWishlist() ? 'Remove from Favourite' : 'Add to Favourite'}>
             <Heart 
-              size={22} 
-              color="#008767" 
-              fill={isCurrentVariantInWishlist() ? "#008767" : "none"} 
+              size={20} 
+              color="#000000" 
+              fill={isCurrentVariantInWishlist() ? "#000000" : "none"} 
               style={{ transition: 'all 0.3s ease' }}
             />
-            <span className="f-add-cart-text">
-              {isCurrentVariantInWishlist() ? 'REMOVE FROM FAVOURITE' : 'ADD TO FAVOURITE'}
-            </span>
           </button>
         </div>
 
