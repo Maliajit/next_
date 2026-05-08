@@ -8,12 +8,12 @@ import 'swiper/css/pagination';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { fetchProducts } from '../../../lib/api';
-import { useWishlist } from '@/context/WishlistContext';
+import { getDisplayData } from '../../../lib/utils';
 
 const PreConfigure = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const [expandedIds, setExpandedIds] = useState(new Set());
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -21,15 +21,29 @@ const PreConfigure = () => {
         const res = await fetchProducts();
         const rawData = res.data || (Array.isArray(res) ? res : []);
         const mapped = rawData.map(p => {
-            const nameParts = p.name.split(' ');
-            return {
-                id: p.id.toString(),
-                title: nameParts.slice(0, -1).join(' ') || p.name,
-                titleAccent: nameParts.length > 1 ? ` ${nameParts[nameParts.length - 1]}` : '',
-                price: `₹${p.price.toLocaleString()}`,
-                heroImage: p.heroImage || p.images?.[0] || '/assets/fylex-watch-v2/premium.png',
-                theme: p.theme || 'champagne'
-            };
+          const nameParts = p.name.split(' ');
+          
+          // Find cheapest variant
+          let cheapestVariant = null;
+          if (p.variants && p.variants.length > 0) {
+            cheapestVariant = p.variants.reduce((prev, curr) => {
+              const prevPrice = Number(prev.sellingPrice || prev.price || 0);
+              const currPrice = Number(curr.sellingPrice || curr.price || 0);
+              return (currPrice > 0 && (currPrice < prevPrice || prevPrice === 0)) ? curr : prev;
+            }, p.variants[0]);
+          }
+
+          const display = getDisplayData(p, cheapestVariant);
+
+          return {
+            id: p.id.toString(),
+            title: nameParts.slice(0, -1).join(' ') || p.name,
+            titleAccent: nameParts.length > 1 ? ` ${nameParts[nameParts.length - 1]}` : '',
+            price: display.formattedPrice,
+            heroImage: display.image,
+            theme: p.theme || 'champagne',
+            shortDescription: p.shortDescription || p.description || ''
+          };
         });
         setProducts(mapped);
       } catch (err) {
@@ -100,34 +114,6 @@ const PreConfigure = () => {
           opacity: 0.6;
         }
 
-        .btn-fav {
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          border: 1px solid rgba(0,0,0,0.06);
-          background: rgba(255,255,255,0.7);
-          backdrop-filter: blur(8px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          color: #1a1a1a;
-          pointer-events: auto;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        }
-        .btn-fav:hover {
-          transform: translateY(-2px);
-          border-color: #c4a35a;
-          color: #c4a35a;
-          background: #fff;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-        }
-        .btn-fav.active {
-          background: #1a1a1a;
-          border-color: #1a1a1a;
-          color: #c4a35a;
-        }
 
         .section-champagne { background: #fffafb; }
         .section-champagne .p-mist-layer { background: radial-gradient(circle at 70% 40%, rgba(196,163,90,0.2) 0%, transparent 70%); }
@@ -152,30 +138,46 @@ const PreConfigure = () => {
           align-items: center;
           text-align: center;
           width: 100%;
-          max-width: 1200px;
-          padding: 80px 20px 120px; /* Space for Header and Footer/Pagination */
+          height: 100%;
+          padding: 0;
+          pointer-events: none;
         }
         .product-image-container {
-          position: relative;
+          position: absolute;
+          inset: 0;
           width: 100%;
-          max-width: 480px;
-          margin-bottom: 20px;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 5;
+          overflow: hidden;
         }
         .product-image {
           width: 100%;
-          height: auto;
-          filter: drop-shadow(0 20px 40px rgba(0,0,0,0.12));
+          height: 100%;
+          object-fit: contain;
+          transform: scale(1.8);
+          filter: drop-shadow(0 30px 60px rgba(0,0,0,0.15));
+          transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
         }
         
         .product-info {
+          position: absolute;
+          bottom: 80px;
+          left: 0;
+          right: 0;
+          z-index: 20;
           color: #1a1a1a;
+          pointer-events: auto;
+          padding: 0 60px;
         }
         .product-name {
           font-family: 'Playfair Display', serif;
-          font-size: clamp(2rem, 5vw, 3.5rem);
+          font-size: clamp(1.8rem, 4vw, 3rem);
           font-weight: 400;
           margin: 0;
-          line-height: 1.1;
+          line-height: 1;
         }
         .product-name em {
           font-style: italic;
@@ -183,11 +185,35 @@ const PreConfigure = () => {
           margin-left: 10px;
         }
         .product-price {
-          font-size: 1.3rem;
+          font-size: 1.1rem;
           color: #555;
-          margin: 10px 0 25px;
+          margin: 0 0 15px;
           font-weight: 300;
           display: block;
+        }
+        .product-desc-container {
+          max-width: 600px;
+          margin: 10px auto;
+          text-align: center;
+        }
+        .product-desc {
+          font-size: 0.95rem;
+          color: #444;
+          line-height: 1.5;
+          font-weight: 300;
+        }
+        .btn-read-more {
+          background: none;
+          border: none;
+          color: #c4a35a;
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 0;
+          margin-left: 5px;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+          pointer-events: auto;
         }
         .btn-configure {
           display: inline-block;
@@ -215,7 +241,7 @@ const PreConfigure = () => {
 
         /* Custom Pagination Lines */
         .swiper-pagination {
-          bottom: 120px !important; /* Adjusted position */
+          bottom: 40px !important; /* Adjusted position */
           display: flex;
           justify-content: center;
           gap: 12px;
@@ -236,27 +262,6 @@ const PreConfigure = () => {
           background: #c4a35a !important;
         }
 
-        .footer-wrapper {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          z-index: 40;
-          background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0));
-          pointer-events: none;
-        }
-        .footer-wrapper > * {
-          pointer-events: auto;
-        }
-        .footer-wrapper footer {
-          padding: 30px 20px !important;
-          width: 100%;
-        }
-        /* Keep it clean but let it be visible */
-        .footer-wrapper .footer-main-v1 { 
-          display: none; 
-        }
-        .footer-wrapper .footer-bottom-v1 { padding-top: 0; border: none; justify-content: center; }
 
         .header-wrapper {
           position: absolute;
@@ -267,16 +272,18 @@ const PreConfigure = () => {
         }
 
         @media (max-width: 1024px) {
-          .slide-content { padding-bottom: 160px; }
-          .swiper-pagination { bottom: 100px !important; }
+          .product-image { transform: scale(1.6); }
+          .product-info { bottom: 75px; padding: 0 50px; }
+          .swiper-pagination { bottom: 35px !important; }
         }
 
         @media (max-width: 768px) {
-          .product-image-container { max-width: 280px; }
-          .product-name { font-size: 1.8rem; }
-          .product-price { font-size: 1.1rem; }
-          .btn-configure { padding: 14px 35px; font-size: 0.75rem; }
-          .swiper-pagination { bottom: 90px !important; }
+          .product-image { transform: scale(1.6); }
+          .product-info { bottom: 70px; padding: 0 40px; }
+          .product-name { font-size: 1.6rem; }
+          .product-price { font-size: 1rem; margin: 2px 0 10px; }
+          .btn-configure { padding: 10px 24px; font-size: 0.75rem; }
+          .swiper-pagination { bottom: 30px !important; }
         }
       `}</style>
 
@@ -312,22 +319,32 @@ const PreConfigure = () => {
                       {product.title}
                       <em>{product.titleAccent}</em>
                     </h2>
+                    <div className="product-desc-container">
+                      <p className="product-desc">
+                        {expandedIds.has(product.id) 
+                          ? product.shortDescription 
+                          : `${product.shortDescription.slice(0, 100)}${product.shortDescription.length > 100 ? '...' : ''}`}
+                        {product.shortDescription.length > 100 && (
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const next = new Set(expandedIds);
+                              if (next.has(product.id)) next.delete(product.id);
+                              else next.add(product.id);
+                              setExpandedIds(next);
+                            }} 
+                            className="btn-read-more"
+                          >
+                            {expandedIds.has(product.id) ? ' Read Less' : ' Read More'}
+                          </button>
+                        )}
+                      </p>
+                    </div>
                     <span className="product-price">{product.price}</span>
-                    <div className="flex gap-3 items-center justify-center mt-6">
+                    <div className="flex gap-3 items-center justify-center mt-4">
                       <Link href={`/configure?watch=${product.id}`} className="btn-configure">
                         Configure
                       </Link>
-                      <button
-                        className={`btn-fav ${isInWishlist(product.id) ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          toggleWishlist(product);
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -337,10 +354,6 @@ const PreConfigure = () => {
         </div>
       </main>
 
-      {/* Custom footer wrapper to keep it clean and fixed at bottom */}
-      <div className="footer-wrapper">
-        <Footer />
-      </div>
     </div>
   );
 };
