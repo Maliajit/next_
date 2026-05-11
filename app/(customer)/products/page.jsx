@@ -876,7 +876,7 @@ const Products = () => {
            .p-tagline { font-size: 0.75rem;  opacity: 0.7; }
            .p-price-tag { font-size: 1rem;  }
            .p-inventory-status { font-size: 0.65rem; margin-bottom: 12px; }
-           .p-link-luxury { font-size: 0.8rem; padding: 6px 12px; }
+           .p-link-luxury { font-size: 0.8rem;}
            
            .p-subtitle { font-size: 0.55rem; margin-bottom: 4px; }
            .p-diffusion-glow { scale: 0.6; }
@@ -947,7 +947,7 @@ const Products = () => {
 
                 <span className="p-price-tag">{col.price}</span>
                 <div className="p-inventory-status">
-                  <span>{col.sold} sold from {col.totalStock} in stock</span>
+                  <span>Limited to {col.totalStock} pieces</span>
                   <svg onClick={() => openInfoModal(col)} className="i-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" title="View previously configured combinations">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>

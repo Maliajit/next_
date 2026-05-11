@@ -14,6 +14,17 @@ const PreConfigure = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState(new Set());
+  const [swiperInstance, setSwiperInstance] = useState(null);
+
+  useEffect(() => {
+    if (swiperInstance && swiperInstance.autoplay) {
+      if (expandedIds.size > 0) {
+        swiperInstance.autoplay.stop();
+      } else {
+        swiperInstance.autoplay.start();
+      }
+    }
+  }, [expandedIds, swiperInstance]);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -21,8 +32,6 @@ const PreConfigure = () => {
         const res = await fetchProducts();
         const rawData = res.data || (Array.isArray(res) ? res : []);
         const mapped = rawData.map(p => {
-          const nameParts = p.name.split(' ');
-          
           // Find cheapest variant
           let cheapestVariant = null;
           if (p.variants && p.variants.length > 0) {
@@ -37,8 +46,7 @@ const PreConfigure = () => {
 
           return {
             id: p.id.toString(),
-            title: nameParts.slice(0, -1).join(' ') || p.name,
-            titleAccent: nameParts.length > 1 ? ` ${nameParts[nameParts.length - 1]}` : '',
+            title: p.name,
             price: display.formattedPrice,
             heroImage: display.image,
             theme: p.theme || 'champagne',
@@ -178,6 +186,7 @@ const PreConfigure = () => {
           font-weight: 400;
           margin: 0;
           line-height: 1;
+          text-align: left;
         }
         .product-name em {
           font-style: italic;
@@ -190,17 +199,25 @@ const PreConfigure = () => {
           margin: 0 0 15px;
           font-weight: 300;
           display: block;
+          text-align: left;
         }
         .product-desc-container {
           max-width: 600px;
-          margin: 10px auto;
-          text-align: center;
+          margin: 10px 0;
+          text-align: left;
         }
         .product-desc {
           font-size: 0.95rem;
-          color: #444;
+          color: #000;
           line-height: 1.5;
           font-weight: 300;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .product-desc.expanded {
+          -webkit-line-clamp: unset;
         }
         .btn-read-more {
           background: none;
@@ -210,10 +227,12 @@ const PreConfigure = () => {
           font-weight: 600;
           cursor: pointer;
           padding: 0;
-          margin-left: 5px;
+          margin-top: 4px;
           text-decoration: underline;
           text-underline-offset: 2px;
           pointer-events: auto;
+          display: inline-block;
+          text-align: left;
         }
         .btn-configure {
           display: inline-block;
@@ -269,6 +288,25 @@ const PreConfigure = () => {
           left: 0;
           width: 100%;
           z-index: 50;
+          transition: filter 0.4s ease;
+        }
+        .header-wrapper.header-blurred {
+          filter: blur(10px);
+          pointer-events: none;
+        }
+        .slide-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 15;
+          background: rgba(255,255,255,0.2);
+          backdrop-filter: blur(12px);
+          opacity: 0;
+          pointer-events: none;
+          transition: all 0.4s ease;
+        }
+        .slide-overlay.active {
+          opacity: 1;
+          pointer-events: auto;
         }
 
         @media (max-width: 1024px) {
@@ -279,7 +317,7 @@ const PreConfigure = () => {
 
         @media (max-width: 768px) {
           .product-image { transform: scale(1.6); }
-          .product-info { bottom: 70px; padding: 0 40px; }
+          .product-info { bottom: 70px; padding: 0 20px; }
           .product-name { font-size: 1.6rem; }
           .product-price { font-size: 1rem; margin: 2px 0 10px; }
           .btn-configure { padding: 10px 24px; font-size: 0.75rem; }
@@ -287,17 +325,19 @@ const PreConfigure = () => {
         }
       `}</style>
 
-      <div className="header-wrapper">
+      <div className={`header-wrapper ${expandedIds.size > 0 ? 'header-blurred' : ''}`}>
         <Header />
       </div>
 
       <main className="flex-1 relative overflow-hidden z-10">
         <div className="swiper-container-main">
           <Swiper
+            onSwiper={setSwiperInstance}
             modules={[Autoplay, Pagination]}
             spaceBetween={0}
             slidesPerView={1}
             autoplay={{ delay: 4000, disableOnInteraction: false }}
+            allowTouchMove={expandedIds.size === 0}
             pagination={{ clickable: true }}
             loop={true}
             className="mySwiper h-full w-full"
@@ -314,31 +354,32 @@ const PreConfigure = () => {
                   <div className="product-image-container">
                     <img src={product.heroImage} alt={product.title} className="product-image" />
                   </div>
+                  <div 
+                    className={`slide-overlay ${expandedIds.has(product.id) ? 'active' : ''}`} 
+                    onClick={() => setExpandedIds(new Set())}
+                  ></div>
                   <div className="product-info">
                     <h2 className="product-name">
                       {product.title}
-                      <em>{product.titleAccent}</em>
                     </h2>
                     <div className="product-desc-container">
-                      <p className="product-desc">
-                        {expandedIds.has(product.id) 
-                          ? product.shortDescription 
-                          : `${product.shortDescription.slice(0, 100)}${product.shortDescription.length > 100 ? '...' : ''}`}
-                        {product.shortDescription.length > 100 && (
-                          <button 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              const next = new Set(expandedIds);
-                              if (next.has(product.id)) next.delete(product.id);
-                              else next.add(product.id);
-                              setExpandedIds(next);
-                            }} 
-                            className="btn-read-more"
-                          >
-                            {expandedIds.has(product.id) ? ' Read Less' : ' Read More'}
-                          </button>
-                        )}
+                      <p className={`product-desc ${expandedIds.has(product.id) ? 'expanded' : ''}`}>
+                        {product.shortDescription}
                       </p>
+                      {product.shortDescription.length > 60 && (
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const next = new Set(expandedIds);
+                            if (next.has(product.id)) next.delete(product.id);
+                            else next.add(product.id);
+                            setExpandedIds(next);
+                          }} 
+                          className="btn-read-more"
+                        >
+                          {expandedIds.has(product.id) ? 'Read Less' : 'Read More'}
+                        </button>
+                      )}
                     </div>
                     <span className="product-price">{product.price}</span>
                     <div className="flex gap-3 items-center justify-center mt-4">

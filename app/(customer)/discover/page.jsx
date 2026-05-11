@@ -839,7 +839,7 @@ function DiscoverContent() {
           letter-spacing: 0.1em;
           color: #666;
           cursor: pointer;
-          margin-top: 10px;
+          // margin-top: 10px;
           transition: color 0.3s;
         }
         .cfg-see-variants:hover {
@@ -1072,7 +1072,9 @@ function DiscoverContent() {
           box-shadow: 0 35px 70px rgba(0,0,0,0.14), 0 0 30px ${product.accentColor}22;
         }
         .stats-numbers {
-          display: block;
+          display: flex;
+          justify-content: center;
+          align-items: center;
           font-family: 'Playfair Display', serif;
           font-size: 4rem;
           margin-bottom: 16px;
@@ -1090,7 +1092,7 @@ function DiscoverContent() {
           text-transform: uppercase;
           color: #1a1a1a;
           font-weight: 600;
-          margin-bottom: 12px;
+          margin-bottom: 5px;
           display: block;
         }
         .stats-description {
@@ -1593,24 +1595,26 @@ function DiscoverContent() {
               </div>
             </div>
 
-            <div className="cfg-details-right">
-              <div
-                className={`cfg-fav-inline ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
-                onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
-                title={isInWishlist(product.currentVariantId || product.variantId) ? 'Remove from Favourite' : 'Add to Favourite'}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill={isInWishlist(product.currentVariantId || product.variantId) ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {hasConfig && (
+              <div className="cfg-details-right">
+                <div
+                  className={`cfg-fav-inline ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
+                  onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
+                  title={isInWishlist(product.currentVariantId || product.variantId) ? 'Remove from Favourite' : 'Add to Favourite'}
                 >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill={isInWishlist(product.currentVariantId || product.variantId) ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* The image is now a central element, no longer background */}

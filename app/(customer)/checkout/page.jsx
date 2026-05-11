@@ -261,8 +261,6 @@ const Checkout = () => {
 
   return (
     <div className={`checkout-page ${isLoaded ? 'loaded' : ''}`}>
-      <div className="checkout-ambient-bg" />
-
       <div className="checkout-container">
         <header className="checkout-header">
           <div className="checkout-back-nav" onClick={handleBack}>
@@ -456,7 +454,7 @@ const Checkout = () => {
                     </div>
                     <div className="item-info">
                       <div className="item-name">{item.title}</div>
-                      <div className="item-variant" style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <div className="item-variant" style={{ fontSize: '10px', color: '#000', textTransform: 'uppercase', marginBottom: '4px' }}>
                         {item.subtitle}
                       </div>
                       <div className="item-meta">{item.qty} item{item.qty !== 1 ? 's' : ''}</div>
@@ -509,22 +507,14 @@ const Checkout = () => {
       <style jsx>{`
         .checkout-page {
           min-height: 100vh;
-          background: #f8fafc;
+          background: #ffffff;
           padding: 80px 24px 80px;
-          font-family: 'Montserrat', sans-serif;
+          font-family: 'Inter', sans-serif;
           position: relative;
           opacity: 0;
           transition: opacity 0.8s ease;
         }
         .checkout-page.loaded { opacity: 1; }
-        
-        .checkout-ambient-bg {
-          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-          background: 
-            radial-gradient(circle at 10% 10%, rgba(99, 130, 201, 0.05) 0%, transparent 50%),
-            radial-gradient(circle at 90% 90%, rgba(118, 75, 162, 0.05) 0%, transparent 50%);
-          z-index: -1;
-        }
 
         .checkout-container {
           max-width: 1000px;
@@ -538,16 +528,15 @@ const Checkout = () => {
 
         .checkout-back-nav {
           display: flex; align-items: center; gap: 8px;
-          cursor: pointer; color: #64748b; font-size: 13px;
-          margin-bottom: 24px; transition: color 0.3s;
+          cursor: pointer; color: #000; font-size: 13px;
+          margin-bottom: 24px; transition: transform 0.3s;
           width: fit-content;
         }
-        .checkout-back-nav:hover { color: #1e293b; }
+        .checkout-back-nav:hover { transform: translateX(-4px); }
 
         .checkout-title {
-          font-family: 'Playfair Display', serif;
-          font-size: 20px; color: #1e293b;
-          margin-bottom: 10px;
+          font-size: 2rem; color: #000; font-weight: 700;
+          margin-bottom: 10px; letter-spacing: -0.02em;
         }
 
 
@@ -559,12 +548,12 @@ const Checkout = () => {
         }
         .step-item {
           display: flex; flex-direction: column; align-items: center; gap: 8px;
-          opacity: 0.3; transition: opacity 0.4s;
+          opacity: 0.3; transition: opacity 0.4s; color: #000;
         }
         .step-item.active { opacity: 1; }
         .step-dot {
           width: 8px; height: 8px; border-radius: 50%;
-          background: #1e293b;
+          background: #000;
         }
         .step-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
 
@@ -573,18 +562,15 @@ const Checkout = () => {
         }
 
         .glassmorphism {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.5);
+          background: #f8f8f8;
           border-radius: 24px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+          border: 1px solid #e2e8f0;
         }
 
         .checkout-card { padding: 40px; }
 
         .section-title {
-          font-family: 'Playfair Display', serif;
-          font-size: 20px; color: #1e293b; margin-bottom: 24px;
+          font-size: 1.5rem; font-weight: 700; color: #000; margin-bottom: 24px;
         }
 
         .form-grid {
@@ -593,15 +579,15 @@ const Checkout = () => {
         .form-group.full { grid-column: span 2; }
         .form-group label {
           display: block; font-size: 11px; text-transform: uppercase;
-          letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px;
+          letter-spacing: 0.05em; color: #000; margin-bottom: 8px;
           font-weight: 600;
         }
         .form-group input {
           width: 100%; padding: 12px 16px; border-radius: 12px;
-          border: 1px solid #e2e8f0; background: white;
+          border: 1px solid #e2e8f0; background: white; color: #000;
           font-size: 14px; transition: border-color 0.3s;
         }
-        .form-group input:focus { border-color: #1e293b; outline: none; }
+        .form-group input:focus { border-color: #000; outline: none; }
         .form-group.error input { border-color: #ef4444; }
         .error-msg { color: #ef4444; font-size: 10px; margin-top: 4px; display: block; font-weight: 500; }
 
@@ -613,27 +599,27 @@ const Checkout = () => {
           display: flex; justify-content: space-between; align-items: center;
           cursor: pointer; transition: all 0.3s;
         }
-        .payment-card.selected { border-color: #1e293b; background: rgba(30, 41, 59, 0.02); }
+        .payment-card.selected { border-color: #000; background: rgba(0, 0, 0, 0.02); }
         .card-info { display: flex; align-items: center; gap: 16px; }
         .card-icon { font-size: 24px; }
-        .card-type { font-size: 14px; font-weight: 600; color: #1e293b; }
-        .card-desc { font-size: 11px; color: #64748b; }
+        .card-type { font-size: 14px; font-weight: 600; color: #000; }
+        .card-desc { font-size: 11px; color: #000; }
         .card-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #e2e8f0; }
-        .selected .card-radio { background: #1e293b; border-color: #1e293b; }
+        .selected .card-radio { background: #000; border-color: #000; }
 
         .payment-notice {
           margin-top: 24px; padding: 16px; border-radius: 12px;
-          background: rgba(30, 41, 59, 0.05); color: #64748b;
+          background: rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0; color: #000;
           font-size: 13px; line-height: 1.5;
         }
 
         .review-summary-box {
-          background: rgba(30, 41, 59, 0.02); padding: 24px;
-          border-radius: 16px; display: grid; gap: 16px;
+          background: rgba(0, 0, 0, 0.02); padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0;
+          display: grid; gap: 16px;
         }
         .review-item { display: grid; gap: 4px; }
-        .review-item .review-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 600; }
-        .review-item .value { font-size: 14px; color: #1e293b; font-weight: 500; }
+        .review-item .review-label { font-size: 11px; text-transform: uppercase; color: #000; font-weight: 600; }
+        .review-item .value { font-size: 14px; color: #000; font-weight: 500; }
 
         .checkout-footer-actions {
           margin-top: 40px; padding-top: 32px; border-top: 1px solid #e2e8f0;
@@ -657,22 +643,22 @@ const Checkout = () => {
         .primary-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .order-summary-card { padding: 24px; position: sticky; top: 40px; }
-        .summary-title { font-size: 16px; margin-bottom: 20px; color: #1e293b; }
+        .summary-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; color: #000; }
         .summary-item { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
-        .item-thumbnail { width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0; }
-        .rose-bg { background: #5B3B3B15; }
-        .item-name { font-size: 13px; font-weight: 600; color: #334155; }
-        .item-meta { font-size: 11px; color: #94a3b8; }
-        .item-price { margin-left: auto; font-size: 13px; font-weight: 600; }
+        .item-thumbnail { width: 48px; height: 48px; flex-shrink: 0; }
+        .rose-bg { background: transparent; }
+        .item-name { font-size: 13px; font-weight: 700; color: #000; }
+        .item-meta { font-size: 11px; color: #000; }
+        .item-price { margin-left: auto; font-size: 13px; font-weight: 600; color: #000; }
         
         .summary-divider { height: 1px; background: #e2e8f0; margin: 20px 0; }
-        .summary-line { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 12px; }
-        .summary-line.total { font-weight: 700; font-size: 16px; color: #1e293b; margin-top: 8px; }
-        .free-tag { color: #10b981; font-weight: 700; }
+        .summary-line { display: flex; justify-content: space-between; font-size: 13px; color: #000; margin-bottom: 12px; }
+        .summary-line.total { font-weight: 700; font-size: 16px; color: #000; margin-top: 8px; }
+        .free-tag { color: #000; font-weight: 700; }
 
         .trust-badge-mini {
           display: flex; align-items: center; justify-content: center; gap: 8px;
-          margin-top: 24px; color: #94a3b8; font-size: 10px; font-weight: 600;
+          margin-top: 24px; color: #000; font-size: 10px; font-weight: 600;
           text-transform: uppercase; letter-spacing: 0.05em;
         }
 
@@ -681,23 +667,23 @@ const Checkout = () => {
 
         .pulse { animation: pulseBtn 2s infinite; }
         @keyframes pulseBtn { 
-          0% { box-shadow: 0 0 0 0 rgba(30, 41, 59, 0.4); } 
-          70% { box-shadow: 0 0 0 10px rgba(30, 41, 59, 0); } 
-          100% { box-shadow: 0 0 0 0 rgba(30, 41, 59, 0); } 
+          0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.4); } 
+          70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); } 
+          100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); } 
         }
 
         .shipping-error-notice {
-          margin-top: 24px; padding: 16px; border-radius: 12px;
-          background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2;
+          margin-top: 24px; padding: 16px; border-radius: 12px; border: 1px solid #fee2e2;
+          background: #fef2f2; color: #b91c1c;
           display: flex; align-items: center; gap: 12px; font-size: 13px;
         }
         .shipping-warning-notice {
-          margin-top: 24px; padding: 16px; border-radius: 12px;
-          background: #fffbeb; color: #92400e; border: 1px solid #fef3c7;
+          margin-top: 24px; padding: 16px; border-radius: 12px; border: 1px solid #fef3c7;
+          background: #fffbeb; color: #92400e;
           display: flex; align-items: center; gap: 12px; font-size: 13px;
         }
         .cod-unavailable-hint {
-          margin-top: 12px; font-size: 11px; color: #64748b; font-weight: 500;
+          margin-top: 12px; font-size: 11px; color: #000; font-weight: 500;
         }
 
         @media (max-width: 860px) {

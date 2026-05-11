@@ -1,10 +1,12 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useOrder } from '@/context/OrderContext';
 
 export default function MyPurchases() {
   const { orders } = useOrder();
+  const router = useRouter();
 
   // Helper to build redirect URL to discover page
   const buildRedirectUrl = (item) => {
@@ -122,19 +124,53 @@ export default function MyPurchases() {
           flex-grow: 1;
         }
 
+        .purchase-meta {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+        .purchase-order-id {
+          font-size: 0.75rem;
+          color: #888;
+          font-weight: 500;
+        }
+        .btn-support-container {
+          margin-top: auto;
+          display: flex;
+          justify-content: center;
+          padding-top: 15px;
+        }
+        .btn-support {
+          background: #1a1a1a;
+          color: #fff;
+          border: none;
+          border-radius: 999px;
+          cursor: pointer;
+          font-family: 'Inter', sans-serif;
+          font-weight: 700;
+          font-size: 9px;
+          padding: 8px 16px;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          transition: all 0.3s ease;
+        }
+        .btn-support:hover {
+          background: #333;
+        }
+
         .purchase-date {
           font-size: 0.8rem;
           font-weight: 700;
           color: #666;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          margin-bottom: 8px;
         }
         .purchase-name {
           font-size: 1.8rem;
           font-weight: 700;
           color: #000;
-          margin: 0 0 8px;
+          // margin: 0 0 8px;
           line-height: 1.2;
         }
         .v-accent {
@@ -142,7 +178,7 @@ export default function MyPurchases() {
           color: #666;
           font-size: 1.1rem;
           font-weight: 400;
-          margin-bottom: 8px;
+         
         }
 
         .purchases-empty {
@@ -193,7 +229,7 @@ export default function MyPurchases() {
             gap: 15px;
           }
           .purchases-page {
-            padding: 120px 3% 60px;
+            padding: 90px 3% 60px;
           }
           .purchase-info {
             padding: 0 15px 15px;
@@ -235,18 +271,37 @@ export default function MyPurchases() {
         ) : (
           <div className="purchases-grid">
             {allPurchasedUnits.map((unit, idx) => (
-              <Link key={`${unit.orderId}-${unit.id}-${idx}`} href={unit.redirectUrl} className="purchase-card">
+              <div 
+                key={`${unit.orderId}-${unit.id}-${idx}`} 
+                onClick={() => router.push(unit.redirectUrl)} 
+                className="purchase-card"
+              >
                 <div className="purchase-img-wrap">
                   <img src={unit.image || unit.heroImage} alt={unit.title} />
                 </div>
                 <div className="purchase-info">
-                  <span className="purchase-date">{unit.orderDate}</span>
+                  <div className="purchase-meta">
+                    <span className="purchase-date">{unit.orderDate}</span>
+                    <span className="purchase-order-id">Order #{unit.orderId}</span>
+                  </div>
                   <h3 className="purchase-name">
                     {unit.title}
                   </h3>
                   {unit.variantDisplay && <span className="v-accent">{unit.variantDisplay}</span>}
+
+                  <div className="btn-support-container">
+                    <button 
+                      className="btn-support" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/care-support?order=${unit.orderId}`);
+                      }}
+                    >
+                      Get Support
+                    </button>
+                  </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}

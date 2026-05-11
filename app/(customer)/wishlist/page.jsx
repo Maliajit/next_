@@ -88,20 +88,20 @@ export default function Wishlist() {
         }
 
         .wishlist-item-info {
-          margin-bottom: 25px;
+          margin-bottom: 10px;
         }
         .wishlist-item-info h3 {
           font-size: 1.8rem;
           font-weight: 700;
           color: #000;
-          margin: 0 0 8px;
+          // margin: 0 0 8px;
           line-height: 1.2;
         }
         .wishlist-item-info .variant-name {
           display: block;
           color: #666;
           font-size: 1.1rem;
-          margin-bottom: 8px;
+          // margin-bottom: 8px;
         }
         .wishlist-item-info .price {
           font-size: 1.2rem;
@@ -129,6 +129,10 @@ export default function Wishlist() {
           opacity: 0.6;
         }
 
+        .btn-cart-container{
+        display: flex;
+    justify-content: center;
+        }
         .btn-cart {
           background: #1a1a1a;
           color: #fff;
@@ -137,8 +141,8 @@ export default function Wishlist() {
           cursor: pointer;
           font-family: 'Inter', sans-serif;
           font-weight: 700;
-          font-size: 10px;
-          padding: 8px 16px;
+          font-size: 9px;
+          padding: 8px 12px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -200,11 +204,11 @@ export default function Wishlist() {
             padding: 0 15px 15px;
           }
           .wishlist-item-img {
-            height: 150px;
+            height: 190px;
             padding: 20px;
           }
           .wishlist-item-info h3 {
-            font-size: 1.1rem;
+            font-size: 1.0rem;
           }
           .wishlist-item-info .variant-name {
             font-size: 0.9rem;

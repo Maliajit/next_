@@ -8,8 +8,7 @@ import { Suspense } from 'react';
 import productsData from '../../../data/productsData';
 import 'swiper/css/free-mode';
 import Lenis from 'lenis';
-import { useWishlist } from '@/context/WishlistContext';
-import { X, RefreshCw, Heart, ChevronRight, ChevronLeft, Plus } from 'lucide-react';
+import { X, RefreshCw, ChevronRight, ChevronLeft, Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { fetchProducts } from '../../../lib/api';
 import { getFileUrl, resolveProductImage } from '../../../lib/utils';
@@ -20,8 +19,6 @@ function ConfigureContent() {
   const searchParams = useSearchParams();
   const watchId = searchParams.get('watch');
   const router = useRouter();
-  const { toggleWishlist, isInWishlist } = useWishlist();
-
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
   const [stepsData, setStepsData] = useState([]);
@@ -178,24 +175,6 @@ function ConfigureContent() {
 
   if (loading) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111' }}>Initializing Configurator...</div>;
   if (!product) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', color: '#111' }}>Product not found.</div>;
-
-
-
-  const handleWishlistClick = () => {
-    const match = findMatchingVariant(userSelections);
-    if (match) {
-      toggleWishlist({ ...product, id: match.id.toString() });
-    } else {
-      // Fallback to base product if no variant found (though rare in configurator)
-      toggleWishlist({ ...product, id: product.id.toString() });
-    }
-  };
-
-  const isCurrentVariantInWishlist = () => {
-    const match = findMatchingVariant(userSelections);
-    if (!match) return isInWishlist(product.id.toString());
-    return isInWishlist(match.id.toString());
-  };
 
   const handleCategoryClick = (idx) => {
     setCurrentStep(idx);
@@ -392,16 +371,6 @@ function ConfigureContent() {
       `}</style>
 
       <section id="configurator" ref={configuratorRef}>
-        <div className="top-left-actions">
-          <button className="f-add-cart-btn" onClick={handleWishlistClick} title={isCurrentVariantInWishlist() ? 'Remove from Favourite' : 'Add to Favourite'}>
-            <Heart 
-              size={20} 
-              color="#000000" 
-              fill={isCurrentVariantInWishlist() ? "#000000" : "none"} 
-              style={{ transition: 'all 0.3s ease' }}
-            />
-          </button>
-        </div>
 
         <div className="top-actions">
           <button onClick={() => router.push(`/products`)} className="close-btn"><X size={22} /></button>
