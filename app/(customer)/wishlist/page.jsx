@@ -170,7 +170,7 @@ export default function Wishlist() {
         }
         .wishlist-empty-cta {
           display: inline-block;
-          padding: 15px 40px;
+          padding: 8px 16px;
           background: #000;
           color: #fff;
           text-decoration: none;
@@ -178,6 +178,7 @@ export default function Wishlist() {
           font-weight: 600;
           transition: background 0.3s;
           text-transform: uppercase;
+          border-radius: 999px;
         }
         .wishlist-empty-cta:hover {
           background: #333;
