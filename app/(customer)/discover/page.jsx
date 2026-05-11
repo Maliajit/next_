@@ -1560,11 +1560,27 @@ function DiscoverContent() {
           </div>
         )}
 
-        <section id="hero" className="cfg-hero" ref={heroRef}>
-          <div className="cfg-hero-aura"></div>
+        <section id="hero" className={`cfg-hero ${product.discoverHeroBgImage ? 'has-bg-image' : ''}`} ref={heroRef} style={!product.discoverHeroBgImage ? { background: product.bgColor || 'radial-gradient(circle at center, #ffffff 0%, #e8edf3 100%)' } : {}}>
+          {product.discoverHeroBgImage ? (
+            <>
+              <div 
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundImage: `url(${getFileUrl(product.discoverHeroBgImage)})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  zIndex: 0
+                }}
+              />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%)', zIndex: 1 }} />
+            </>
+          ) : (
+            <div className="cfg-hero-aura"></div>
+          )}
 
           {/* New Focused Visual Container */}
-          <div className="cfg-hero-main-visual">
+          <div className="cfg-hero-main-visual" style={{ zIndex: 10 }}>
             <div className="cfg-hero-visual-box">
               <img
                 src={product.heroImage}
@@ -1575,21 +1591,21 @@ function DiscoverContent() {
           </div>
 
           {/* Bottom Left Details */}
-          <div className="cfg-details-box">
+          <div className="cfg-details-box" style={{ zIndex: 10 }}>
             <div className="cfg-details-left">
-              <h1 className="cfg-details-title">{product.title}</h1>
-              <p className="cfg-details-specs">{product.subtitle}</p>
-              <p className="cfg-details-ref">Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
+              <h1 className="cfg-details-title" style={product.discoverHeroBgImage ? { color: '#ffffff' } : {}}>{product.title}</h1>
+              <p className="cfg-details-specs" style={product.discoverHeroBgImage ? { color: 'rgba(255,255,255,0.8)' } : {}}>{product.subtitle}</p>
+              <p className="cfg-details-ref" style={product.discoverHeroBgImage ? { color: 'rgba(255,255,255,0.6)' } : {}}>Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
 
               <div className="cfg-price-add-row">
-                <div className="cfg-details-price">
+                <div className="cfg-details-price" style={product.discoverHeroBgImage ? { color: '#ffffff' } : {}}>
                   ₹ {product.price?.toLocaleString() || '7,838,000'}
                   {/* <div className="cfg-info-icon">i</div> */}
                 </div>
 
                 <div className="cfg-actions-group">
                   {hasConfig && (
-                    <button className="cfg-add-now-btn" onClick={handleBookNow}>Add to Cart</button>
+                    <button className="cfg-add-now-btn" style={product.discoverHeroBgImage ? { background: '#ffffff', color: '#000000' } : {}} onClick={handleBookNow}>Add to Cart</button>
                   )}
                 </div>
               </div>
@@ -1601,6 +1617,7 @@ function DiscoverContent() {
                   className={`cfg-fav-inline ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
                   onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
                   title={isInWishlist(product.currentVariantId || product.variantId) ? 'Remove from Favourite' : 'Add to Favourite'}
+                  style={product.discoverHeroBgImage ? { color: '#ffffff', background: 'rgba(255,255,255,0.2)' } : {}}
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -1621,11 +1638,12 @@ function DiscoverContent() {
 
           {/* Far Right Vertical Nav */}
           {isGeneralMode && (
-            <div className="cfg-vert-nav">
+            <div className="cfg-vert-nav" style={{ zIndex: 10 }}>
               {productsData.map((p, idx) => (
                 <div
                   key={p.id}
                   className={`cfg-nav-dash ${initialIndex === idx ? 'active' : ''}`}
+                  style={product.discoverHeroBgImage && initialIndex === idx ? { background: '#ffffff' } : product.discoverHeroBgImage ? { background: 'rgba(255,255,255,0.4)' } : {}}
                   onClick={() => {
                     const params = new URLSearchParams(searchParams);
                     params.set('watch', p.id);

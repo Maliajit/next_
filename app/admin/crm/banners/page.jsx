@@ -12,6 +12,7 @@ import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import ConfirmModal from '@/components/admin/ui/ConfirmModal';
 import AdminModal from '@/components/admin/AdminModal';
 import { useToast } from '@/context/ToastContext';
+import { getFileUrl } from '@/lib/utils';
 
 const BannerList = () => {
     const toast = useToast();
@@ -59,7 +60,7 @@ const BannerList = () => {
                         return `
                             <div style="display:flex;align-items:center;gap:14px;padding:6px 0">
                                 <div style="width:64px;height:40px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
-                                    ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover" />` : `<i class="fas fa-image" style="color:#cbd5e1;font-size:14px"></i>`}
+                                    ${img ? `<img src="${getFileUrl(img)}" style="width:100%;height:100%;object-fit:cover" />` : `<i class="fas fa-image" style="color:#cbd5e1;font-size:14px"></i>`}
                                 </div>
                                 <div style="min-width:0">
                                     <div style="font-weight:800;color:#1e293b;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.title || 'Untitled Banner'}</div>
@@ -142,8 +143,8 @@ const BannerList = () => {
         // The backend returns an array of media objects
         if (resData && Array.isArray(resData) && resData[0]) {
             const fileName = resData[0].fileName;
-            // Prepend the backend uploads path
-            const imageUrl = `http://localhost:3001/uploads/${fileName}`;
+            // Use getFileUrl to handle the domain and prefix correctly
+            const imageUrl = `/uploads/${fileName}`;
             setFormData(prev => ({ ...prev, image: imageUrl }));
             toast?.success?.('Image uploaded successfully');
         } else if (resData && resData.url) {
@@ -250,7 +251,7 @@ const BannerList = () => {
                             >
                                 {formData.image ? (
                                     <>
-                                        <img src={formData.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Preview" />
+                                        <img src={getFileUrl(formData.image)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Preview" />
                                         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', opacity: 0, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }} className="hover:opacity-100 opacity-hover">
                                             <i className="fas fa-camera mr-2"></i> Change Image
                                         </div>

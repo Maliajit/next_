@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import AdminModal from './AdminModal';
 import { useAdminData } from '@/context/AdminDataContext';
 import Loader from './ui/Loader';
+import { getFileUrl } from '@/lib/utils';
 
 /**
  * MediaPickerModal
@@ -16,8 +17,6 @@ const MediaPickerModal = ({ isOpen, onClose, onSelect, multiple = false }) => {
     const media = data.media || [];
     const [selected, setSelected] = useState([]);
     const [search, setSearch] = useState('');
-
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; // Backend URL for uploads
 
     const toggleSelect = (m) => {
         const item = { id: m.id.toString(), url: `/uploads/${m.fileName}` };
@@ -85,7 +84,7 @@ const MediaPickerModal = ({ isOpen, onClose, onSelect, multiple = false }) => {
                                 <p className="font-medium">No assets match your search</p>
                             </div>
                         ) : filteredMedia.map((m) => {
-                            const showUrl = `${API_URL}/uploads/${m.fileName}`;
+                            const showUrl = getFileUrl(m.fileName);
                             const isSelected = selected.find(s => s.id === m.id.toString());
 
                             return (

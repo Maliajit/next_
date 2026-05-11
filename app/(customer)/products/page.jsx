@@ -44,7 +44,7 @@ const Products = () => {
                 image: display.image,
                 price: display.formattedPrice,
                 totalStock: p.qty || 0,
-                sold: 0,
+                sold: p.soldCount || 0,
                 theme: p.theme || 'champagne',
                 bgColor: p.bgColor || '#ffffff',
                 accentColor: p.accentColor || '#c4a35a',
@@ -947,7 +947,7 @@ const Products = () => {
 
                 <span className="p-price-tag">{col.price}</span>
                 <div className="p-inventory-status">
-                  <span>Limited to {col.totalStock} pieces</span>
+                  <span>Limited to {Math.max(0, col.totalStock - col.sold)} pieces</span>
                   <svg onClick={() => openInfoModal(col)} className="i-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" title="View previously configured combinations">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>

@@ -34,6 +34,7 @@ const AddProductPage = () => {
         price: '', qty: '',
         bgColor: '#ffffff', accentColor: '#c4a35a', textColor: '#1a1a1a',
         gradient: '', mistColor: '#f8fafc', videoUrl: '',
+        discoverHeroBgImage: '',
         isFeatured: false
     });
 
@@ -97,6 +98,8 @@ const AddProductPage = () => {
     const handleMediaSelect = (selection) => {
         if (pickerTarget === 'primary') {
             setForm(prev => ({ ...prev, heroImage: selection[0] }));
+        } else if (pickerTarget === 'discoverHeroBgImage') {
+            setForm(prev => ({ ...prev, discoverHeroBgImage: selection[0]?.url || selection[0] }));
         } else if (pickerTarget === 'gallery') {
             setForm(prev => ({
                 ...prev,
@@ -226,6 +229,7 @@ const AddProductPage = () => {
             gradient: form.gradient,
             mistColor: form.mistColor,
             videoUrl: form.videoUrl,
+            discoverHeroBgImage: form.discoverHeroBgImage,
             isFeatured: form.isFeatured,
             specifications: Object.entries(form.specifications).map(([id, val]) => {
                 const specItem = categoryDetails?.specGroups?.flatMap(sg => sg.specGroup.specifications).find(s => s.specification.id.toString() === id);
@@ -490,6 +494,49 @@ const AddProductPage = () => {
                                         <div className="md:col-span-2">
                                             <FormField label="CSS Background Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
                                             <p className="mt-2 text-xs text-gray-500">Advanced: Paste a CSS linear or radial gradient to create unique lighting effects.</p>
+                                        </div>
+                                        <div className="md:col-span-2 mt-4 pt-4 border-t border-gray-100">
+                                            <label className="block text-sm font-medium text-gray-700 mb-3">Discover Hero Background Image</label>
+                                            <p className="text-[10px] text-gray-400 font-medium italic mb-4">Optional background image used only on the Discover hero section. If empty, the system falls back to Page Background color.</p>
+                                            <div
+                                                onClick={() => setPickerTarget('discoverHeroBgImage')}
+                                                className="h-48 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-indigo-400 transition-all shadow-inner relative group"
+                                            >
+                                                {form.discoverHeroBgImage ? (
+                                                    <>
+                                                        <img src={getFileUrl(form.discoverHeroBgImage)} className="w-full h-full object-cover" alt="Discover Hero Background Preview" />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setPickerTarget('discoverHeroBgImage');
+                                                                }}
+                                                                className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100"
+                                                                title="Replace Image"
+                                                            >
+                                                                <i className="fas fa-exchange-alt text-xs"></i>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setForm(prev => ({ ...prev, discoverHeroBgImage: '' }));
+                                                                }}
+                                                                className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                                                                title="Remove Image"
+                                                            >
+                                                                <i className="fas fa-trash-alt text-xs"></i>
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="text-center">
+                                                        <i className="fas fa-image text-gray-400 text-2xl mb-2"></i>
+                                                        <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Select Image</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

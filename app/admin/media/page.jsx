@@ -7,6 +7,7 @@ import { useAdminData } from '@/context/AdminDataContext';
 import { useToast } from '@/context/ToastContext';
 import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
+import { getFileUrl } from '@/lib/utils';
 
 const MediaList = () => {
     const toast = useToast();
@@ -22,7 +23,6 @@ const MediaList = () => {
     
     const itemsPerPage = 10;
     const fileInputRef = useRef(null);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
     // Filtering: Exclude videos as per user request
     const filteredFiles = files.filter(f => {
@@ -165,7 +165,7 @@ const MediaList = () => {
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                                                     <div style={{ width: 48, height: 48, borderRadius: 10, background: '#f1f5f9', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                                         {f.mimeType?.includes('image') ? (
-                                                            <img src={`${API_URL}/uploads/${f.fileName}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://placehold.co/48x48?text=IMG'; }} />
+                                                            <img src={getFileUrl(f.fileName)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = 'https://placehold.co/48x48?text=IMG'; }} />
                                                         ) : f.mimeType?.includes('video') ? (
                                                             <i className="fas fa-video" style={{ color: '#6366f1' }}></i>
                                                         ) : (
@@ -195,7 +195,7 @@ const MediaList = () => {
                                             <td style={{ textAlign: 'center', fontSize: 13, color: '#94a3b8' }}>{f.createdAt ? new Date(f.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
                                             <td style={{ textAlign: 'right', paddingRight: 32 }}>
                                                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                                                    <a href={`${API_URL}/uploads/${f.fileName}`} target="_blank" rel="noreferrer" className="btn-icon" style={{ color: '#64748b' }} title="View Original"><i className="fas fa-external-link-alt"></i></a>
+                                                    <a href={getFileUrl(f.fileName)} target="_blank" rel="noreferrer" className="btn-icon" style={{ color: '#64748b' }} title="View Original"><i className="fas fa-external-link-alt"></i></a>
                                                     <button className="btn-icon" style={{ color: '#ef4444' }} onClick={() => confirmDelete(f)} title="Delete"><i className="fas fa-trash-alt"></i></button>
                                                 </div>
                                             </td>
