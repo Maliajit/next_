@@ -457,10 +457,7 @@ const EditProductPage = () => {
                                         <div className="md:col-span-2">
                                             <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />
                                         </div>
-                                        <div className="md:col-span-2">
-                                            <FormField label="Video Showcase URL" name="videoUrl" value={form.videoUrl} onChange={handleChange} placeholder="e.g. /assets/videos/watch-promo.mp4 or direct MP4 link" />
-                                            <p className="mt-2 text-[10px] text-gray-400 font-medium italic">Leave empty to hide the video section on the storefront.</p>
-                                        </div>
+
                                     </div>
                                 </div>
                             )}
