@@ -122,11 +122,16 @@ const EditProductPage = () => {
                     videoUrl: p.videoUrl || '',
                     discoverHeroBgImage: p.discoverHeroBgImage || '',
                     isFeatured: p.isFeatured || false,
-                    // Hero Image
-                    heroImage: p.heroImage ? { url: p.heroImage.startsWith('http') || p.heroImage.startsWith('/') ? p.heroImage : `/uploads/${p.heroImage}` } : null,
-                    // Gallery
+                    // Hero Image: Prioritize MAIN media from ProductMedia table
+                    heroImage: (p.productMedia?.find(pm => pm.type === 'MAIN'))
+                        ? { 
+                            id: p.productMedia.find(pm => pm.type === 'MAIN').mediaId.toString(),
+                            url: p.productMedia.find(pm => pm.type === 'MAIN').media?.url || (p.productMedia.find(pm => pm.type === 'MAIN').media?.fileName ? `/uploads/${p.productMedia.find(pm => pm.type === 'MAIN').media.fileName}` : '')
+                          }
+                        : (p.heroImage ? { url: p.heroImage.startsWith('http') || p.heroImage.startsWith('/') ? p.heroImage : `/uploads/${p.heroImage}` } : null),
+                    // Gallery: Only include GALLERY media from ProductMedia table
                     gallery: (p.productMedia?.length > 0) 
-                        ? p.productMedia.map(pm => ({ 
+                        ? p.productMedia.filter(pm => pm.type === 'GALLERY').map(pm => ({ 
                             id: pm.mediaId.toString(), 
                             url: pm.media?.url || (pm.media?.fileName ? `/uploads/${pm.media.fileName}` : '')
                         })) 
@@ -284,7 +289,11 @@ const EditProductPage = () => {
         } else if (pickerTarget === 'gallery') {
             setForm(prev => {
                 const existingIds = new Set(prev.gallery.map(g => g.id.toString()));
-                const uniqueNew = selection.filter(s => !existingIds.has(s.id.toString()));
+                const heroId = prev.heroImage?.id?.toString();
+                const uniqueNew = selection.filter(s => {
+                    const sid = s.id.toString();
+                    return !existingIds.has(sid) && sid !== heroId;
+                });
                 return {
                     ...prev,
                     gallery: [...prev.gallery, ...uniqueNew]
@@ -299,7 +308,11 @@ const EditProductPage = () => {
                 } else {
                     const currentGallery = next[variantIndex].gallery || [];
                     const existingIds = new Set(currentGallery.map(g => g.id.toString()));
-                    const uniqueNew = selection.filter(s => !existingIds.has(s.id.toString()));
+                    const heroId = next[variantIndex].heroImage?.id?.toString();
+                    const uniqueNew = selection.filter(s => {
+                        const sid = s.id.toString();
+                        return !existingIds.has(sid) && sid !== heroId;
+                    });
                     next[variantIndex].gallery = [...currentGallery, ...uniqueNew];
                 }
                 return next;
@@ -337,6 +350,8 @@ const EditProductPage = () => {
             isFeatured: form.isFeatured,
             tagIds: form.tagIds,
             heroImage: form.heroImage?.url,
+            heroImageId: form.heroImage?.id,
+            galleryIds: form.gallery.map(g => g.id),
             images: [form.heroImage?.url, ...form.gallery.map(g => g.url)].filter(Boolean),
             specifications: Object.entries(form.specifications).map(([id, val]) => {
                 const specItem = categoryDetails?.specGroups?.flatMap(sg => sg.specGroup.specifications).find(s => s.specification.id.toString() === id);
@@ -499,11 +514,14 @@ const EditProductPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Media for Simple Product */}
-                                        {form.productType === 'simple' && (
-                                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-3">Primary Image</label>
+                                         {/* Default Product Media */}
+                                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 mt-4 border-t pt-6">
+                                             <div className="md:col-span-2">
+                                                 <label className="block text-sm font-bold text-gray-900 mb-1">Default Product Media</label>
+                                                 <p className="text-[10px] text-gray-500 italic mb-4">Images shown on the Discover page before any variant attributes are selected.</p>
+                                             </div>
+                                             <div>
+                                                 <label className="block text-sm font-medium text-gray-700 mb-3">Primary Image</label>
                                                     <div
                                                         onClick={() => setPickerTarget('primary')}
                                                         className="h-48 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer overflow-hidden hover:border-indigo-400 transition-all shadow-inner"
@@ -561,8 +579,7 @@ const EditProductPage = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
+                                         </div>
 
                                     {/* Specifications */}
                                     {categoryDetails && (

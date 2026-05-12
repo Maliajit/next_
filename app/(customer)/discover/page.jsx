@@ -73,10 +73,13 @@ function DiscoverContent() {
               sold: (p.soldCount !== undefined && p.soldCount !== null) ? p.soldCount : Math.min((p.id % 100) + 120, p.qty || p.stockCount || 500),
               totalStock: p.qty || p.stockCount || 500,
               galleryImages: (p.productMedia?.length > 0)
-                ? p.productMedia.map(m => {
-                  let mPath = m.media?.url || (m.media?.fileName ? `/uploads/${m.media.fileName}` : '');
-                  return getFileUrl(mPath);
-                }).filter(Boolean)
+                ? p.productMedia
+                  .filter(m => m.type === 'GALLERY')
+                  .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+                  .map(m => {
+                    let mPath = m.media?.url || (m.media?.fileName ? `/uploads/${m.media.fileName}` : '');
+                    return getFileUrl(mPath);
+                  }).filter(Boolean)
                 : (p.images || []).map(img => getFileUrl(img.startsWith('http') || img.startsWith('/') ? img : `/uploads/${img}`)),
               combinations: (p.variants || []).map(v => {
                 const vDisplay = getDisplayData(p, v);
@@ -199,9 +202,8 @@ function DiscoverContent() {
       });
     }
 
-    if (!targetVariant && variants.length > 0) {
-      targetVariant = variants[0];
-    }
+    // Removed automatic fallback to first variant to prevent inconsistent UI state
+    // targetVariant = variants[0];
 
     if (targetVariant) {
       addToCart(targetVariant.id.toString(), 1, { title: product.name });
@@ -249,20 +251,25 @@ function DiscoverContent() {
     }
   });
 
-  let matchingVariant = (product.variants || []).find(v => {
-    // 1. Try to match by variant ID if provided in URL
-    if (variantIdParam && v.id.toString() === variantIdParam) return true;
+  const hasSelections = Object.keys(selections).length > 0;
+  let matchingVariant = null;
 
-    // 2. Otherwise match by attributes
-    const vAttrs = v.variantAttributes || [];
-    if (vAttrs.length === 0) return false;
+  if (hasSelections || variantIdParam) {
+    matchingVariant = (product.variants || []).find(v => {
+      // 1. Try to match by variant ID if provided in URL
+      if (variantIdParam && v.id.toString() === variantIdParam) return true;
 
-    // Check if ALL selected attributes match this variant
-    return Object.keys(selections).every(key => {
-      const va = vAttrs.find(a => a.attributeValue?.attribute?.name?.toLowerCase() === key);
-      return va && va.attributeValue?.label === selections[key];
+      // 2. Otherwise match by attributes
+      const vAttrs = v.variantAttributes || [];
+      if (vAttrs.length === 0) return false;
+
+      // Check if ALL selected attributes match this variant
+      return Object.keys(selections).every(key => {
+        const va = vAttrs.find(a => a.attributeValue?.attribute?.name?.toLowerCase() === key);
+        return va && va.attributeValue?.label === selections[key];
+      });
     });
-  });
+  }
 
   if (matchingVariant) {
     const vDisplay = getDisplayData(product, matchingVariant);
