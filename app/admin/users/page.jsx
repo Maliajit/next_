@@ -27,6 +27,7 @@ const UsersPage = () => {
   const [blocking, setBlocking] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [fetchingProfile, setFetchingProfile] = useState(false);
 
   const actionsRef = useRef({});
 
@@ -35,7 +36,18 @@ const UsersPage = () => {
     tabulatorRef.current?.destroy();
 
     actionsRef.current = {
-      onView: (u) => { setSelectedUser(u); setShowDetails(true); },
+      onView: async (u) => { 
+        setSelectedUser(u); 
+        setShowDetails(true); 
+        setFetchingProfile(true);
+        const res = await api.getUser(u.id);
+        if (res.success) {
+          setSelectedUser(res.data);
+        } else {
+          toast.error("Failed to fetch full profile");
+        }
+        setFetchingProfile(false);
+      },
       onBlock: (u) => setBlockTarget({ id: u.id, name: u.name, isBlocked: u.isBlocked }),
     };
 
@@ -157,30 +169,86 @@ const UsersPage = () => {
         }
       </div>
 
-      <AdminModal isOpen={showDetails && !!selectedUser} onClose={() => setShowDetails(false)} title="Customer Profile" maxWidth={600}>
-        {selectedUser && (
-          <div className="space-y-6">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, paddingBottom: 20, borderBottom: '1px solid #f1f5f9' }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: '#f5f3ff', border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6366f1', fontSize: 22 }}>
+      <AdminModal isOpen={showDetails && !!selectedUser} onClose={() => setShowDetails(false)} title="Customer Profile" maxWidth={800}>
+        {fetchingProfile ? <Loader message="Fetching detailed profile..." /> : selectedUser && (
+          <div className="space-y-8">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, paddingBottom: 24, borderBottom: '1px solid #f1f5f9' }}>
+              <div style={{ width: 64, height: 64, borderRadius: 20, background: '#f5f3ff', border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#6366f1', fontSize: 28 }}>
                 {(selectedUser.name || '?')[0].toUpperCase()}
               </div>
-              <div>
-                <h3 style={{ fontSize: 20, fontWeight: 800, color: '#1e293b', margin: 0 }}>{selectedUser.name}</h3>
-                <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, fontWeight: 600 }}>{selectedUser.email}</p>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: 24, fontWeight: 800, color: '#1e293b', margin: 0 }}>{selectedUser.name}</h3>
+                <div style={{ display: 'flex', gap: 16, marginTop: 4 }}>
+                  <p style={{ fontSize: 13, color: '#64748b', margin: 0, fontWeight: 600 }}><i className="fas fa-envelope" style={{ marginRight: 6 }}></i>{selectedUser.email}</p>
+                  {selectedUser.mobile && <p style={{ fontSize: 13, color: '#64748b', margin: 0, fontWeight: 600 }}><i className="fas fa-phone" style={{ marginRight: 6 }}></i>{selectedUser.mobile}</p>}
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {[
-                { label: 'Orders', value: selectedUser._count?.orders ?? 0, icon: 'fa-shopping-bag' },
-                { label: 'Total Spent', value: `₹${Number(selectedUser.totalSpent || 0).toLocaleString('en-IN')}`, icon: 'fa-wallet' },
-                { label: 'Joined', value: selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—', icon: 'fa-calendar' },
+                { label: 'Orders', value: selectedUser._count?.orders ?? 0, icon: 'fa-shopping-bag', color: '#6366f1' },
+                { label: 'Total Spent', value: `₹${Number(selectedUser.totalSpent || 0).toLocaleString('en-IN')}`, icon: 'fa-wallet', color: '#10b981' },
+                { label: 'Joined', value: selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—', icon: 'fa-calendar', color: '#f59e0b' },
               ].map((stat, i) => (
-                <div key={i} className="admin-card" style={{ padding: '16px', borderRadius: 14, textAlign: 'center', background: '#f8fafc' }}>
-                  <div style={{ color: '#6366f1', fontSize: 14, marginBottom: 8 }}><i className={`fas ${stat.icon}`}></i></div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>{stat.value}</div>
-                  <div style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginTop: 2 }}>{stat.label}</div>
+                <div key={i} className="admin-card" style={{ padding: '20px', borderRadius: 16, textAlign: 'center', background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                  <div style={{ color: stat.color, fontSize: 16, marginBottom: 10 }}><i className={`fas ${stat.icon}`}></i></div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: '#1e293b' }}>{stat.value}</div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginTop: 4, letterSpacing: '0.02em' }}>{stat.label}</div>
                 </div>
               ))}
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+              {/* Profile Info */}
+              <div className="space-y-4">
+                <h4 style={{ fontSize: 14, fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', borderLeft: '4px solid #6366f1', margin: "10px 0px", padding: "10px 12px"}}>Signup Information</h4>
+                <div className="admin-card" style={{ padding: 20, borderRadius: 16, background: '#fff' }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Date of Birth</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{selectedUser.dob ? new Date(selectedUser.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Not provided'}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Account Status</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: selectedUser.isBlocked ? '#ef4444' : '#10b981', textTransform: 'uppercase' }}>{selectedUser.isBlocked ? 'Blocked' : 'Active'}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Last Login Activity</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{selectedUser.lastLoginAt ? new Date(selectedUser.lastLoginAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Never recorded'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order placed info */}
+            <div className="space-y-4">
+              <h4 style={{ fontSize: 14, fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em', borderLeft: '4px solid #f59e0b', margin: "10px 0px", padding: "10px 12px" }}>Order-Specific Information</h4>
+              <div className="space-y-4">
+                {selectedUser.orders?.length > 0 ? selectedUser.orders.map((order, idx) => (
+                  <div key={idx} className="admin-card" style={{ padding: 20, borderRadius: 16, border: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid #f8fafc' }}>
+                      <div>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: '#1e293b' }}>Order #{order.orderNumber}</span>
+                        <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 12 }}>{new Date(order.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 10px', borderRadius: 8, background: '#f8fafc', color: '#64748b', textTransform: 'uppercase' }}>{order.status}</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {order.addresses?.map((addr, aidx) => (
+                        <div key={aidx}>
+                          <p style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.05em' }}>{addr.type} ADDRESS</p>
+                          <p style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', margin: '0 0 2px 0' }}>{addr.firstName} {addr.lastName}</p>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 2px 0' }}>{addr.phone}</p>
+                          <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.4 }}>{addr.address1}, {addr.city}, {addr.state} - {addr.postcode}</p>
+                        </div>
+                      ))}
+                      {!order.addresses?.length && <p style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic' }}>No address info for this order.</p>}
+                    </div>
+                  </div>
+                )) : <p style={{ fontSize: 13, color: '#94a3b8', fontStyle: 'italic', padding: 10 }}>No purchase history found.</p>}
+              </div>
             </div>
           </div>
         )}

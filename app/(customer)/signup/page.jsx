@@ -11,7 +11,7 @@ const ORBS = [
   { w: 300, h: 300, top: '55%', left: '8%', c: 'rgba(67,160,215,0.09)', dur: 15 },
 ];
 
-const STEPS = ['Account', 'Verify', 'Profile'];
+const STEPS = ['Account', 'Verify'];
 
 function StepIndicator({ current }) {
   return (
@@ -106,6 +106,16 @@ function StepAccount({ data, setData }) {
           </svg>
         }
       />
+      <label className="sp-terms-label" htmlFor="sp-terms-check">
+        <input type="checkbox" className="sp-terms-check" id="sp-terms-check" />
+        <span className="sp-terms-custom" />
+        <span>
+          I agree to Fylexx&apos;s{' '}
+          <a href="#" className="sp-terms-link">Terms of Service</a>{' '}
+          and{' '}
+          <a href="#" className="sp-terms-link">Privacy Policy</a>
+        </span>
+      </label>
     </div>
   );
 }
@@ -134,65 +144,13 @@ function StepVerify({ data, setData }) {
   );
 }
 
-function StepProfile({ data, setData }) {
-  return (
-    <div className="sp-step-content">
-      <div className="sp-avatar-section">
-        <div className="sp-avatar-ring">
-          <div className="sp-avatar-placeholder">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4a6fa5" strokeWidth="1.5">
-              <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
-            </svg>
-          </div>
-        </div>
-        <p className="sp-avatar-label">Profile Photo <span>(optional)</span></p>
-      </div>
-      <div className="sp-field-wrapper">
-        <label className="sp-field-label">Preferred Style</label>
-        <div className="sp-style-grid">
-          {['Minimalist', 'Classic', 'Sport', 'Luxury'].map(s => (
-            <button
-              key={s}
-              type="button"
-              className={`sp-style-pill ${data.style === s ? 'sp-style-selected' : ''}`}
-              onClick={() => setData(p => ({ ...p, style: s }))}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
-      <InputField
-        label="Country"
-        id="sp-country"
-        value={data.country}
-        onChange={e => setData(p => ({ ...p, country: e.target.value }))}
-        placeholder="United States"
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" strokeLinecap="round" />
-          </svg>
-        }
-      />
-      <label className="sp-terms-label" htmlFor="sp-terms-check">
-        <input type="checkbox" className="sp-terms-check" id="sp-terms-check" />
-        <span className="sp-terms-custom" />
-        <span>
-          I agree to Fylexx&apos;s{' '}
-          <a href="#" className="sp-terms-link">Terms of Service</a>{' '}
-          and{' '}
-          <a href="#" className="sp-terms-link">Privacy Policy</a>
-        </span>
-      </label>
-    </div>
-  );
-}
+
 
 export default function Signup() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: '', email: '', password: '',
-    mobile: '', style: 'Minimalist', country: '', otp: '',
+    mobile: '', otp: '',
   });
   const [loaded, setLoaded] = useState(false);
   const [contentKey, setContentKey] = useState(0);
@@ -222,31 +180,23 @@ export default function Signup() {
       if (!data.mobile.trim() || data.mobile.length < 10) return setError('Please enter a valid 10-digit mobile number');
       if (!data.email.trim()) return setError('Please enter your email address');
       if (!validateEmail(data.email)) return setError('Please enter a valid email address');
-    }
-
-    if (step === 1) {
-      if (!data.otp || data.otp.length !== 4) return setError('Please enter the 4-digit verification code');
-      if (data.otp !== '1234') return setError('Invalid verification code');
-    }
-
-    if (step < 2) {
-      setStep(s => s + 1);
-      setContentKey(k => k + 1);
-    } else {
-      // Final Step Profile & Terms
+      
       const termsCheck = document.getElementById('sp-terms-check');
       if (termsCheck && !termsCheck.checked) {
         return setError('You must agree to the Terms and Conditions');
       }
 
+      setStep(1);
+      setContentKey(k => k + 1);
+      return;
+    }
+
+    if (step === 1) {
+      if (!data.otp || data.otp.length !== 4) return setError('Please enter the 4-digit verification code');
+      if (data.otp !== '1234') return setError('Invalid verification code');
+
       setSubmitting(true);
       try {
-        console.log('[auth-ui] signup submit', {
-          email: data.email,
-          name: data.name,
-          mobile: data.mobile,
-          otp: data.otp,
-        });
         await signup({
           name: data.name,
           email: data.email,
@@ -254,11 +204,9 @@ export default function Signup() {
           otp: data.otp,
         });
         setDone(true);
-        console.log('[auth-ui] navigation trigger', { target: '/', reason: 'verified signup success' });
         setTimeout(() => navigate.push('/'), 2000);
       } catch (err) {
-        console.error('Signup error:', err);
-        setError(err.message || 'Signup failed. Please check your details and try again.');
+        setError(err.message || 'Signup failed');
       } finally {
         setSubmitting(false);
       }
@@ -269,7 +217,7 @@ export default function Signup() {
     if (step > 0) { setStep(s => s - 1); setContentKey(k => k + 1); }
   };
 
-  const btnLabel = step === 2 ? 'Complete Signup' : 'Continue';
+  const btnLabel = step === 0 ? 'Signup' : 'Complete Verification';
 
   return (
     <div className="sp-page">
@@ -350,7 +298,6 @@ export default function Signup() {
                 >
                   {step === 0 && <StepAccount data={data} setData={setData} />}
                   {step === 1 && <StepVerify data={data} setData={setData} />}
-                  {step === 2 && <StepProfile data={data} setData={setData} />}
                 </div>
 
                 {error && (

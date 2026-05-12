@@ -118,6 +118,7 @@ export const updateOrderStatus = (id, status) => put(`/orders/${id}`, { status }
 
 // ─── Customers / Users ────────────────────────────────────────
 export const getUsers = () => get('/users');
+export const getUser = (id) => get(`/users/${id}`);
 export const updateUser = (id, data) => put(`/users/${id}`, data);
 
 // ─── Offers ───────────────────────────────────────────────────
