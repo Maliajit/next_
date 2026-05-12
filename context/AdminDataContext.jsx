@@ -22,7 +22,7 @@ export const AdminDataProvider = ({ children }) => {
   const [data, setData] = useState({
     products: [],
     categories: [],
-    brands: [],
+
     orders: [],
     users: [],
     offers: [],
@@ -46,7 +46,7 @@ export const AdminDataProvider = ({ children }) => {
   const [loading, setLoading] = useState({
     products: true,
     categories: true,
-    brands: true,
+
     orders: true,
     users: true,
     offers: true,
@@ -94,7 +94,7 @@ export const AdminDataProvider = ({ children }) => {
   useEffect(() => {
     fetchEntity('products', api.getProducts);
     fetchEntity('categories', api.getCategories);
-    fetchEntity('brands', api.getBrands);
+
     fetchEntity('orders', api.getOrders);
     fetchEntity('users', api.getUsers);
     fetchEntity('offers', api.getOffers);
@@ -119,7 +119,7 @@ export const AdminDataProvider = ({ children }) => {
   const memoizedRefetch = React.useMemo(() => ({
     products: () => fetchEntity('products', api.getProducts),
     categories: () => fetchEntity('categories', api.getCategories),
-    brands: () => fetchEntity('brands', api.getBrands),
+
     orders: () => fetchEntity('orders', api.getOrders),
     users: () => fetchEntity('users', api.getUsers),
     offers: () => fetchEntity('offers', api.getOffers),

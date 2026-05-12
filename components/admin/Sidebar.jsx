@@ -41,12 +41,6 @@ const navItems = [
     ],
   },
   {
-    key: 'brands',
-    title: 'Brands',
-    icon: 'fas fa-trademark',
-    path: '/admin/brands',
-  },
-  {
     key: 'taxes',
     title: 'Taxes',
     icon: 'fas fa-percent',

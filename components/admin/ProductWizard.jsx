@@ -27,7 +27,7 @@ const ProductWizard = () => {
         sku: '',
         productCode: '',
         mainCategoryId: '',
-        brandId: '',
+
         // Theme
         bgColor: '#ffffff',
         accentColor: '#000000',

@@ -18,7 +18,7 @@ const EditProductPage = () => {
     const productId = params?.id;
 
     const { data, loading, updateRecord } = useAdminData();
-    const brands = data.brands || [];
+
     const categories = data.categories || [];
     const taxClasses = data.taxClasses || [];
     const [tags, setTags] = useState([]);
@@ -30,7 +30,7 @@ const EditProductPage = () => {
         name: '', slug: '', productCode: '',
         shortDesc: '', description: '',
         status: 'draft', productType: 'simple',
-        brandId: '', categoryId: '', taxClassId: '',
+
         heroImage: null, // {id, url}
         gallery: [], // [{id, url}]
         tagIds: [],
@@ -107,7 +107,7 @@ const EditProductPage = () => {
                     heritageText: p.heritageText || '',
                     status: p.status || 'draft',
                     productType: p.productType || 'simple',
-                    brandId: p.brandId?.toString() || '',
+
                     categoryId: p.mainCategoryId?.toString() || '',
                     taxClassId: p.taxClassId?.toString() || '',
                     price: p.price?.toString() || '',
@@ -366,7 +366,7 @@ const EditProductPage = () => {
         }
     };
 
-    if (processing || loading.brands || loading.categories) return <Loader />;
+    if (processing || loading.categories) return <Loader />;
 
     return (
         <div className="!mx-auto !px-1 !py-1">
@@ -475,10 +475,7 @@ const EditProductPage = () => {
                                             { value: '', label: 'Select Category' },
                                             ...categories.map(c => ({ value: c.id.toString(), label: c.name }))
                                         ]} required />
-                                        <FormField label="Brand" name="brandId" type="select" value={form.brandId} onChange={handleChange} options={[
-                                            { value: '', label: 'Select Brand' },
-                                            ...brands.map(b => ({ value: b.id.toString(), label: b.name }))
-                                        ]} />
+
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 !mb-2">Tags</label>
                                             <div className=" flex flex-wrap gap-2 !px-3 bg-gray-50  border border-gray-200 !min-h-[50px]">

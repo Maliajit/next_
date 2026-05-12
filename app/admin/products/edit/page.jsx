@@ -17,7 +17,7 @@ const ProductEditPageContent = () => {
     const searchParams = useSearchParams();
     const productId = searchParams.get('id');
     const { data, loading, updateRecord } = useAdminData();
-    const brands = data.brands || [];
+
     const categories = data.categories || [];
 
     const [submitting, setSubmitting] = useState(false);
@@ -26,7 +26,7 @@ const ProductEditPageContent = () => {
         name: '', slug: '', tagline: '', subtitle: '',
         shortDesc: '', longDesc: '', heritageText: '',
         sku: '', basePrice: '', stock: '',
-        brandId: '', categoryId: '', isActive: true,
+        categoryId: '', isActive: true,
         heroImage: null, 
         gallery: [],
         bgColor: '#ffffff', accentColor: '#6366f1', textColor: '#1e293b', 
@@ -52,7 +52,7 @@ const ProductEditPageContent = () => {
                     sku: p.sku || '',
                     basePrice: p.price?.toString() || '',
                     stock: p.qty?.toString() || '0',
-                    brandId: p.brandId?.toString() || '',
+
                     categoryId: p.mainCategoryId?.toString() || '',
                     isActive: p.status === 'active',
                     heroImage: p.heroImage ? { url: p.heroImage } : (p.images?.length > 0 ? { url: p.images[0] } : null),
@@ -146,7 +146,7 @@ const ProductEditPageContent = () => {
         }
         if (step === 'taxonomy') {
             if (!form.categoryId) errs.categoryId = 'Category is required';
-            if (!form.brandId) errs.brandId = 'Brand is required';
+
         }
         return errs;
     };
@@ -177,7 +177,7 @@ const ProductEditPageContent = () => {
             sku: form.sku,
             price: parseFloat(form.basePrice) || 0,
             qty: parseInt(form.stock) || 0,
-            brandId: form.brandId,
+
             mainCategoryId: form.categoryId,
             shortDescription: form.shortDesc,
             description: form.longDesc,
@@ -201,7 +201,7 @@ const ProductEditPageContent = () => {
         router.push('/admin/products');
     };
 
-    if (loading.brands || loading.categories || (productId && loading.products)) {
+    if (loading.categories || (productId && loading.products)) {
         return <Loader message="Loading product record..." />;
     }
 
@@ -299,16 +299,7 @@ const ProductEditPageContent = () => {
                                             Classification
                                         </h4>
                                         <div className="form-grid-2">
-                                            <FormField
-                                                label="Brand Owner"
-                                                name="brandId"
-                                                type="select"
-                                                value={form.brandId}
-                                                onChange={handleChange}
-                                                options={[{ value: '', label: 'Select Brand' }, ...brands.map(b => ({ value: b.id.toString(), label: b.name }))]}
-                                                required
-                                                error={formErrors.brandId}
-                                            />
+
                                             <FormField
                                                 label="Primary Category"
                                                 name="categoryId"

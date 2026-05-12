@@ -105,11 +105,6 @@ export const createCategory = (data) => post('/categories', data);
 export const updateCategory = (id, data) => put(`/categories/${id}`, data);
 export const deleteCategory = (id) => del(`/categories/${id}`);
 
-// ─── Brands ───────────────────────────────────────────────────
-export const getBrands = () => get('/brands');
-export const createBrand = (data) => post('/brands', data);
-export const updateBrand = (id, data) => put(`/brands/${id}`, data);
-export const deleteBrand = (id) => del(`/brands/${id}`);
 
 // ─── Orders ───────────────────────────────────────────────────
 export const getOrders = () => get('/orders');

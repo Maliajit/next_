@@ -198,7 +198,7 @@ const TagsPage = () => {
             <FormField label="Slug / Handle" name="slug" value={form.slug} onChange={handleChange} placeholder="e.g. new-arrival" hint="URL index" />
             
             <FormField 
-              label="Brand Color" 
+              label="Tag Color" 
               name="color" 
               type="color" 
               value={form.color} 

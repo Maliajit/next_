@@ -19,7 +19,7 @@ const AdminProducts = () => {
   const toast = useToast();
   const { data, loading, errors, refetch, addRecord, updateRecord, deleteRecord } = useAdminData();
   const products = data.products || [];
-  const brands = data.brands || [];
+
   const categories = data.categories || [];
 
   const tableRef = useRef(null);
@@ -92,10 +92,7 @@ const AdminProducts = () => {
               </div>`;
           },
         },
-        {
-          title: 'BRAND', field: 'brand.name', width: 130,
-          formatter: (cell) => `<span style="color:#475569;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.02em">${cell.getValue() || '—'}</span>`,
-        },
+
         {
           title: 'STATUS', field: 'isActive', width: 120, hozAlign: 'center',
           formatter: (cell) => {

@@ -2,7 +2,7 @@ export { default as api } from './api';
 export { default as dashboardService } from './dashboard.service';
 export { default as productService } from './product.service';
 export { default as categoryService } from './category.service';
-export { default as brandService } from './brand.service';
+
 export { default as orderService } from './order.service';
 export { default as userService } from './user.service';
 export { default as marketingService } from './marketing.service';
