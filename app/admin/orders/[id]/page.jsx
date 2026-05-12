@@ -75,7 +75,7 @@ const OrderDetailPage = () => {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader title={`Order ${order.order_number || order.id}`} subtitle={`Placed on ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}`}>
+      <PageHeader title={`Order ${order.orderNumber || order.id}`} subtitle={`Placed on ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}`}>
         <Link href="/admin/orders" className="btn-secondary">
           <i className="fas fa-arrow-left" style={{ fontSize: 12 }}></i>
           Back to Orders
@@ -113,17 +113,17 @@ const OrderDetailPage = () => {
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--admin-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {item.name || item.product?.name || 'Product'}
+                          {item.productName || item.name || item.product?.name || 'Product'}
                         </div>
                         {item.sku && <div style={{ fontSize: 11, color: 'var(--admin-text-muted)' }}>SKU: {item.sku}</div>}
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700 }}>
-                        ₹{Math.round(Number(item.price || 0)).toLocaleString('en-IN')} × {item.quantity || item.qty || 1}
+                        ₹{Math.round(Number(item.unitPrice || item.price || 0)).toLocaleString('en-IN')} × {item.quantity || item.qty || 1}
                       </div>
                       <div style={{ fontSize: 12, color: 'var(--admin-success)', fontWeight: 700 }}>
-                        = ₹{Math.round(Number((item.price || 0) * (item.quantity || item.qty || 1))).toLocaleString('en-IN')}
+                        = ₹{Math.round(Number((item.unitPrice || item.price || 0) * (item.quantity || item.qty || 1))).toLocaleString('en-IN')}
                       </div>
                     </div>
                   </div>
@@ -133,13 +133,13 @@ const OrderDetailPage = () => {
               {/* Order totals */}
               <div style={{ marginTop: 16, paddingTop: 16, borderTop: '2px solid var(--admin-border)' }}>
                 {order.subtotal && infoRow('Subtotal', `₹${Math.round(Number(order.subtotal)).toLocaleString('en-IN')}`)}
-                {order.tax_amount != null && infoRow('Tax', `₹${Math.round(Number(order.tax_amount)).toLocaleString('en-IN')}`)}
-                {order.shipping_amount != null && infoRow('Shipping', `₹${Math.round(Number(order.shipping_amount)).toLocaleString('en-IN')}`)}
-                {order.discount_amount != null && Number(order.discount_amount) > 0 && infoRow('Discount', `-₹${Math.round(Number(order.discount_amount)).toLocaleString('en-IN')}`)}
+                {order.taxTotal != null && infoRow('Tax', `₹${Math.round(Number(order.taxTotal)).toLocaleString('en-IN')}`)}
+                {order.shippingTotal != null && infoRow('Shipping', `₹${Math.round(Number(order.shippingTotal)).toLocaleString('en-IN')}`)}
+                {order.discountTotal != null && Number(order.discountTotal) > 0 && infoRow('Discount', `-₹${Math.round(Number(order.discountTotal)).toLocaleString('en-IN')}`)}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
                   <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--admin-text)' }}>Grand Total</span>
                   <span style={{ fontSize: 18, fontWeight: 900, color: 'var(--admin-primary)' }}>
-                    ₹{Math.round(Number(order.grand_total || order.total || 0)).toLocaleString('en-IN')}
+                    ₹{Math.round(Number(order.grandTotal || order.total || 0)).toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>
@@ -183,8 +183,8 @@ const OrderDetailPage = () => {
               </div>
               <div style={{ marginBottom: 14 }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--admin-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Status</p>
-                <span className={`status-pill ${order.payment_status?.toLowerCase() === 'paid' ? 'pill-active' : 'pill-warning'}`}>
-                  {order.payment_status || '—'}
+                <span className={`status-pill ${order.paymentStatus?.toLowerCase() === 'paid' ? 'pill-active' : 'pill-warning'}`}>
+                  {order.paymentStatus || '—'}
                 </span>
               </div>
               <div style={{ marginBottom: 16 }}>
@@ -216,10 +216,10 @@ const OrderDetailPage = () => {
           <div className="admin-card" style={{ borderRadius: 16 }}>
             <div className="admin-card-header"><h3>Customer Details</h3></div>
             <div className="admin-card-body">
-              {infoRow('Name', order.customer_name || customer.name)}
-              {infoRow('Email', order.customer_email || customer.email)}
-              {infoRow('Phone', order.customer_phone || customer.phone || customer.mobile)}
-              {infoRow('Payment', order.payment_method)}
+              {infoRow('Name', order.customer_name || (order.customerFirstName ? `${order.customerFirstName} ${order.customerLastName || ''}` : customer.name))}
+              {infoRow('Email', order.customer_email || order.customerEmail || customer.email || (order.addresses?.[0]?.email))}
+              {infoRow('Phone', order.customer_phone || order.customerMobile || customer.phone || customer.mobile || (order.addresses?.[0]?.phone))}
+              {infoRow('Payment', order.paymentMethod)}
             </div>
           </div>
 
@@ -227,10 +227,10 @@ const OrderDetailPage = () => {
           <div className="admin-card" style={{ borderRadius: 16 }}>
             <div className="admin-card-header"><h3>Order Info</h3></div>
             <div className="admin-card-body">
-              {infoRow('Order #', order.order_number || order.id)}
-              {infoRow('Placed on', order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')}
+              {infoRow('Order #', order.orderNumber || order.id)}
+              {infoRow('Placed on', order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')}
               {infoRow('Items', items.reduce((acc, item) => acc + (item.quantity || item.qty || 1), 0))}
-              {order.coupon_code && infoRow('Coupon', order.coupon_code)}
+              {order.couponCode && infoRow('Coupon', order.couponCode)}
             </div>
           </div>
         </div>

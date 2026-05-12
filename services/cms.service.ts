@@ -23,6 +23,9 @@ export const createTestimonial = (data: any) => api.post('/cms/testimonials', da
 export const updateTestimonial = (id: number | string, data: any) => api.put(`/cms/testimonials/${id}`, data);
 export const deleteTestimonial = (id: number | string) => api.delete(`/cms/testimonials/${id}`);
 
+// Home Sections
+export const getHomeSections = () => api.get('/cms/home-sections');
+
 const cmsService = {
   getBanners,
   getActivePopups,
@@ -32,6 +35,7 @@ const cmsService = {
   updateTestimonial,
   deleteTestimonial,
   getVideoSettings,
+  getHomeSections
 };
 
 export default cmsService;

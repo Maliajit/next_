@@ -19,7 +19,7 @@ export function OrderProvider({ children }) {
 
     return {
       ...order,
-      id: order.id?.toString() || order.orderNumber,
+      id: order.orderNumber || order.id?.toString(),
       date: order.createdAt 
         ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) 
         : (order.date || 'N/A'),

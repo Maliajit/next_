@@ -226,6 +226,8 @@ const Home = () => {
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false
   );
   const [videoSettings, setVideoSettings] = useState<any>({});
+  const [homeSections, setHomeSections] = useState<Record<string, boolean>>({});
+  const [loadingHomeSections, setLoadingHomeSections] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -245,6 +247,23 @@ const Home = () => {
         }
       } catch (err) {
         console.error("Failed to load video settings", err);
+      }
+
+      try {
+        const { data: hSections } = await cmsService.getHomeSections();
+        if (hSections && hSections.length > 0) {
+          const sectionMap: Record<string, boolean> = {};
+          hSections.forEach((s: any) => {
+            sectionMap[s.type] = s.status === true || s.status === 'true';
+          });
+          setHomeSections(sectionMap);
+          // Refresh ScrollTrigger after a short delay to allow DOM to settle
+          setTimeout(() => ScrollTrigger.refresh(), 100);
+        }
+      } catch (err) {
+        console.error("Failed to load home sections", err);
+      } finally {
+        setLoadingHomeSections(false);
       }
     };
     loadData();
@@ -292,10 +311,12 @@ const Home = () => {
       }
     });
 
+    ScrollTrigger.refresh();
+
     return () => {
       ScrollTrigger.getAll().forEach(t => t.kill());
     };
-  }, []);
+  }, [homeSections]);
 
   // Features focal-point animation removed as the section is currently inactive
 
@@ -783,129 +804,147 @@ const Home = () => {
           .flip-group + .flip-group::before { left: -4px; }
         }
       `}</style>
-
-      {/* ── Hero Section 1 ── */}
-      <div className="section s1" ref={el => { sectionsRef.current[0] = el; }}>
-        <div className="video-container">
-          <video
-            src={getFileUrl(videoSettings.home_hero_video) || "/assets/Fylexxx.mp4"}
-            autoPlay muted loop playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+      
+      {loadingHomeSections ? (
+        <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+          {/* Subtle minimal loader */}
+          <div style={{ width: 40, height: 40, border: '2px solid #f3f3f3', borderTop: '2px solid #111', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
         </div>
-        <div className="hero-center">
-          <h1 className="hero-title">{videoSettings.home_hero_video_title || "The Fylex"}</h1>
-          <p className="hero-subtitle">{videoSettings.home_hero_video_subtitle || "A Legacy of Precision"}</p>
-          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-            <Link href="/products">
-              <button className="cta-button">Explore</button>
-            </Link>
+      ) : (
+        <>
+      {/* ── Hero Section 1 ── */}
+      {homeSections.s1 && (
+        <div className="section s1" ref={el => { sectionsRef.current[0] = el; }}>
+          <div className="video-container">
+            <video
+              src={getFileUrl(videoSettings.home_hero_video) || "/assets/Fylexxx.mp4"}
+              autoPlay muted loop playsInline
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          <div className="hero-center">
+            <h1 className="hero-title">{videoSettings.home_hero_video_title || "The Fylex"}</h1>
+            <p className="hero-subtitle">{videoSettings.home_hero_video_subtitle || "A Legacy of Precision"}</p>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+              <Link href="/products">
+                <button className="cta-button">Explore</button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Hero Section 2 ── */}
-      <div
-        className="section s2"
-        style={{ backgroundImage: "url('/Rim.png')" }}
-        ref={el => { sectionsRef.current[1] = el; }}
-      >
-        <div className="card">
-          <div className="label">II · Movement</div>
-          <h1>The <em>Heart</em> Within</h1>
-          <div className="divider"></div>
-          <p>
-            Hundreds of hand-finished bridges and jewels.<br />
-            A calibre beating 28,800 times each hour.
-          </p>
+      {homeSections.s2 && (
+        <div
+          className="section s2"
+          style={{ backgroundImage: "url('/Rim.png')" }}
+          ref={el => { sectionsRef.current[1] = el; }}
+        >
+          <div className="card">
+            <div className="label">II · Movement</div>
+            <h1>The <em>Heart</em> Within</h1>
+            <div className="divider"></div>
+            <p>
+              Hundreds of hand-finished bridges and jewels.<br />
+              A calibre beating 28,800 times each hour.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Hero Section 3 ── */}
-      <div className="section s3" ref={el => { sectionsRef.current[2] = el; }}>
-        <div className="card">
-          <div className="label">III · Design</div>
-          <h1>Form Follows <em>Time</em></h1>
-          <div className="divider"></div>
-          <p>
-            Sapphire crystal, polished steel, supple leather.<br />
-            Every element chosen for eternity, not fashion.
-          </p>
+      {homeSections.s3 && (
+        <div className="section s3" ref={el => { sectionsRef.current[2] = el; }}>
+          <div className="card">
+            <div className="label">III · Design</div>
+            <h1>Form Follows <em>Time</em></h1>
+            <div className="divider"></div>
+            <p>
+              Sapphire crystal, polished steel, supple leather.<br />
+              Every element chosen for eternity, not fashion.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Hero Section 4 (video) ── */}
-      <div className="section s4" ref={el => { sectionsRef.current[3] = el; }}>
-        <div className="video-container">
-          <video
-            src={getFileUrl(videoSettings.home_legacy_video) || "/assets/Fylexx.mp4"}
-            autoPlay muted loop playsInline
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+      {homeSections.s4 && (
+        <div className="section s4" ref={el => { sectionsRef.current[3] = el; }}>
+          <div className="video-container">
+            <video
+              src={getFileUrl(videoSettings.home_legacy_video) || "/assets/Fylexx.mp4"}
+              autoPlay muted loop playsInline
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          <div className="card" style={{ zIndex: 10 }}>
+            <h1 dangerouslySetInnerHTML={{ __html: videoSettings.home_legacy_video_title ? videoSettings.home_legacy_video_title.replace('Generations', '<em>Generations</em>') : "Beyond <em>Generations</em>" }}></h1>
+            <p className="legacy-text">{videoSettings.home_legacy_video_subtitle || "A Fylex is not owned — it is entrusted."}</p>
+          </div>
         </div>
-        <div className="card" style={{ zIndex: 10 }}>
-          <h1 dangerouslySetInnerHTML={{ __html: videoSettings.home_legacy_video_title ? videoSettings.home_legacy_video_title.replace('Generations', '<em>Generations</em>') : "Beyond <em>Generations</em>" }}></h1>
-          <p className="legacy-text">{videoSettings.home_legacy_video_subtitle || "A Fylex is not owned — it is entrusted."}</p>
-        </div>
-      </div>
+      )}
 
 
 
       {/* ── Hero Section 6 (Featured Grid) ── */}
-      <div className="section featured-grid-wrap s5" ref={el => { sectionsRef.current[5] = el; }}>
-        <div className="featured-grid-header">
-          <h2 className="featured-title">Featured</h2>
-        </div>
-        <div className="featured-container">
-          {loadingFeatured ? (
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', height: '100%', width: '100%' }}>
-              <ProductSkeleton />
-              {!isMobile && <ProductSkeleton />}
-            </div>
-          ) : (
-            <>
-              <Swiper
-                modules={[Autoplay, Pagination]}
-                spaceBetween={0}
-                slidesPerView={isMobile ? 1 : 2}
-                autoplay={{ delay: 5000, disableOnInteraction: false }}
-                pagination={{ 
-                  clickable: true,
-                  dynamicBullets: false
-                }}
-                loop={featuredProducts.length >= (isMobile ? 1 : 2)}
-                className="featured-swiper"
-              >
-                  {featuredProducts.map((p) => {
-                    const display = getDisplayData(p);
-                    
-                    return (
-                      <SwiperSlide key={p.id}>
-                        <div className="featured-item-v2" style={{ background: p.gradient || p.bgColor || '#f5f5f5' }}>
-                          {display.image && (
-                            <img 
-                              src={display.image} 
-                              alt={display.name} 
-                              style={{ position: 'absolute', top: '-40px', left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
-                            />
-                          )}
-                          <div className="featured-content" style={{ color: p.textColor || '#111', zIndex: 2 }}>
-                            <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
-                            <div className="f-title" style={{ color: 'inherit' }}>{display.name} <em>{p.titleAccent || ''}</em></div>
-                            <div className="f-price" style={{ margin: '4px 0 14px', fontSize: '1.1rem', fontWeight: 500 }}>
-                              {display.isConfigurable ? 'From ' : ''}{display.formattedPrice}
+      {homeSections.featured && (
+        <div className="section featured-grid-wrap s5" ref={el => { sectionsRef.current[5] = el; }}>
+          <div className="featured-grid-header">
+            <h2 className="featured-title">Featured</h2>
+          </div>
+          <div className="featured-container">
+            {loadingFeatured ? (
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', height: '100%', width: '100%' }}>
+                <ProductSkeleton />
+                {!isMobile && <ProductSkeleton />}
+              </div>
+            ) : (
+              <>
+                <Swiper
+                  modules={[Autoplay, Pagination]}
+                  spaceBetween={0}
+                  slidesPerView={isMobile ? 1 : 2}
+                  autoplay={{ delay: 5000, disableOnInteraction: false }}
+                  pagination={{ 
+                    clickable: true,
+                    dynamicBullets: false
+                  }}
+                  loop={featuredProducts.length >= (isMobile ? 1 : 2)}
+                  className="featured-swiper"
+                >
+                    {featuredProducts.map((p) => {
+                      const display = getDisplayData(p);
+                      
+                      return (
+                        <SwiperSlide key={p.id}>
+                          <div className="featured-item-v2" style={{ background: p.gradient || p.bgColor || '#f5f5f5' }}>
+                            {display.image && (
+                              <img 
+                                src={display.image} 
+                                alt={display.name} 
+                                style={{ position: 'absolute', top: '-40px', left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 1 }}
+                              />
+                            )}
+                            <div className="featured-content" style={{ color: p.textColor || '#111', zIndex: 2 }}>
+                              <div className="f-label" style={{ color: p.accentColor || '#666' }}>{p.subtitle || p.tagline}</div>
+                              <div className="f-title" style={{ color: 'inherit' }}>{display.name} <em>{p.titleAccent || ''}</em></div>
+                              <div className="f-price" style={{ margin: '4px 0 14px', fontSize: '1.1rem', fontWeight: 500 }}>
+                                {display.isConfigurable ? 'From ' : ''}{display.formattedPrice}
+                              </div>
+                              <Link href={`/discover?watch=${p.id}`} className="f-shop-btn">Shop</Link>
                             </div>
-                            <Link href={`/discover?watch=${p.id}`} className="f-shop-btn">Shop</Link>
                           </div>
-                        </div>
-                      </SwiperSlide>
-                    );
-                  })}
-              </Swiper>
-            </>
-          )}
+                        </SwiperSlide>
+                      );
+                    })}
+                </Swiper>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Features Section (commented-out in original, preserved here) ── */}
       {/* <div className="features-wrapper" id="featuresWrapper" ref={featuresRef}>
@@ -934,30 +973,36 @@ const Home = () => {
       </div> */}
 
       {/* ── Gallery Section (new smooth RAF marquee) ── */}
-      <div ref={galleryRef}>
-        <section className="fylex-gallery-section" id="gallery">
-          <div className="fylex-gallery-header">
-            <h2>The Atelier Chronicles</h2>
-            <p>A glimpse into the meticulous craftsmanship that defines our legacy.</p>
-          </div>
-          <GalleryCarousel />
-        </section>
-      </div>
+      {homeSections.gallery && (
+        <div ref={galleryRef}>
+          <section className="fylex-gallery-section" id="gallery">
+            <div className="fylex-gallery-header">
+              <h2>The Atelier Chronicles</h2>
+              <p>A glimpse into the meticulous craftsmanship that defines our legacy.</p>
+            </div>
+            <GalleryCarousel />
+          </section>
+        </div>
+      )}
 
       {/* ── Flip Counter Section ── */}
-      <section className="flip-counter-section">
-        <div className="flip-counter-wrapper">
-          {renderFlipCounter()}
-          <p style={{
-            marginTop: '24px', fontSize: '1rem', color: '#555555',
-            textTransform: 'uppercase', textAlign: 'center'
-          }}>
-            Seconds of watchmaking excellence
-          </p>
-        </div>
-      </section>
-
-      {/* ── Lightbox ── */}
+      {homeSections.counter && (
+        <section className="flip-counter-section">
+          <div className="flip-counter-wrapper">
+            {renderFlipCounter()}
+            <p style={{
+              marginTop: '24px', fontSize: '1rem', color: '#555555',
+              textTransform: 'uppercase', textAlign: 'center'
+            }}>
+              Seconds of watchmaking excellence
+            </p>
+          </div>
+        </section>
+      )}
+         </>
+      )}
+ 
+       {/* ── Lightbox ── */}
       {lightboxImg && (
         <div
           className="fixed inset-0 z-[2000] bg-black/95 flex items-center justify-center backdrop-blur-sm"

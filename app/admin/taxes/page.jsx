@@ -326,16 +326,16 @@ const TaxPage = () => {
       />
 
       {/* Tabs Layout */}
-      <div className="flex gap-4 mb-2">
+      <div className="flex gap-4 !mb-2">
         <button 
             onClick={() => setActiveTab('rates')}
-            className={`px-6 py-3 rounded-2xl font-bold transition-all ${activeTab === 'rates' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+            className={`!px-6 !py-3 rounded-2xl font-bold transition-all ${activeTab === 'rates' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
         >
             <i className="fas fa-percent mr-2"></i> Tax Rates
         </button>
         <button 
             onClick={() => setActiveTab('classes')}
-            className={`px-6 py-3 rounded-2xl font-bold transition-all ${activeTab === 'classes' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+            className={`!px-6 !py-3 rounded-2xl font-bold transition-all ${activeTab === 'classes' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
         >
             <i className="fas fa-layer-group mr-2"></i> Tax Classes
         </button>
@@ -343,7 +343,7 @@ const TaxPage = () => {
 
       {activeTab === 'rates' ? (
         <div className="admin-card overflow-hidden border border-slate-200 shadow-sm rounded-[24px]">
-          <div className="bg-white border-bottom border-slate-100 px-6 py-5 flex items-center justify-between">
+          <div className="bg-white border-bottom border-slate-100 !px-6 !py-5 flex items-center justify-between">
             <h3 className="font-extrabold text-slate-800 m-0">Global Tax Rates</h3>
             <div className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase tracking-widest">{taxes.length} entries found</div>
           </div>
