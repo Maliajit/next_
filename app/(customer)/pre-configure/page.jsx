@@ -15,6 +15,8 @@ const PreConfigure = () => {
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState(new Set());
   const [swiperInstance, setSwiperInstance] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [categories, setCategories] = useState(['All']);
 
   useEffect(() => {
     if (swiperInstance && swiperInstance.autoplay) {
@@ -50,10 +52,15 @@ const PreConfigure = () => {
             price: display.formattedPrice,
             heroImage: display.image,
             theme: p.theme || 'champagne',
-            shortDescription: p.shortDescription || p.description || ''
+            shortDescription: p.shortDescription || p.description || '',
+            category: p.mainCategory?.name || 'Uncategorized'
           };
         });
         setProducts(mapped);
+        
+        // Extract unique categories
+        const uniqueCats = ['All', ...new Set(mapped.map(p => p.category).filter(c => c !== 'Uncategorized'))];
+        setCategories(uniqueCats);
       } catch (err) {
         console.error('Failed to fetch products for pre-configure', err);
       } finally {
@@ -323,6 +330,50 @@ const PreConfigure = () => {
           .btn-configure { padding: 10px 24px; font-size: 0.75rem; }
           .swiper-pagination { bottom: 30px !important; }
         }
+
+        /* Category Filter Styles */
+        .category-nav {
+          position: absolute;
+          top: 100px;
+          left: 0;
+          width: 100%;
+          z-index: 60;
+          display: flex;
+          justify-content: center;
+          gap: 40px;
+          pointer-events: auto;
+        }
+        .category-item {
+          font-family: 'Inter', sans-serif;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #1a1a1a;
+          cursor: pointer;
+          opacity: 0.4;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          text-transform: capitalize;
+        }
+        .category-item:hover {
+          opacity: 0.8;
+        }
+        .category-item.active {
+          opacity: 1;
+          font-weight: 600;
+        }
+        .category-dot {
+          color: #1a1a1a;
+          font-size: 1.2rem;
+          line-height: 0;
+          margin-left: 2px;
+        }
+
+        @media (max-width: 768px) {
+          .category-nav { top: 90px; gap: 20px; }
+          .category-item { font-size: 0.8rem; }
+        }
       `}</style>
 
       <div className={`header-wrapper ${expandedIds.size > 0 ? 'header-blurred' : ''}`}>
@@ -330,6 +381,18 @@ const PreConfigure = () => {
       </div>
 
       <main className="flex-1 relative overflow-hidden z-10">
+        <nav className="category-nav">
+          {categories.map(cat => (
+            <div 
+              key={cat} 
+              className={`category-item ${activeCategory === cat ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat)}
+            >
+              {cat}
+              {activeCategory === cat && <span className="category-dot">•</span>}
+            </div>
+          ))}
+        </nav>
         <div className="swiper-container-main">
           <Swiper
             onSwiper={setSwiperInstance}
@@ -342,7 +405,9 @@ const PreConfigure = () => {
             loop={true}
             className="mySwiper h-full w-full"
           >
-            {products.map((product) => (
+            {products
+              .filter(p => activeCategory === 'All' || p.category === activeCategory)
+              .map((product) => (
               <SwiperSlide key={product.id}>
                 <div className={`slide-bg section-${product.theme}`}>
                   <div className="p-aura-shadow"></div>

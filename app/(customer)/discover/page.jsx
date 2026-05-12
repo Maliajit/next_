@@ -580,7 +580,7 @@ function DiscoverContent() {
           position: absolute;
           bottom: 60px;
           left: 40px;
-          right: 40px;
+          right: 30px;
           z-index: 100;
           display: flex;
           justify-content: space-between;

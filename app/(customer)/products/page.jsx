@@ -33,6 +33,25 @@ const Products = () => {
 
         const mapped = rawData.map((p, idx) => {
             const display = getDisplayData(p);
+            
+            // Flatten orderItems into individual "sold cards"
+            const soldCards = [];
+            let globalIdx = 1;
+            (p.orderItems || []).forEach(item => {
+                const variant = item.productVariant;
+                for (let i = 0; i < item.quantity; i++) {
+                    const vDisplay = getDisplayData(p, variant);
+                    soldCards.push({
+                        id: globalIdx++,
+                        orderId: item.orderId?.toString(),
+                        name: vDisplay.subtitle || vDisplay.name,
+                        img: vDisplay.image,
+                        soldAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently',
+                        sku: item.sku
+                    });
+                }
+            });
+
             return {
                 id: p.id.toString(),
                 num: String(idx + 1).padStart(2, '0'),
@@ -53,14 +72,7 @@ const Products = () => {
                 gradient: p.gradient || '',
                 mistColor: p.mistColor || '',
                 mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
-                combinations: (p.variants || []).map(v => {
-                    const vDisplay = getDisplayData(p, v);
-                    return {
-                        id: v.id.toString(),
-                        name: v.variantAttributes?.map(va => va.attributeValue?.label).join(', ') || v.sku,
-                        img: vDisplay.image
-                    };
-                })
+                combinations: soldCards
             };
         });
         setCollections(mapped);
@@ -637,7 +649,7 @@ const Products = () => {
           font-weight: 600;
           color: #888;
           letter-spacing: 0.1em;
-          min-width: 40px;
+          // min-width: 40px;
         }
         .info-combo-img-wrap {
           width: 60px;
@@ -947,7 +959,7 @@ const Products = () => {
 
                 <span className="p-price-tag">{col.price}</span>
                 <div className="p-inventory-status">
-                  <span>Limited to {Math.max(0, col.totalStock - col.sold)} pieces</span>
+                  <span>Limited to {col.totalStock} pieces</span>
                   <svg onClick={() => openInfoModal(col)} className="i-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" title="View previously configured combinations">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -979,20 +991,20 @@ const Products = () => {
       <div className={`info-modal-overlay ${activeModalData ? 'show' : ''}`} onClick={closeInfoModal}>
         <div className="info-modal-box" onClick={(e) => e.stopPropagation()}>
           <div className="info-modal-header">
-            <h3 className="info-modal-title">Sold Configurations</h3>
+            <h3 className="info-modal-title">Sold Configurations :- {activeModalData?.sold}/{activeModalData?.totalStock}</h3>
             <button className="info-modal-close" onClick={closeInfoModal}>✕</button>
           </div>
           <div className="info-modal-content" data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>
             {activeModalData?.combinations?.length > 0 ? (
               activeModalData.combinations.map((combo) => (
                 <div key={combo.id} className="info-combo-item">
-                  <span className="info-combo-num">#{combo.id}</span>
+                  <span className="info-combo-num" style={{ fontSize: '1.2rem', color: '#c4a35a' }}>•</span>
                   <div className="info-combo-img-wrap">
                     <img src={combo.img} alt={`Combo ${combo.id}`} />
                   </div>
                   <div className="info-combo-details">
                     <span className="info-combo-name">{combo.name}</span>
-                    <span className="info-combo-status">Purchased & Configured</span>
+                    <span className="info-combo-status">Sold on {combo.soldAt}</span>
                   </div>
                 </div>
               ))
