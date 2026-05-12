@@ -29,7 +29,7 @@ const EditProductPage = () => {
     const [form, setForm] = useState({
         name: '', slug: '', productCode: '',
         shortDesc: '', description: '',
-        status: 'draft', productType: 'simple',
+        status: 'draft', productType: 'configurable',
 
         heroImage: null, // {id, url}
         gallery: [], // [{id, url}]
@@ -106,7 +106,7 @@ const EditProductPage = () => {
                     description: p.description || '',
                     heritageText: p.heritageText || '',
                     status: p.status || 'draft',
-                    productType: p.productType || 'simple',
+                    productType: p.productType || 'configurable',
 
                     categoryId: p.mainCategoryId?.toString() || '',
                     taxClassId: p.taxClassId?.toString() || '',
@@ -419,7 +419,6 @@ const EditProductPage = () => {
                                             { value: 'draft', label: 'Draft' }
                                         ]} />
                                         <FormField label="Product Type" name="productType" type="select" value={form.productType} onChange={handleChange} options={[
-                                            { value: 'simple', label: 'Simple Product' },
                                             { value: 'configurable', label: 'Configurable (Variants)' }
                                         ]} />
                                         {form.productType === 'simple' && (

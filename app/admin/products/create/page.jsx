@@ -15,7 +15,6 @@ const AddProductPage = () => {
     const toast = useToast();
     const router = useRouter();
     const { data, loading, addRecord } = useAdminData();
-    const brands = data.brands || [];
     const categories = data.categories || [];
     const taxClasses = data.taxClasses || [];
     const [tags, setTags] = useState([]);
@@ -25,7 +24,7 @@ const AddProductPage = () => {
     const [form, setForm] = useState({
         name: '', slug: '', tagline: '', subtitle: '',
         shortDesc: '', description: '', heritageText: '',
-        status: 'draft', productType: 'simple',
+        status: 'draft', productType: 'configurable',
         brandId: '', categoryId: '', taxClassId: '',
         heroImage: null,
         gallery: [],
@@ -313,7 +312,6 @@ const AddProductPage = () => {
                                             { value: 'draft', label: 'Draft' }
                                         ]} />
                                         <FormField label="Product Type" name="productType" type="select" value={form.productType} onChange={handleChange} options={[
-                                            { value: 'simple', label: 'Simple Product' },
                                             { value: 'configurable', label: 'Configurable (Variants)' }
                                         ]} />
                                         {form.productType === 'simple' && (
@@ -369,10 +367,6 @@ const AddProductPage = () => {
                                             { value: '', label: 'Select Category' },
                                             ...categories.map(c => ({ value: c.id.toString(), label: c.name }))
                                         ]} required />
-                                        <FormField label="Brand" name="brandId" type="select" value={form.brandId} onChange={handleChange} options={[
-                                            { value: '', label: 'Select Brand' },
-                                            ...brands.map(b => ({ value: b.id.toString(), label: b.name }))
-                                        ]} />
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 !mb-2">Tags</label>
                                             <div className=" flex flex-wrap gap-2 !px-3 bg-gray-50  border border-gray-200 !min-h-[50px]">

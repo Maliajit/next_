@@ -177,6 +177,7 @@ const ProductEditPageContent = () => {
             sku: form.sku,
             price: parseFloat(form.basePrice) || 0,
             qty: parseInt(form.stock) || 0,
+            productType: 'configurable',
 
             mainCategoryId: form.categoryId,
             shortDescription: form.shortDesc,

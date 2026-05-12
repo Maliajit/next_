@@ -28,6 +28,7 @@ const ProductWizard = () => {
         productCode: '',
         mainCategoryId: '',
 
+        productType: 'configurable',
         // Theme
         bgColor: '#ffffff',
         accentColor: '#000000',
