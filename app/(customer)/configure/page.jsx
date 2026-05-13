@@ -11,7 +11,7 @@ import Lenis from 'lenis';
 import { X, RefreshCw, ChevronRight, ChevronLeft, Plus } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { fetchProducts } from '../../../lib/api';
-import { getFileUrl, resolveProductImage } from '../../../lib/utils';
+import { getFileUrl, resolveProductImage, resolveProductBackground } from '../../../lib/utils';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -40,11 +40,11 @@ function ConfigureContent() {
   // Sync state to URL
   useEffect(() => {
     if (Object.keys(userSelections).length > 0) {
-        const params = new URLSearchParams(searchParams.toString());
-        Object.entries(userSelections).forEach(([key, val]) => {
-            if (val) params.set(key, val);
-        });
-        router.replace(`?${params.toString()}`, { scroll: false });
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(userSelections).forEach(([key, val]) => {
+        if (val) params.set(key, val);
+      });
+      router.replace(`?${params.toString()}`, { scroll: false });
     }
   }, [userSelections]);
 
@@ -66,6 +66,7 @@ function ConfigureContent() {
           title: p.name,
           price: `₹${Number(p.price || 0).toLocaleString('en-IN')}`,
           heroImage: resolveProductImage(p),
+          heroBgImage: resolveProductBackground(p),
           galleryImages: [],
           theme: p.theme || 'champagne',
           accentColor: p.accentColor || '#c4a35a',
@@ -111,8 +112,8 @@ function ConfigureContent() {
         // Load selections from URL or defaults
         const initialSelections = {};
         dynamicSteps.forEach(step => {
-            const urlVal = searchParams.get(step.id);
-            initialSelections[step.id] = urlVal || step.options[0]?.name;
+          const urlVal = searchParams.get(step.id);
+          initialSelections[step.id] = urlVal || step.options[0]?.name;
         });
         setUserSelections(initialSelections);
 
@@ -130,7 +131,10 @@ function ConfigureContent() {
           const vPath = resolveProductImage(p, match);
           if (vPath) setPreviewSrc(vPath);
 
-          const matchGallery = (match.variantImages || []).map(vi => 
+          const vBgPath = resolveProductBackground(p, match);
+          setProduct(prev => ({ ...prev, heroBgImage: vBgPath }));
+
+          const matchGallery = (match.variantImages || []).map(vi =>
             getFileUrl(vi.media?.path || vi.media?.url || vi.media?.fileName)
           ).filter(Boolean);
           setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
@@ -190,7 +194,7 @@ function ConfigureContent() {
     if (currentStep > 0) {
       const prevStepIdx = currentStep - 1;
       setCurrentStep(prevStepIdx);
-      
+
       const prevStepId = stepsData[prevStepIdx].id;
       const savedSelection = userSelections[prevStepId];
       const optIdx = stepsData[prevStepIdx].options.findIndex(o => o.name === savedSelection);
@@ -203,11 +207,12 @@ function ConfigureContent() {
         const vPath = getFileUrl(vImg?.path || vImg?.url || (vImg?.fileName ? `/uploads/${vImg.fileName}` : null));
         updatePreviewImage(vPath || stepsData[prevStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
         setDisplayPrice(`₹${Number(match.sellingPrice || 0).toLocaleString('en-IN')}`);
-        
-        const matchGallery = (match.variantImages || []).map(vi => 
+
+        const vBgPath = resolveProductBackground(product, match);
+        const matchGallery = (match.variantImages || []).map(vi =>
           getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
         ).filter(Boolean);
-        setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
+        setProduct(prev => ({ ...prev, galleryImages: matchGallery, heroBgImage: vBgPath }));
       } else {
         updatePreviewImage(stepsData[prevStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
       }
@@ -251,10 +256,11 @@ function ConfigureContent() {
       updatePreviewImage(vPath || src);
       setDisplayPrice(`₹${Number(match.sellingPrice || 0).toLocaleString('en-IN')}`);
 
-      const matchGallery = (match.variantImages || []).map(vi => 
+      const vBgPath = resolveProductBackground(product, match);
+      const matchGallery = (match.variantImages || []).map(vi =>
         getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
       ).filter(Boolean);
-      setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
+      setProduct(prev => ({ ...prev, galleryImages: matchGallery, heroBgImage: vBgPath }));
     } else {
       updatePreviewImage(src);
     }
@@ -265,7 +271,7 @@ function ConfigureContent() {
     if (currentStep < stepsData.length - 1) {
       const nextStepIdx = currentStep + 1;
       setCurrentStep(nextStepIdx);
-      
+
       const nextStepId = stepsData[nextStepIdx].id;
       const savedSelection = userSelections[nextStepId];
       const optIdx = stepsData[nextStepIdx].options.findIndex(o => o.name === savedSelection);
@@ -279,10 +285,11 @@ function ConfigureContent() {
         updatePreviewImage(vPath || stepsData[nextStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
         setDisplayPrice(`₹${Number(match.sellingPrice || 0).toLocaleString('en-IN')}`);
 
-        const matchGallery = (match.variantImages || []).map(vi => 
+        const vBgPath = resolveProductBackground(product, match);
+        const matchGallery = (match.variantImages || []).map(vi =>
           getFileUrl(vi.media?.path || vi.media?.url || (vi.media?.fileName ? `/uploads/${vi.media.fileName}` : null))
         ).filter(Boolean);
-        setProduct(prev => ({ ...prev, galleryImages: matchGallery }));
+        setProduct(prev => ({ ...prev, galleryImages: matchGallery, heroBgImage: vBgPath }));
       } else {
         updatePreviewImage(stepsData[nextStepIdx].options[optIdx >= 0 ? optIdx : 0].img);
       }
@@ -309,7 +316,7 @@ function ConfigureContent() {
     <div className="customize-root">
       <style>{`
         .customize-root { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #111; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
-        #configurator { flex: 1; width: 100%; background: radial-gradient(circle at center, #FFFFFF 0%, #ebedf0 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 5; }
+        #configurator { flex: 1; width: 100%; background: ${product.heroBgImage ? `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${getFileUrl(product.heroBgImage)}) center/cover no-repeat` : 'radial-gradient(circle at center, #FFFFFF 0%, #ebedf0 100%)'}; position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 5; }
         .top-actions { position: fixed; top: 100px; right: 30px; display: flex; align-items: center; gap: 15px; z-index: 999; }
         .top-left-actions { position: fixed; top: 100px; left: 30px; display: flex; align-items: center; gap: 15px; z-index: 999; }
         .close-btn { display: flex; align-items: center; justify-content: center; color: #111; cursor: pointer; }

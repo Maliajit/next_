@@ -55,6 +55,7 @@ function DiscoverContent() {
             return {
               ...p,
               ...display,
+              heroBgImage: display.heroBgImage,
               id: p.id.toString(),
               variantId: display.variantId,
               heroImage: display.image, // Resolve heroImage using display logic
@@ -279,6 +280,7 @@ function DiscoverContent() {
     product.formattedPrice = vDisplay.formattedPrice;
     product.heroImage = vDisplay.image;
     product.image = vDisplay.image;
+    product.heroBgImage = vDisplay.heroBgImage;
 
     const vGallery = (matchingVariant.variantImages || [])
       .filter(vi => vi.type === 'GALLERY' || vi.type === 'gallery')
@@ -1415,8 +1417,10 @@ function DiscoverContent() {
         .cfg-specs-grid {
           display: flex;
           flex-direction: column;
-          gap: 60px;
+          gap: 40px;
           align-items: center;
+          width: 100%;
+          max-width: 100%;
         }
         .cfg-specs-img-wrap {
           width: 100vw;
@@ -1431,9 +1435,12 @@ function DiscoverContent() {
         }
         .cfg-spec-accordion {
           border-top: 1px solid #e5e5e5;
+          width: 100%;
+          max-width: 1000px; /* Optional cap for desktop */
         }
         .cfg-spec-item {
           border-bottom: 1px solid #e5e5e5;
+          width: 100%;
         }
         .cfg-spec-trigger {
           width: 100%;
@@ -1504,27 +1511,45 @@ function DiscoverContent() {
         .cfg-spec-label {
           color: #1a1a1a;
           font-weight: 600;
-          width: 40%;
+          width: 45%;
+          word-wrap: break-word;
         }
         .cfg-spec-value {
           color: #444;
           text-align: left;
-          width: 55%;
+          width: 50%;
           line-height: 1.5;
+        }
+
+        @media (max-width: 640px) {
+          .cfg-spec-row {
+            padding: 15px 0;
+          }
+          .cfg-spec-label {
+            width: 40%;
+          }
+          .cfg-spec-value {
+            width: 55%;
+          }
         }
 
         @media (max-width: 1024px) {
           .cfg-specs-grid {
             grid-template-columns: 1fr;
-            gap: 60px;
+            gap: 40px;
+            padding: 0 5%;
+          }
+          .cfg-specs-title {
+            font-size: 1.8rem;
+          }
+          .cfg-specs-header {
+            margin-bottom: 40px;
+            padding: 0 5%;
           }
           .cfg-specs-img-wrap {
             position: relative;
             top: 0;
             order: -1;
-          }
-          .cfg-specs-title {
-            font-size: 2rem;
           }
         }
 
@@ -1567,14 +1592,14 @@ function DiscoverContent() {
           </div>
         )}
 
-        <section id="hero" className={`cfg-hero ${product.discoverHeroBgImage ? 'has-bg-image' : ''}`} ref={heroRef} style={!product.discoverHeroBgImage ? { background: product.bgColor || 'radial-gradient(circle at center, #ffffff 0%, #e8edf3 100%)' } : {}}>
-          {product.discoverHeroBgImage ? (
+        <section id="hero" className={`cfg-hero ${product.heroBgImage ? 'has-bg-image' : ''}`} ref={heroRef} style={!product.heroBgImage ? { background: product.bgColor || 'radial-gradient(circle at center, #ffffff 0%, #e8edf3 100%)' } : {}}>
+          {product.heroBgImage ? (
             <>
-              <div 
+              <div
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  backgroundImage: `url(${getFileUrl(product.discoverHeroBgImage)})`,
+                  backgroundImage: `url(${getFileUrl(product.heroBgImage)})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   zIndex: 0
@@ -1600,19 +1625,19 @@ function DiscoverContent() {
           {/* Bottom Left Details */}
           <div className="cfg-details-box" style={{ zIndex: 10 }}>
             <div className="cfg-details-left">
-              <h1 className="cfg-details-title" style={product.discoverHeroBgImage ? { color: '#ffffff' } : {}}>{product.title}</h1>
-              <p className="cfg-details-specs" style={product.discoverHeroBgImage ? { color: 'rgba(255,255,255,0.8)' } : {}}>{product.subtitle}</p>
-              <p className="cfg-details-ref" style={product.discoverHeroBgImage ? { color: 'rgba(255,255,255,0.6)' } : {}}>Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
+              <h1 className="cfg-details-title" style={product.heroBgImage ? { color: '#ffffff' } : {}}>{product.title}</h1>
+              <p className="cfg-details-specs" style={product.heroBgImage ? { color: 'rgba(255,255,255,0.8)' } : {}}>{product.subtitle}</p>
+              <p className="cfg-details-ref" style={product.heroBgImage ? { color: 'rgba(255,255,255,0.6)' } : {}}>Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
 
               <div className="cfg-price-add-row">
-                <div className="cfg-details-price" style={product.discoverHeroBgImage ? { color: '#ffffff' } : {}}>
+                <div className="cfg-details-price" style={product.heroBgImage ? { color: '#ffffff' } : {}}>
                   ₹ {product.price?.toLocaleString() || '7,838,000'}
                   {/* <div className="cfg-info-icon">i</div> */}
                 </div>
 
                 <div className="cfg-actions-group">
                   {hasConfig && (
-                    <button className="cfg-add-now-btn" style={product.discoverHeroBgImage ? { background: '#ffffff', color: '#000000' } : {}} onClick={handleBookNow}>Add to Cart</button>
+                    <button className="cfg-add-now-btn" style={product.heroBgImage ? { background: '#ffffff', color: '#000000' } : {}} onClick={handleBookNow}>Add to Cart</button>
                   )}
                 </div>
               </div>
@@ -1624,7 +1649,7 @@ function DiscoverContent() {
                   className={`cfg-fav-inline ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
                   onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
                   title={isInWishlist(product.currentVariantId || product.variantId) ? 'Remove from Favourite' : 'Add to Favourite'}
-                  style={product.discoverHeroBgImage ? { color: '#ffffff', background: 'rgba(255,255,255,0.2)' } : {}}
+                  style={product.heroBgImage ? { color: '#ffffff', background: 'rgba(255,255,255,0.2)' } : {}}
                 >
                   <svg
                     viewBox="0 0 24 24"

@@ -21,7 +21,7 @@ const Products = () => {
       try {
         const res = await fetchProducts();
         const rawData = res.data || (Array.isArray(res) ? res : []);
-        
+
         const hexToRgb = (hex) => {
           if (!hex) return '196, 163, 90';
           const cleanHex = hex.replace('#', '');
@@ -32,48 +32,48 @@ const Products = () => {
         };
 
         const mapped = rawData.map((p, idx) => {
-            const display = getDisplayData(p);
-            
-            // Flatten orderItems into individual "sold cards"
-            const soldCards = [];
-            let globalIdx = 1;
-            (p.orderItems || []).forEach(item => {
-                const variant = item.productVariant;
-                for (let i = 0; i < item.quantity; i++) {
-                    const vDisplay = getDisplayData(p, variant);
-                    soldCards.push({
-                        id: globalIdx++,
-                        orderId: item.orderId?.toString(),
-                        name: vDisplay.subtitle || vDisplay.name,
-                        img: vDisplay.image,
-                        soldAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently',
-                        sku: item.sku
-                    });
-                }
-            });
+          const display = getDisplayData(p);
 
-            return {
-                id: p.id.toString(),
-                num: String(idx + 1).padStart(2, '0'),
-                title: display.name,
-                titleAccent: '',
-                subtitle: p.subtitle || 'Luxury Collection',
-                tagline: p.tagline || '',
-                description: p.description || p.shortDescription || '',
-                image: display.image,
-                price: display.formattedPrice,
-                totalStock: p.qty || 0,
-                sold: p.soldCount || 0,
-                theme: p.theme || 'champagne',
-                bgColor: p.bgColor || '#ffffff',
-                accentColor: p.accentColor || '#c4a35a',
-                accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
-                textColor: p.textColor || '#1a1a1a',
-                gradient: p.gradient || '',
-                mistColor: p.mistColor || '',
-                mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
-                combinations: soldCards
-            };
+          // Flatten orderItems into individual "sold cards"
+          const soldCards = [];
+          let globalIdx = 1;
+          (p.orderItems || []).forEach(item => {
+            const variant = item.productVariant;
+            for (let i = 0; i < item.quantity; i++) {
+              const vDisplay = getDisplayData(p, variant);
+              soldCards.push({
+                id: globalIdx++,
+                orderId: item.orderId?.toString(),
+                name: vDisplay.subtitle || vDisplay.name,
+                img: vDisplay.image,
+                soldAt: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently',
+                sku: item.sku
+              });
+            }
+          });
+
+          return {
+            id: p.id.toString(),
+            num: String(idx + 1).padStart(2, '0'),
+            title: display.name,
+            titleAccent: '',
+            subtitle: p.subtitle || 'Luxury Collection',
+            tagline: p.tagline || '',
+            description: p.description || p.shortDescription || '',
+            image: display.image,
+            price: display.formattedPrice,
+            totalStock: p.qty || 0,
+            sold: p.soldCount || 0,
+            theme: p.theme || 'champagne',
+            bgColor: p.bgColor || '#ffffff',
+            accentColor: p.accentColor || '#c4a35a',
+            accentRgb: hexToRgb(p.accentColor || '#c4a35a'),
+            textColor: p.textColor || '#1a1a1a',
+            gradient: p.gradient || '',
+            mistColor: p.mistColor || '',
+            mistRgb: hexToRgb(p.mistColor || p.accentColor || '#c4a35a'),
+            combinations: soldCards
+          };
         });
         setCollections(mapped);
 
@@ -85,7 +85,7 @@ const Products = () => {
           });
           setVideoSettings(videoMap);
         }
-    } catch (err) {
+      } catch (err) {
         console.error('Failed to load products:', err);
         setError(err.message || 'An unexpected error occurred');
       } finally {
@@ -946,46 +946,46 @@ const Products = () => {
                 <div className="p-accent-beam"></div>
               </div>
 
-            <div className="p-section-inner">
-              {/* Content Layer */}
-              <div className="p-content">
-                <span className="p-subtitle">{col.subtitle}</span>
-                <h2 className="p-title">
-                  {col.title}
-                  <em>{col.titleAccent}</em>
-                </h2>
-                <span className="p-tagline">{col.tagline}</span>
-                <p className="p-description">{col.description}</p>
+              <div className="p-section-inner">
+                {/* Content Layer */}
+                <div className="p-content">
+                  <span className="p-subtitle">{col.subtitle}</span>
+                  <h2 className="p-title">
+                    {col.title}
+                    <em>{col.titleAccent}</em>
+                  </h2>
+                  <span className="p-tagline">{col.tagline}</span>
+                  <p className="p-description">{col.description}</p>
 
-                <span className="p-price-tag">{col.price}</span>
-                <div className="p-inventory-status">
-                  <span>Limited to {col.totalStock} pieces</span>
-                  <svg onClick={() => openInfoModal(col)} className="i-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" title="View previously configured combinations">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
+                  <span className="p-price-tag">{col.price}</span>
+                  <div className="p-inventory-status">
+                    <span>Limited to {col.totalStock} pieces</span>
+                    <svg onClick={() => openInfoModal(col)} className="i-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" title="View previously configured combinations">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                  </div>
+                  <div className="p-actions-row">
+                    <Link href={`/discover?watch=${col.id}`} className="p-link-luxury">
+                      <span>Explore</span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    </Link>
+                  </div>
                 </div>
-                <div className="p-actions-row">
-                  <Link href={`/discover?watch=${col.id}`} className="p-link-luxury">
-                    <span>Explore</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                  </Link>
-                </div>
+
+                {/* Watch Visual Layer */}
+                <Link href={`/discover?watch=${col.id}`} className="p-watch-wrap">
+                  <div className="p-watch-canvas">
+                    <div className="p-diffusion-glow"></div>
+                    <img src={col.image} alt={col.title} className="p-watch-image" />
+                    <div className="p-soft-shadow"></div>
+                  </div>
+                </Link>
               </div>
-
-              {/* Watch Visual Layer */}
-              <Link href={`/discover?watch=${col.id}`} className="p-watch-wrap">
-                <div className="p-watch-canvas">
-                  <div className="p-diffusion-glow"></div>
-                  <img src={col.image} alt={col.title} className="p-watch-image" />
-                  <div className="p-soft-shadow"></div>
-                </div>
-              </Link>
-            </div>
-          </section>
-        );
-      })}
+            </section>
+          );
+        })}
       </div>
       {/* ═══ INFO MODAL ═══ */}
       <div className={`info-modal-overlay ${activeModalData ? 'show' : ''}`} onClick={closeInfoModal}>
