@@ -259,14 +259,15 @@ const EditProductPage = () => {
         const res = await api.generateVariants(productId, selections);
         if (res.success) {
             setVariants(res.data.map(v => ({
+                id: v.id,
                 sku: v.sku,
-                price: form.price,
-                stock: '0',
+                price: v.price?.toString() || form.price,
+                stock: v.stock?.toString() || '0',
                 name: v.name,
                 attributeValues: v.attributeValues,
-                heroImage: null,
-                heroBgImage: null,
-                gallery: []
+                heroImage: v.heroImage?.url || v.heroImage || null,
+                heroBgImage: v.heroBgImage?.url || v.heroBgImage || null,
+                gallery: (v.gallery || []).map(g => g.url || g)
             })));
             toast.success(`Generated ${res.data.length} variants`);
         } else {
@@ -756,7 +757,7 @@ const EditProductPage = () => {
                                                                         <div className="flex items-center gap-3">
                                                                             {variant.heroImage ? (
                                                                                 <div className="w-8 h-8 rounded border border-gray-200 overflow-hidden shrink-0">
-                                                                                    <img src={getFileUrl(variant.heroImage.url || variant.heroImage)} className="w-full h-full object-cover" />
+                                                                                    <img src={getFileUrl(variant.heroImage?.url || variant.heroImage)} className="w-full h-full object-cover" />
                                                                                 </div>
                                                                             ) : (
                                                                                 <div className="w-8 h-8 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 shrink-0">
