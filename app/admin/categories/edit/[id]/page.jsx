@@ -21,7 +21,7 @@ const EditCategoryPage = () => {
 
     const [fetching, setFetching] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    
+
     const [form, setForm] = useState({
         name: '', slug: '', description: '',
         parentId: '', imageId: '', image: '',
@@ -62,11 +62,11 @@ const EditCategoryPage = () => {
                     featured: cat.featured ? 1 : 0,
                     showInNav: cat.showInNav !== undefined ? cat.showInNav : 1
                 });
-                
+
                 if (cat.specificationGroups) {
                     setSelectedSpecGroups(cat.specificationGroups.map(g => g.id));
                 }
-                
+
                 if (cat.attributes) {
                     setSelectedAttributes(cat.attributes.map(a => ({
                         attributeId: a.attributeId || a.id,
@@ -628,7 +628,7 @@ const EditCategoryPage = () => {
                     setForm(prev => ({
                         ...prev,
                         image: sel.url || sel,
-                        imageId: sel.id || '' 
+                        imageId: sel.id || ''
                     }));
                 }}
             />

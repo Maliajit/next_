@@ -52,12 +52,15 @@ const PreConfigure = () => {
             price: display.formattedPrice,
             heroImage: display.image,
             theme: p.theme || 'champagne',
+            textColor: p.textColor || '#1a1a1a',
+            accentColor: p.accentColor || '#c4a35a',
+            bgColor: p.bgColor || '',
             shortDescription: p.shortDescription || p.description || '',
             category: p.mainCategory?.name || 'Uncategorized'
           };
         });
         setProducts(mapped);
-        
+
         // Extract unique categories
         const uniqueCats = ['All', ...new Set(mapped.map(p => p.category).filter(c => c !== 'Uncategorized'))];
         setCategories(uniqueCats);
@@ -130,19 +133,19 @@ const PreConfigure = () => {
         }
 
 
-        .section-champagne { background: #fffafb; }
+        .section-champagne { background: #fffafb; --theme-text: #1a1a1a; --theme-accent: #c4a35a; }
         .section-champagne .p-mist-layer { background: radial-gradient(circle at 70% 40%, rgba(196,163,90,0.2) 0%, transparent 70%); }
         
-        .section-mist-blue { background: #e5f0f0ef; }
+        .section-mist-blue { background: #e5f0f0ef; --theme-text: #1a1a1a; --theme-accent: #1e40af; }
         .section-mist-blue .p-mist-layer { background: radial-gradient(circle at 70% 40%, rgba(30,64,175,0.15) 0%, transparent 70%); }
 
-        .section-soft-green { background: #ddfddcff; }
+        .section-soft-green { background: #ddfddcff; --theme-text: #1a1a1a; --theme-accent: #066e50; }
         .section-soft-green .p-mist-layer { background: radial-gradient(circle at 70% 40%, rgba(6,110,80,0.15) 0%, transparent 70%); }
 
-        .section-pearl-silver { background: #fcfcfc; }
+        .section-pearl-silver { background: #fcfcfc; --theme-text: #1a1a1a; --theme-accent: #475569; }
         .section-pearl-silver .p-mist-layer { background: radial-gradient(circle at 70% 40%, rgba(71,85,105,0.15) 0%, transparent 70%); }
 
-        .section-rose-burgundy { background: #d4c0c4cb; }
+        .section-rose-burgundy { background: #d4c0c4cb; --theme-text: #1a1a1a; --theme-accent: #7f1d1d; }
         .section-rose-burgundy .p-mist-layer { background: radial-gradient(circle at 70% 40%, rgba(127,29,29,0.12) 0%, transparent 70%); }
 
         .slide-content {
@@ -183,7 +186,7 @@ const PreConfigure = () => {
           left: 0;
           right: 0;
           z-index: 20;
-          color: #1a1a1a;
+          color: var(--theme-text, #1a1a1a);
           pointer-events: auto;
           padding: 0 60px;
         }
@@ -277,7 +280,7 @@ const PreConfigure = () => {
           width: 40px !important;
           height: 2px !important;
           border-radius: 0 !important;
-          background: #1a1a1a !important;
+          background: var(--theme-text, #1a1a1a) !important;
           opacity: 0.2;
           margin: 0 !important;
           transition: all 0.3s ease;
@@ -285,7 +288,7 @@ const PreConfigure = () => {
         .swiper-pagination-bullet-active {
           opacity: 1;
           width: 60px !important;
-          background: #c4a35a !important;
+          background: var(--theme-accent, #c4a35a) !important;
         }
 
 
@@ -314,6 +317,104 @@ const PreConfigure = () => {
         .slide-overlay.active {
           opacity: 1;
           pointer-events: auto;
+        }
+
+        .btn-container {
+          justify-content: center;
+        }
+
+        /* Desktop Redesign - SPLIT LAYOUT */
+        @media (min-width: 1025px) {
+          .btn-container {
+            justify-content: flex-start;
+          }
+          .slide-content {
+            flex-direction: row-reverse;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12%;
+          }
+          .product-image-container {
+            width: 55%;
+            height: 100%;
+            position: relative;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .product-image {
+            width: auto;
+            height: 85%;
+            max-height: 800px;
+            transform: scale(1.1);
+            filter: drop-shadow(0 40px 80px rgba(0,0,0,0.3));
+          }
+          .product-info {
+            position: relative;
+            bottom: auto;
+            left: auto;
+            right: auto;
+            width: 40%;
+            padding: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            color: var(--theme-text, #1a1a1a);
+          }
+          .product-name {
+            font-size: 5.5rem;
+            line-height: 0.85;
+            margin-bottom: 5px;
+            color: var(--theme-text, #1a1a1a);
+          }
+          .product-price {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--theme-text, #1a1a1a);
+            opacity: 0.8;
+          }
+          .product-desc-container {
+            max-width: 480px;
+            margin-bottom: 15px;
+          }
+          .product-desc {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--theme-text, #1a1a1a);
+            opacity: 0.9;
+          }
+          .btn-read-more {
+            color: var(--theme-accent, #c4a35a);
+            opacity: 0.8;
+          }
+          .btn-configure {
+            width: fit-content;
+            padding: 20px 50px;
+            font-size: 0.9rem;
+            background: var(--theme-text, #1a1a1a);
+            color: var(--theme-bg, #fff);
+            border: none;
+            font-weight: 800;
+          }
+          .btn-configure:hover {
+            opacity: 0.9;
+            transform: translateY(-3px) scale(1.05);
+          }
+          
+          /* Pagination adjustment */
+          .swiper-pagination {
+            bottom: 60px !important;
+          }
+          .swiper-pagination-bullet {
+            background: var(--theme-text, #1a1a1a) !important;
+            opacity: 0.3;
+          }
+          .swiper-pagination-bullet-active {
+            opacity: 1;
+            background: var(--theme-accent, #c4a35a) !important;
+          }
         }
 
         @media (max-width: 1024px) {
@@ -383,8 +484,8 @@ const PreConfigure = () => {
       <main className="flex-1 relative overflow-hidden z-10">
         <nav className="category-nav">
           {categories.map(cat => (
-            <div 
-              key={cat} 
+            <div
+              key={cat}
               className={`category-item ${activeCategory === cat ? 'active' : ''}`}
               onClick={() => setActiveCategory(cat)}
             >
@@ -408,54 +509,66 @@ const PreConfigure = () => {
             {products
               .filter(p => activeCategory === 'All' || p.category === activeCategory)
               .map((product) => (
-              <SwiperSlide key={product.id}>
-                <div className={`slide-bg section-${product.theme}`}>
-                  <div className="p-aura-shadow"></div>
-                  <div className="p-mist-layer"></div>
-                  <div className="p-accent-beam"></div>
-                </div>
-
-                <div className="slide-content">
-                  <div className="product-image-container">
-                    <img src={product.heroImage} alt={product.title} className="product-image" />
-                  </div>
+                <SwiperSlide key={product.id}>
                   <div 
-                    className={`slide-overlay ${expandedIds.has(product.id) ? 'active' : ''}`} 
-                    onClick={() => setExpandedIds(new Set())}
-                  ></div>
-                  <div className="product-info">
-                    <h2 className="product-name">
-                      {product.title}
-                    </h2>
-                    <div className="product-desc-container">
-                      <p className={`product-desc ${expandedIds.has(product.id) ? 'expanded' : ''}`}>
-                        {product.shortDescription}
-                      </p>
-                      {product.shortDescription.length > 60 && (
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const next = new Set(expandedIds);
-                            if (next.has(product.id)) next.delete(product.id);
-                            else next.add(product.id);
-                            setExpandedIds(next);
-                          }} 
-                          className="btn-read-more"
-                        >
-                          {expandedIds.has(product.id) ? 'Read Less' : 'Read More'}
-                        </button>
-                      )}
+                    className={`slide-bg section-${product.theme}`}
+                    style={{ 
+                      backgroundColor: product.bgColor || undefined,
+                      '--theme-text': product.textColor,
+                      '--theme-accent': product.accentColor,
+                      '--theme-bg': product.bgColor || '#fff'
+                    }}
+                  >
+                    <div className="p-aura-shadow"></div>
+                    <div className="p-mist-layer"></div>
+                    <div className="p-accent-beam"></div>
+                  </div>
+
+                  <div className="slide-content" style={{ 
+                    '--theme-text': product.textColor,
+                    '--theme-accent': product.accentColor,
+                    '--theme-bg': product.bgColor || '#fff'
+                  }}>
+                    <div className="product-image-container">
+                      <img src={product.heroImage} alt={product.title} className="product-image" />
                     </div>
-                    <span className="product-price">{product.price}</span>
-                    <div className="flex gap-3 items-center justify-center mt-4">
-                      <Link href={`/configure?watch=${product.id}`} className="btn-configure">
-                        Configure
-                      </Link>
+                    <div
+                      className={`slide-overlay ${expandedIds.has(product.id) ? 'active' : ''}`}
+                      onClick={() => setExpandedIds(new Set())}
+                    ></div>
+                    <div className="product-info">
+                      <h2 className="product-name">
+                        {product.title}
+                      </h2>
+                      <div className="product-desc-container">
+                        <p className={`product-desc ${expandedIds.has(product.id) ? 'expanded' : ''}`}>
+                          {product.shortDescription}
+                        </p>
+                        {product.shortDescription.length > 60 && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const next = new Set(expandedIds);
+                              if (next.has(product.id)) next.delete(product.id);
+                              else next.add(product.id);
+                              setExpandedIds(next);
+                            }}
+                            className="btn-read-more"
+                          >
+                            {expandedIds.has(product.id) ? 'Read Less' : 'Read More'}
+                          </button>
+                        )}
+                      </div>
+                      <span className="product-price">{product.price}</span>
+                      <div className="flex gap-3 items-center mt-4 btn-container">
+                        <Link href={`/configure?watch=${product.id}`} className="btn-configure">
+                          Configure
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </SwiperSlide>
-            ))}
+                </SwiperSlide>
+              ))}
           </Swiper>
         </div>
       </main>

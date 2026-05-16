@@ -321,12 +321,12 @@ const AddProductPage = () => {
                                             </>
                                         )}
                                         <div className="md:col-span-2 flex items-center gap-2 bg-indigo-50/50 !p-4 rounded-xl border border-indigo-100">
-                                            <input 
-                                                type="checkbox" 
-                                                id="isFeatured" 
-                                                name="isFeatured" 
-                                                checked={form.isFeatured} 
-                                                onChange={handleChange} 
+                                            <input
+                                                type="checkbox"
+                                                id="isFeatured"
+                                                name="isFeatured"
+                                                checked={form.isFeatured}
+                                                onChange={handleChange}
                                                 className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                                             />
                                             <label htmlFor="isFeatured" className="text-sm font-bold text-indigo-900 cursor-pointer">
