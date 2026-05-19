@@ -20,6 +20,18 @@ const OffersPage = () => {
   const offers = data.offers || [];
   const categories = data.categories || [];
 
+  const [analytics, setAnalytics] = useState(null);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      const res = await api.getOfferAnalytics();
+      if (res.success) {
+        setAnalytics(res.data);
+      }
+    };
+    fetchAnalytics();
+  }, [offers]);
+
   const tableRef = useRef(null);
   const tabulatorRef = useRef(null);
   const actionsRef = useRef({});
@@ -29,9 +41,10 @@ const OffersPage = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [viewingAnalytics, setViewingAnalytics] = useState(null);
 
   const [form, setForm] = useState({
-    name: '', code: '', offerType: 'percentage', discountValue: '',
+    name: '', code: '', offerType: 'percentage', couponType: 'public', discountValue: '',
     startsAt: '', endsAt: '', description: '',
     isActive: true, maxUses: '', categoryIds: []
   });
@@ -41,12 +54,14 @@ const OffersPage = () => {
     if (!tableRef.current || loading.offers) return;
     tabulatorRef.current?.destroy();
     actionsRef.current = {
+      onAnalytics: (rec) => setViewingAnalytics(rec),
       onEdit: (rec) => {
         setEditingRecord(rec);
         setForm({
           name: rec.name || '',
           code: rec.code || '',
           offerType: rec.offerType || 'percentage',
+          couponType: rec.couponType || 'public',
           discountValue: rec.discountValue?.toString() || '',
           startsAt: rec.startsAt ? new Date(rec.startsAt).toISOString().split('T')[0] : '',
           endsAt: rec.endsAt ? new Date(rec.endsAt).toISOString().split('T')[0] : '',
@@ -76,9 +91,13 @@ const OffersPage = () => {
           title: 'OFFER / CODE', field: 'name', minWidth: 240,
           formatter: (cell) => {
             const d = cell.getRow().getData();
+            const badgeBg = d.couponType === 'one_time' ? '#fef3c7' : (d.couponType === 'user_specific' ? '#dbeafe' : '#f1f5f9');
+            const badgeText = d.couponType === 'one_time' ? '#92400e' : (d.couponType === 'user_specific' ? '#1e40af' : '#475569');
+            const badgeLabel = (d.couponType || 'public').replace('_', ' ').toUpperCase();
+            
             return `<div style="padding:4px 0">
               <div style="font-weight:800;color:#1e293b;font-size:14px">${d.name || '—'}</div>
-              <div style="font-family:'SF Mono',monospace;font-size:11px;font-weight:700;color:#6366f1;margin-top:2px">${d.code || 'NO CODE'}</div>
+              <div style="font-family:'SF Mono',monospace;font-size:11px;font-weight:700;color:#6366f1;margin-top:2px">${d.code || 'NO CODE'} <span style="margin-left:6px;padding:2px 6px;border-radius:4px;background:${badgeBg};color:${badgeText};font-size:9px;">${badgeLabel}</span></div>
             </div>`;
           },
         },
@@ -95,6 +114,20 @@ const OffersPage = () => {
           formatter: (cell) => {
             const d = cell.getRow().getData();
             return `<div style="text-align:center"><div style="font-weight:800;color:#1e293b">${cell.getValue() ?? 0}</div><div style="font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase">${d.maxUses ? `/ ${d.maxUses}` : 'Uses'}</div></div>`;
+          }
+        },
+        {
+          title: 'REVENUE', field: 'analytics.revenueSum', width: 130, hozAlign: 'right',
+          formatter: (cell) => {
+            const val = cell.getValue() || 0;
+            return `<div style="font-weight:700;color:#10b981">₹${val.toLocaleString()}</div>`;
+          }
+        },
+        {
+          title: 'DISC GIVEN', field: 'analytics.discountSum', width: 130, hozAlign: 'right',
+          formatter: (cell) => {
+            const val = cell.getValue() || 0;
+            return `<div style="font-weight:700;color:#ef4444">-₹${val.toLocaleString()}</div>`;
           }
         },
         {
@@ -115,13 +148,15 @@ const OffersPage = () => {
           },
         },
         {
-          title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 110,
+          title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 140,
           formatter: () => `<div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn-icon btn-icon-analytics" style="background:#ecfeff;color:#06b6d4" title="View Usage"><i class="fas fa-chart-line"></i></button>
             <button class="btn-icon btn-icon-edit" style="background:#f5f3ff;color:#6366f1" title="Edit"><i class="fas fa-edit"></i></button>
             <button class="btn-icon btn-icon-delete" style="background:#fef2f2;color:#ef4444" title="Delete"><i class="fas fa-trash-alt"></i></button>
           </div>`,
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
+            if (e.target.closest('.btn-icon-analytics')) actionsRef.current.onAnalytics(d);
             if (e.target.closest('.btn-icon-edit')) actionsRef.current.onEdit(d);
             if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(d.id, d.name);
           },
@@ -145,6 +180,12 @@ const OffersPage = () => {
       [name]: name === 'isActive' ? value === 'active' : value
     }));
     if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: null }));
+  };
+
+  const generateCode = () => {
+    const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    setForm(prev => ({ ...prev, code: randomCode, maxUses: '1', couponType: 'one_time' }));
+    if (formErrors.code) setFormErrors(prev => ({ ...prev, code: null }));
   };
 
   const validate = () => {
@@ -186,7 +227,7 @@ const OffersPage = () => {
     setShowForm(false);
     setEditingRecord(null);
     setForm({
-      name: '', code: '', offerType: 'percentage', discountValue: '',
+      name: '', code: '', offerType: 'percentage', couponType: 'public', discountValue: '',
       startsAt: '', endsAt: '', description: '',
       isActive: true, maxUses: '', categoryIds: []
     });
@@ -220,6 +261,31 @@ const OffersPage = () => {
           action={{ label: 'Add New Offer', icon: 'fas fa-plus', onClick: () => setShowForm(true) }}
         />
 
+        {analytics && (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Coupons</div>
+              <div className="text-2xl font-bold text-gray-900">{analytics.totalCoupons}</div>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Coupons</div>
+              <div className="text-2xl font-bold text-indigo-600">{analytics.activeCoupons}</div>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Uses</div>
+              <div className="text-2xl font-bold text-gray-900">{analytics.totalUses.toLocaleString()}</div>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Discount Given</div>
+              <div className="text-2xl font-bold text-red-500">-₹{analytics.totalDiscountGiven.toLocaleString()}</div>
+            </div>
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Revenue Gen.</div>
+              <div className="text-2xl font-bold text-emerald-500">₹{analytics.totalRevenueGenerated.toLocaleString()}</div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-8 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
           <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
             <h3 className="text-base font-bold text-gray-900">Active Campaigns</h3>
@@ -249,7 +315,16 @@ const OffersPage = () => {
               <FormField label="Campaign/Offer Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g. Festive Flash Sale" required error={formErrors.name} />
             </div>
 
-            <FormField label="Coupon Code" name="code" value={form.code} onChange={handleChange} placeholder="e.g. FLASH30" required error={formErrors.code} />
+            <div>
+              <FormField label="Coupon Code" name="code" value={form.code} onChange={handleChange} placeholder="e.g. FLASH30" required error={formErrors.code} />
+              <button
+                type="button"
+                onClick={generateCode}
+                className="mt-2 text-xs text-indigo-600 font-medium hover:text-indigo-800 flex items-center gap-1"
+              >
+                <i className="fas fa-magic"></i> Auto-Generate One-Time Code
+              </button>
+            </div>
 
             <FormField
               label="Availability Status"
@@ -267,6 +342,19 @@ const OffersPage = () => {
               value={form.offerType}
               onChange={handleChange}
               options={[{ value: 'percentage', label: 'Percentage (%)' }, { value: 'fixed', label: 'Fixed Amount (₹)' }]}
+            />
+            
+            <FormField
+              label="Coupon Type"
+              name="couponType"
+              type="select"
+              value={form.couponType}
+              onChange={handleChange}
+              options={[
+                { value: 'public', label: 'Public Coupon (Multi-use)' }, 
+                { value: 'one_time', label: 'One-Time Coupon (Single use total)' },
+                { value: 'user_specific', label: 'User-Specific Coupon' }
+              ]}
             />
 
             <FormField
@@ -332,6 +420,66 @@ const OffersPage = () => {
         loading={deleting}
         danger
       />
+
+      <AdminModal isOpen={!!viewingAnalytics} onClose={() => setViewingAnalytics(null)} title={`Analytics: ${viewingAnalytics?.code}`} maxWidth={800}>
+        {viewingAnalytics && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div className="text-xs font-semibold text-gray-500 uppercase">Total Uses</div>
+                <div className="text-xl font-bold text-gray-900">{viewingAnalytics.analytics?.totalUses || 0}</div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div className="text-xs font-semibold text-gray-500 uppercase">Discount Given</div>
+                <div className="text-xl font-bold text-red-500">-₹{viewingAnalytics.analytics?.discountSum?.toLocaleString() || 0}</div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div className="text-xs font-semibold text-gray-500 uppercase">Revenue Gen.</div>
+                <div className="text-xl font-bold text-emerald-500">₹{viewingAnalytics.analytics?.revenueSum?.toLocaleString() || 0}</div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-gray-800 mb-3 text-sm border-b pb-2">Usage History</h4>
+              {viewingAnalytics.usages && viewingAnalytics.usages.length > 0 ? (
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold text-gray-600">Date</th>
+                        <th className="px-4 py-3 font-semibold text-gray-600">User ID</th>
+                        <th className="px-4 py-3 font-semibold text-gray-600">Order ID</th>
+                        <th className="px-4 py-3 font-semibold text-gray-600 text-right">Discount</th>
+                        <th className="px-4 py-3 font-semibold text-gray-600 text-right">Order Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {viewingAnalytics.usages.map((u, i) => (
+                        <tr key={i} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-gray-500">{new Date(u.usedAt).toLocaleDateString()} {new Date(u.usedAt).toLocaleTimeString()}</td>
+                          <td className="px-4 py-3 font-medium text-gray-900">{u.customerId || 'Guest'}</td>
+                          <td className="px-4 py-3 text-indigo-600 font-medium">#{u.orderId}</td>
+                          <td className="px-4 py-3 text-right text-red-500 font-medium">-₹{u.discountAmount}</td>
+                          <td className="px-4 py-3 text-right text-emerald-600 font-medium">₹{u.order?.grandTotal || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-100 border-dashed">
+                  <i className="fas fa-ghost text-gray-300 text-3xl mb-3"></i>
+                  <p className="text-gray-500 text-sm font-medium">No usage history yet</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4">
+              <button type="button" className="btn-secondary" onClick={() => setViewingAnalytics(null)}>Close Analytics</button>
+            </div>
+          </div>
+        )}
+      </AdminModal>
     </div>
   );
 };

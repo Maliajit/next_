@@ -20,7 +20,7 @@ const BannerList = () => {
     const banners = data.banners || [];
 
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({ title: '', position: 'Hero', status: 'active', image: '' });
+    const [formData, setFormData] = useState({ title: '', subtitle: '', content: '', position: 'Hero', status: 'active', image: '' });
     const [submitting, setSubmitting] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -37,7 +37,7 @@ const BannerList = () => {
         tabulatorRef.current?.destroy();
 
         actionsRef.current = {
-            onEdit: (d) => { setFormData({ ...d, image: d.image || d.image_url || '' }); setShowModal(true); },
+            onEdit: (d) => { setFormData({ ...d, status: d.isActive ? 'active' : 'inactive', image: d.image || d.image_url || '' }); setShowModal(true); },
             onDelete: (id, title) => setDeleteTarget({ id, title }),
         };
 
@@ -71,10 +71,10 @@ const BannerList = () => {
                     }
                 },
                 {
-                    title: "STATUS", field: "status", width: 140, hozAlign: "center",
+                    title: "STATUS", field: "isActive", width: 140, hozAlign: "center",
                     formatter: (cell) => {
-                        const v = (cell.getValue() || '').toLowerCase();
-                        const active = v === 'active' || v === '1' || v === 'true';
+                        const val = cell.getValue();
+                        const active = val === true || val === 'active' || val === '1' || val === 'true';
                         return `<div class="status-badge" style="display:inline-flex;padding:5px 14px;border-radius:10px;font-size:11px;font-weight:700;background:${active ? '#ecfdf5' : '#10b981'};color:${active ? '#10b981' : '#ef4444'};border:1px solid ${active ? '#d1fae5' : '#fee2e2'};text-transform:uppercase">${active ? 'ACTIVE' : 'INACTIVE'}</div>`;
                     }
                 },
@@ -158,7 +158,7 @@ const BannerList = () => {
             <PageHeader 
                 title="Sliders & Banners" 
                 subtitle="Manage homepage sliders and promotional campaign assets"
-                action={{ label: 'Add Banner', icon: 'fas fa-plus', onClick: () => { setFormData({ title: '', position: 'Hero', status: 'active', image: '' }); setShowModal(true); } }}
+                action={{ label: 'Add Banner', icon: 'fas fa-plus', onClick: () => { setFormData({ title: '', subtitle: '', content: '', position: 'Hero', status: 'active', image: '' }); setShowModal(true); } }}
             />
 
             <div className="admin-card" style={{ padding: '20px 24px', borderRadius: 16 }}>
@@ -175,6 +175,8 @@ const BannerList = () => {
                         <select style={{ width: '100%', padding: '11px 16px', border: '1px solid #e2e8f0', borderRadius: 10, background: '#fff', color: '#4b5a7a', fontSize: 13, fontWeight: 600, outline: 'none', cursor: 'pointer' }}>
                             <option>All Positions</option>
                             <option>Hero</option>
+                            <option>Section 2</option>
+                            <option>Section 3</option>
                             <option>Below Hero</option>
                             <option>Footer</option>
                         </select>
@@ -213,6 +215,27 @@ const BannerList = () => {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                             <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8, display: 'block' }}>Subtitle (Label)</label>
+                                <input 
+                                    type="text" 
+                                    style={{ width: '100%', padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 10, outline: 'none' }}
+                                    value={formData.subtitle || ''} 
+                                    onChange={e => setFormData({...formData, subtitle: e.target.value})}
+                                    placeholder="e.g. II · Movement"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8, display: 'block' }}>Content</label>
+                                <textarea 
+                                    style={{ width: '100%', padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 10, outline: 'none', resize: 'vertical', minHeight: 46 }}
+                                    value={formData.content || ''} 
+                                    onChange={e => setFormData({...formData, content: e.target.value})}
+                                    placeholder="Enter content details (HTML allowed)"
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                            <div className="form-group">
                                 <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8, display: 'block' }}>Position</label>
                                 <select 
                                     style={{ width: '100%', padding: '12px 14px', border: '1px solid #e2e8f0', borderRadius: 10, outline: 'none', background: '#fff' }}
@@ -220,6 +243,8 @@ const BannerList = () => {
                                     onChange={e => setFormData({...formData, position: e.target.value})}
                                 >
                                     <option>Hero</option>
+                                    <option>Section 2</option>
+                                    <option>Section 3</option>
                                     <option>Below Hero</option>
                                     <option>Footer</option>
                                     <option>Sidebar</option>

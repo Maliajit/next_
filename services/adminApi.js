@@ -118,6 +118,7 @@ export const updateUser = (id, data) => put(`/users/${id}`, data);
 
 // ─── Offers ───────────────────────────────────────────────────
 export const getOffers = () => get('/marketing/offers');
+export const getOfferAnalytics = () => get('/marketing/offers/analytics');
 export const createOffer = (data) => post('/marketing/offers', data);
 export const updateOffer = (id, data) => put(`/marketing/offers/${id}`, data);
 export const deleteOffer = (id) => del(`/marketing/offers/${id}`);
@@ -205,3 +206,9 @@ export const getHomeSections = () => get('/cms/home-sections');
 export const createHomeSection = (data) => post('/cms/home-sections', data);
 export const updateHomeSection = (id, data) => put(`/cms/home-sections/${id}`, data);
 export const deleteHomeSection = (id) => del(`/cms/home-sections/${id}`);
+
+// ─── Community Images (Atelier Chronicles) ────────────────────
+export const getCommunityImages = () => get('/cms/community-images/all');
+export const createCommunityImage = (data) => post('/cms/community-images', data);
+export const updateCommunityImage = (id, data) => put(`/cms/community-images/${id}`, data);
+export const deleteCommunityImage = (id) => del(`/cms/community-images/${id}`);

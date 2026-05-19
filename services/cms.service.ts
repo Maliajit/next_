@@ -26,6 +26,9 @@ export const deleteTestimonial = (id: number | string) => api.delete(`/cms/testi
 // Home Sections
 export const getHomeSections = () => api.get('/cms/home-sections');
 
+// Community Images (Atelier Chronicles)
+export const getCommunityImages = () => api.get('/cms/community-images');
+
 const cmsService = {
   getBanners,
   getActivePopups,
@@ -35,7 +38,8 @@ const cmsService = {
   updateTestimonial,
   deleteTestimonial,
   getVideoSettings,
-  getHomeSections
+  getHomeSections,
+  getCommunityImages
 };
 
 export default cmsService;

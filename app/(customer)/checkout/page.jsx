@@ -40,10 +40,11 @@ const Checkout = () => {
     postalCode: '',
     phone: '',
     email: user?.email || '',
-    dob: '',
     paymentMethod: 'razorpay',
+    couponCode: '',
   });
 
+  const [couponInput, setCouponInput] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
@@ -61,7 +62,6 @@ const Checkout = () => {
         lastName: names.slice(1).join(' ') || '',
         email: user.email || prev.email,
         phone: user.mobile || prev.phone,
-        dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : prev.dob,
       }));
     }
 
@@ -79,7 +79,7 @@ const Checkout = () => {
         
         setIsCalculating(true);
         // Call API even with incomplete pincode to get latest subtotal/tax/discount
-        const res = await calculateTotalApi(currentUserId, formData.postalCode.length === 6 ? formData.postalCode : null);
+        const res = await calculateTotalApi(currentUserId, formData.postalCode.length === 6 ? formData.postalCode : null, formData.couponCode);
         
         if (res.success) {
             setTotals(res.data);
@@ -102,7 +102,7 @@ const Checkout = () => {
         setIsCalculating(false);
     };
     refreshTotals();
-  }, [items, formData.postalCode, currentUserId, cartTotals.subtotal]);
+  }, [items, formData.postalCode, formData.couponCode, currentUserId, cartTotals.subtotal]);
 
   const steps = [
     { id: 1, name: 'Shipping' },
@@ -129,8 +129,6 @@ const Checkout = () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!formData.email) errors.email = 'Required';
       else if (!emailRegex.test(formData.email)) errors.email = 'Invalid email';
-
-      if (!formData.dob) errors.dob = 'Required';
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -215,11 +213,12 @@ const Checkout = () => {
 
   const finalizeOrder = async (addressId, method, paymentId = null) => {
     const orderRes = await addOrder({
-      customerId: currentUserId,
-      shippingAddressId: addressId,
+      customerId: String(currentUserId),
+      shippingAddressId: String(addressId),
+      billingAddressId: String(addressId),
       paymentMethod: method,
       paymentId: paymentId,
-      dob: formData.dob,
+      couponCode: formData.couponCode,
       items: items.map(i => ({ variantId: i.variantId, quantity: i.qty })),
     });
 
@@ -301,11 +300,6 @@ const Checkout = () => {
                       <label>Email Address</label>
                       <input type="email" name="email" value={formData.email} onChange={updateFormData} placeholder="john@example.com" />
                       {validationErrors.email && <span className="error-msg">{validationErrors.email}</span>}
-                    </div>
-                    <div className={`form-group full ${validationErrors.dob ? 'error' : ''}`}>
-                      <label>Date of Birth</label>
-                      <input type="date" name="dob" value={formData.dob} onChange={updateFormData} />
-                      {validationErrors.dob && <span className="error-msg">{validationErrors.dob}</span>}
                     </div>
                     <div className={`form-group full ${validationErrors.address ? 'error' : ''}`}>
                       <label>Address Line 1</label>
@@ -419,14 +413,21 @@ const Checkout = () => {
                       <span className="value">{formData.phone} | {formData.email}</span>
                     </div>
                     <div className="review-item">
-                      <span className="review-label">Date of Birth:</span>
-                      <span className="value">{formData.dob}</span>
-                    </div>
-                    <div className="review-item">
                       <span className="review-label">Payment:</span>
                       <span className="value">{formData.paymentMethod === 'razorpay' ? 'Razorpay Secure' : 'Cash on Delivery'}</span>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="shipping-error-notice" style={{marginTop: '20px'}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{flexShrink: 0}}>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>{error}</span>
                 </div>
               )}
 
@@ -463,7 +464,27 @@ const Checkout = () => {
                   </div>
                 ))}
               </div>
+              
               <div className="summary-divider" />
+              <div className="coupon-section" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                 <input 
+                   type="text" 
+                   value={couponInput} 
+                   onChange={(e) => setCouponInput(e.target.value)} 
+                   placeholder="Gift card or discount code" 
+                   style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }}
+                 />
+                 <button 
+                   type="button" 
+                   style={{ padding: '0 20px', borderRadius: '8px', background: '#1a1a1a', color: 'white', fontWeight: 600, fontSize: '12px', cursor: 'pointer', border: 'none' }}
+                   onClick={() => {
+                       setFormData(prev => ({ ...prev, couponCode: couponInput.trim() }));
+                   }}
+                 >
+                   Apply
+                 </button>
+              </div>
+
               <div className="summary-lines">
                 <div className="summary-line">
                   <span>Subtotal</span>
@@ -482,9 +503,18 @@ const Checkout = () => {
                   </div>
                 )}
                 {totals.discount > 0 && (
-                  <div className="summary-line" style={{ color: '#10b981' }}>
-                    <span>Discount</span>
-                    <span>-₹{Math.round(totals.discount).toLocaleString()}</span>
+                  <div style={{ padding: '12px', background: '#ecfdf5', borderRadius: '8px', border: '1px dashed #10b981', marginTop: '12px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ color: '#047857', fontWeight: 600, fontSize: '13px' }}>
+                        <i className="fas fa-tag mr-2"></i> Coupon Applied: {formData.couponCode}
+                      </span>
+                      <span style={{ color: '#047857', fontWeight: 700, fontSize: '14px' }}>
+                        -₹{Math.round(totals.discount).toLocaleString()}
+                      </span>
+                    </div>
+                    <div style={{ color: '#059669', fontSize: '11px', fontWeight: 500 }}>
+                      You Saved ₹{Math.round(totals.discount).toLocaleString()}!
+                    </div>
                   </div>
                 )}
                 <div className="summary-line total">

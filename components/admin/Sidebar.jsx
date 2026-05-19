@@ -98,6 +98,12 @@ const navItems = [
     path: '/admin/testimonials',
   },
   {
+    key: 'community',
+    title: 'Community',
+    icon: 'fas fa-camera-retro',
+    path: '/admin/community',
+  },
+  {
     key: 'settings',
     title: 'Settings',
     icon: 'fas fa-cog',

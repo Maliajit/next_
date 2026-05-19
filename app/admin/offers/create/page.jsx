@@ -17,7 +17,9 @@ const CreateOffer = () => {
     name: '',
     code: '',
     type: 'percentage',
+    couponType: 'public',
     value: '',
+    maxUses: '',
     starts_at: '',
     ends_at: '',
     description: '',
@@ -38,7 +40,15 @@ const CreateOffer = () => {
     if (!form.name.trim()) errs.name = 'Offer name is required';
     if (!form.code.trim()) errs.code = 'Coupon code is required';
     if (!form.value || isNaN(form.value) || Number(form.value) <= 0) errs.value = 'Enter a valid discount value';
+    if (form.maxUses && (isNaN(form.maxUses) || Number(form.maxUses) < 1)) errs.maxUses = 'Max uses must be at least 1';
     return errs;
+  };
+
+  const generateCode = () => {
+    const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    setForm(prev => ({ ...prev, code: randomCode, maxUses: '1', couponType: 'one_time' }));
+    if (errors.code) setErrors(prev => ({ ...prev, code: null }));
+    if (errors.maxUses) setErrors(prev => ({ ...prev, maxUses: null }));
   };
 
   const handleSubmit = async (e) => {
@@ -54,6 +64,7 @@ const CreateOffer = () => {
     const payload = {
       ...form,
       value: parseFloat(form.value),
+      maxUses: form.maxUses ? parseInt(form.maxUses) : null,
     };
 
     const { error } = await marketingService.createOffer(payload);
@@ -101,16 +112,25 @@ const CreateOffer = () => {
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                  <FormField
-                    label="Coupon Code"
-                    name="code"
-                    value={form.code}
-                    onChange={handleChange}
-                    placeholder="e.g. SUMMER20"
-                    required
-                    error={errors.code}
-                    hint="Code customers use at checkout"
-                  />
+                  <div>
+                    <FormField
+                      label="Coupon Code"
+                      name="code"
+                      value={form.code}
+                      onChange={handleChange}
+                      placeholder="e.g. SUMMER20"
+                      required
+                      error={errors.code}
+                      hint="Code customers use at checkout"
+                    />
+                    <button
+                      type="button"
+                      onClick={generateCode}
+                      className="mt-2 text-xs text-indigo-600 font-medium hover:text-indigo-800 flex items-center gap-1"
+                    >
+                      <i className="fas fa-magic"></i> Auto-Generate One-Time Code
+                    </button>
+                  </div>
 
                   <FormField
                     label="Discount Type"
@@ -121,6 +141,19 @@ const CreateOffer = () => {
                     options={[
                       { value: 'percentage', label: 'Percentage (%)' },
                       { value: 'fixed', label: 'Fixed Amount (₹)' }
+                    ]}
+                  />
+                  
+                  <FormField
+                    label="Coupon Type"
+                    name="couponType"
+                    type="select"
+                    value={form.couponType}
+                    onChange={handleChange}
+                    options={[
+                      { value: 'public', label: 'Public Coupon (Multi-use)' }, 
+                      { value: 'one_time', label: 'One-Time Coupon (Single use total)' },
+                      { value: 'user_specific', label: 'User-Specific Coupon' }
                     ]}
                   />
                 </div>
@@ -137,7 +170,16 @@ const CreateOffer = () => {
                     error={errors.value}
                   />
 
-                  <div className="hidden md:block" />
+                  <FormField
+                    label="Max Uses (Optional)"
+                    name="maxUses"
+                    type="number"
+                    value={form.maxUses}
+                    onChange={handleChange}
+                    placeholder="e.g. 1 for One-time use"
+                    error={errors.maxUses}
+                    hint="Leave empty for unlimited uses"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 border-t border-gray-50 pt-6">
