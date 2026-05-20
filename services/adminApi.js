@@ -109,7 +109,8 @@ export const deleteCategory = (id) => del(`/categories/${id}`);
 // ─── Orders ───────────────────────────────────────────────────
 export const getOrders = () => get('/orders');
 export const getOrder = (id) => get(`/orders/${id}`);
-export const updateOrderStatus = (id, status) => put(`/orders/${id}`, { status });
+export const updateOrderStatus = (id, status) => put(`/orders/${id}/status`, { status });
+export const updateOrderPaymentStatus = (id, payment_status) => put(`/orders/${id}/payment-status`, { payment_status });
 
 // ─── Customers / Users ────────────────────────────────────────
 export const getUsers = () => get('/users');

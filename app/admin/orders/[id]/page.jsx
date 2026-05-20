@@ -19,6 +19,13 @@ const statusColors = {
   refunded:   { bg: '#f5f3ff', color: '#5b21b6' },
 };
 
+const paymentStatusColors = {
+  pending: { bg: '#fef3c7', color: '#92400e' },
+  paid:    { bg: '#f0fdf4', color: '#166534' },
+  failed:  { bg: '#fef2f2', color: '#991b1b' },
+  refunded:{ bg: '#f5f3ff', color: '#5b21b6' },
+};
+
 const infoRow = (label, value) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '8px 0', borderBottom: '1px dashed var(--admin-border-light)' }}>
     <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--admin-text-muted)', minWidth: 120 }}>{label}</span>
@@ -37,6 +44,8 @@ const OrderDetailPage = () => {
   const [error, setError] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [newPaymentStatus, setNewPaymentStatus] = useState('');
+  const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
@@ -47,6 +56,7 @@ const OrderDetailPage = () => {
       const o = data?.data ?? data;
       setOrder(o);
       setNewStatus(o?.status || '');
+      setNewPaymentStatus(o?.paymentStatus || '');
     }
     setLoading(false);
   }, [orderId]);
@@ -65,11 +75,24 @@ const OrderDetailPage = () => {
     }
   };
 
+  const handlePaymentStatusUpdate = async () => {
+    if (!newPaymentStatus || newPaymentStatus === order?.paymentStatus) return;
+    setUpdatingPaymentStatus(true);
+    const { error: err } = await orderService.updateOrderPaymentStatus(orderId, newPaymentStatus);
+    setUpdatingPaymentStatus(false);
+    if (err) { toast?.error?.(err); }
+    else {
+      toast?.success?.('Payment status updated!');
+      setOrder(prev => ({ ...prev, paymentStatus: newPaymentStatus }));
+    }
+  };
+
   if (loading) return <Loader message="Loading order details..." />;
   if (error)   return <ErrorBanner message={error} onRetry={fetchOrder} />;
   if (!order)  return <ErrorBanner message="Order not found" />;
 
   const statusStyle = statusColors[order.status?.toLowerCase()] || { bg: '#f1f5f9', color: '#475569' };
+  const paymentStyle = paymentStatusColors[order.paymentStatus?.toLowerCase()] || { bg: '#f1f5f9', color: '#475569' };
   const items = order.items || order.orderItems || [];
   const customer = order.customer || {};
 
@@ -181,12 +204,6 @@ const OrderDetailPage = () => {
                   {order.status || '—'}
                 </span>
               </div>
-              <div style={{ marginBottom: 14 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--admin-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payment Status</p>
-                <span className={`status-pill ${order.paymentStatus?.toLowerCase() === 'paid' ? 'pill-active' : 'pill-warning'}`}>
-                  {order.paymentStatus || '—'}
-                </span>
-              </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--admin-text-muted)', marginBottom: 6, display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Update Status
@@ -207,6 +224,47 @@ const OrderDetailPage = () => {
                   style={{ width: '100%', justifyContent: 'center', opacity: (updatingStatus || newStatus === order.status) ? 0.6 : 1 }}
                 >
                   {updatingStatus ? <><i className="fas fa-spinner fa-spin"></i> Updating...</> : 'Update Status'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Status */}
+          <div className="admin-card" style={{ borderRadius: 16 }}>
+            <div className="admin-card-header"><h3>Payment Status</h3></div>
+            <div className="admin-card-body">
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--admin-text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Payment Status</p>
+                <span style={{ display: 'inline-block', padding: '5px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, textTransform: 'capitalize', background: paymentStyle.bg, color: paymentStyle.color }}>
+                  {order.paymentStatus || '—'}
+                </span>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--admin-text-muted)', marginBottom: 4 }}>
+                  <i className="fas fa-credit-card" style={{ marginRight: 6, fontSize: 11 }}></i>
+                  Method: <strong style={{ color: 'var(--admin-text)' }}>{order.paymentMethod || '—'}</strong>
+                </p>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--admin-text-muted)', marginBottom: 6, display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Update Payment Status
+                </label>
+                <select
+                  value={newPaymentStatus}
+                  onChange={e => setNewPaymentStatus(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--admin-border)', borderRadius: 10, fontSize: 13, fontWeight: 600, color: 'var(--admin-text)', outline: 'none', marginBottom: 10 }}
+                >
+                  {['pending','paid','failed','refunded'].map(s => (
+                    <option key={s} value={s} style={{ textTransform: 'capitalize' }}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={handlePaymentStatusUpdate}
+                  className="btn-primary"
+                  disabled={updatingPaymentStatus || newPaymentStatus === order.paymentStatus}
+                  style={{ width: '100%', justifyContent: 'center', opacity: (updatingPaymentStatus || newPaymentStatus === order.paymentStatus) ? 0.6 : 1 }}
+                >
+                  {updatingPaymentStatus ? <><i className="fas fa-spinner fa-spin"></i> Updating...</> : 'Update Payment'}
                 </button>
               </div>
             </div>
@@ -240,3 +298,4 @@ const OrderDetailPage = () => {
 };
 
 export default OrderDetailPage;
+
