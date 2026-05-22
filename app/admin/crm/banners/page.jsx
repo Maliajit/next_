@@ -20,7 +20,7 @@ const BannerList = () => {
     const banners = data.banners || [];
 
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({ title: '', subtitle: '', content: '', position: 'Hero', status: 'active', image: '' });
+    const [formData, setFormData] = useState({ title: '', subtitle: '', content: '', position: 'Hero', status: 'active', image: '', textColor: '#ffffff' });
     const [submitting, setSubmitting] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -37,7 +37,7 @@ const BannerList = () => {
         tabulatorRef.current?.destroy();
 
         actionsRef.current = {
-            onEdit: (d) => { setFormData({ ...d, status: d.isActive ? 'active' : 'inactive', image: d.image || d.image_url || '' }); setShowModal(true); },
+            onEdit: (d) => { setFormData({ ...d, status: d.isActive ? 'active' : 'inactive', image: d.image || d.image_url || '', textColor: d.textColor || '#ffffff' }); setShowModal(true); },
             onDelete: (id, title) => setDeleteTarget({ id, title }),
         };
 
@@ -158,7 +158,7 @@ const BannerList = () => {
             <PageHeader 
                 title="Sliders & Banners" 
                 subtitle="Manage homepage sliders and promotional campaign assets"
-                action={{ label: 'Add Banner', icon: 'fas fa-plus', onClick: () => { setFormData({ title: '', subtitle: '', content: '', position: 'Hero', status: 'active', image: '' }); setShowModal(true); } }}
+                action={{ label: 'Add Banner', icon: 'fas fa-plus', onClick: () => { setFormData({ title: '', subtitle: '', content: '', position: 'Hero', status: 'active', image: '', textColor: '#ffffff' }); setShowModal(true); } }}
             />
 
             <div className="admin-card" style={{ padding: '20px 24px', borderRadius: 16 }}>
@@ -234,7 +234,7 @@ const BannerList = () => {
                                 />
                             </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
                             <div className="form-group">
                                 <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8, display: 'block' }}>Position</label>
                                 <select 
@@ -260,6 +260,19 @@ const BannerList = () => {
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', marginBottom: 8, display: 'block' }}>Text Color</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 10, background: '#fff', height: 46 }}>
+                                    <input 
+                                        type="color" 
+                                        style={{ width: 32, height: 32, padding: 0, border: '1px solid #e2e8f0', borderRadius: 8, outline: 'none', cursor: 'pointer', flexShrink: 0 }}
+                                        value={formData.textColor || '#ffffff'} 
+                                        onChange={e => setFormData({...formData, textColor: e.target.value})}
+                                        title="Pick text color for banner overlay"
+                                    />
+                                    <span style={{ fontSize: 13, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{formData.textColor || '#ffffff'}</span>
+                                </div>
                             </div>
                         </div>
                         <div className="form-group border-t pt-4">

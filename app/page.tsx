@@ -880,11 +880,11 @@ const Home = () => {
               style={{ backgroundImage: `url('${section2Banner?.image ? getFileUrl(section2Banner.image) : '/Rim.png'}')` }}
               ref={el => { sectionsRef.current[1] = el; }}
             >
-              <div className="card">
-                <div className="label">{section2Banner?.subtitle || 'II · Movement'}</div>
-                <h1 dangerouslySetInnerHTML={{ __html: section2Banner?.title || 'The <em>Heart</em> Within' }} />
+              <div className="card" style={section2Banner?.textColor ? { color: section2Banner.textColor } : {}}>
+                <div className="label" style={section2Banner?.textColor ? { color: section2Banner.textColor } : {}}>{section2Banner?.subtitle || 'II · Movement'}</div>
+                <h1 style={section2Banner?.textColor ? { color: section2Banner.textColor } : {}} dangerouslySetInnerHTML={{ __html: section2Banner?.title || 'The <em>Heart</em> Within' }} />
                 <div className="divider"></div>
-                <p dangerouslySetInnerHTML={{ __html: section2Banner?.content || 'Hundreds of hand-finished bridges and jewels.<br />A calibre beating 28,800 times each hour.' }} />
+                <p style={section2Banner?.textColor ? { color: section2Banner.textColor } : {}} dangerouslySetInnerHTML={{ __html: section2Banner?.content || 'Hundreds of hand-finished bridges and jewels.<br />A calibre beating 28,800 times each hour.' }} />
               </div>
             </div>
           )}
@@ -896,11 +896,11 @@ const Home = () => {
               style={{ backgroundImage: `url('${section3Banner?.image ? getFileUrl(section3Banner.image) : '/Watch_1.png'}')` }}
               ref={el => { sectionsRef.current[2] = el; }}
             >
-              <div className="card">
-                <div className="label">{section3Banner?.subtitle || 'III · Design'}</div>
-                <h1 dangerouslySetInnerHTML={{ __html: section3Banner?.title || 'Form Follows <em>Time</em>' }} />
+              <div className="card" style={section3Banner?.textColor ? { color: section3Banner.textColor } : {}}>
+                <div className="label" style={section3Banner?.textColor ? { color: section3Banner.textColor } : {}}>{section3Banner?.subtitle || 'III · Design'}</div>
+                <h1 style={section3Banner?.textColor ? { color: section3Banner.textColor } : {}} dangerouslySetInnerHTML={{ __html: section3Banner?.title || 'Form Follows <em>Time</em>' }} />
                 <div className="divider"></div>
-                <p dangerouslySetInnerHTML={{ __html: section3Banner?.content || 'Sapphire crystal, polished steel, supple leather.<br />Every element chosen for eternity, not fashion.' }} />
+                <p style={section3Banner?.textColor ? { color: section3Banner.textColor } : {}} dangerouslySetInnerHTML={{ __html: section3Banner?.content || 'Sapphire crystal, polished steel, supple leather.<br />Every element chosen for eternity, not fashion.' }} />
               </div>
             </div>
           )}
