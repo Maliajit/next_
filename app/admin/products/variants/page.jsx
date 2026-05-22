@@ -7,6 +7,7 @@ import '../../css/custom.css';
 import { useAdminData } from '@/context/AdminDataContext';
 import { useToast } from '@/context/ToastContext';
 import AdminModal from '@/components/admin/AdminModal';
+import Swal from 'sweetalert2';
 
 const tableWrapStyle = {
   width: '100%',
@@ -74,9 +75,18 @@ const AdminProductVariants = () => {
               <button class="btn-icon btn-icon-edit"><i class="fas fa-edit"></i></button>
               <button class="btn-icon btn-icon-delete"><i class="fas fa-trash"></i></button>
             </div>`,
-            cellClick: (e, cell) => {
+            cellClick: async (e, cell) => {
               if (e.target.closest('.btn-icon-delete')) {
-                if (window.confirm("Delete this variant?")) {
+                const result = await Swal.fire({
+                  title: 'Delete this variant?',
+                  text: 'This action cannot be undone.',
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#d33',
+                  cancelButtonColor: '#3085d6',
+                  confirmButtonText: 'Yes, delete it'
+                });
+                if (result.isConfirmed) {
                   actionsRef.current.deleteRecord('variants', cell.getRow().getData().id);
                 }
               }

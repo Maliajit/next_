@@ -6,6 +6,7 @@ import '@/app/admin/css/datatable.css';
 import '@/app/admin/css/custom.css';
 import { useAdminData } from '@/context/AdminDataContext';
 import AdminModal from '@/components/admin/AdminModal';
+import Swal from 'sweetalert2';
 
 const AdminUsers = () => {
   const { data, addRecord, deleteRecord } = useAdminData();
@@ -76,9 +77,18 @@ const AdminUsers = () => {
                 <button class="btn-icon-delete" style="background:transparent;border:none;color:#94a3b8;cursor:pointer;font-size:16px"><i class="fas fa-trash-alt"></i></button>
               </div>
             `,
-            cellClick: (e, cell) => {
+            cellClick: async (e, cell) => {
               if (e.target.closest('.btn-icon-delete')) {
-                if (window.confirm('Remove this staff member?')) deleteRecord('staff', cell.getRow().getData().id);
+                const result = await Swal.fire({
+                  title: 'Remove staff member?',
+                  text: 'Are you sure you want to remove this staff member?',
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: '#d33',
+                  cancelButtonColor: '#3085d6',
+                  confirmButtonText: 'Yes, remove'
+                });
+                if (result.isConfirmed) deleteRecord('staff', cell.getRow().getData().id);
               }
             }
           }

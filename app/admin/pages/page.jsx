@@ -10,6 +10,7 @@ import { useAdminData } from '@/context/AdminDataContext';
 import { useToast } from '@/context/ToastContext';
 import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
+import Swal from 'sweetalert2';
 
 const PageList = () => {
   const toast = useToast();
@@ -31,7 +32,16 @@ const PageList = () => {
     actionsRef.current = {
       onEdit: (d) => { setFormData(d); setShowModal(true); },
       onDelete: async (id) => {
-        if (window.confirm('Delete this page?')) {
+        const result = await Swal.fire({
+          title: 'Delete this page?',
+          text: 'This action cannot be undone.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Yes, delete it'
+        });
+        if (result.isConfirmed) {
           await deleteRecord('pages', id, api.deletePage);
         }
       },

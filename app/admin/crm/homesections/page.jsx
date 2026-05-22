@@ -4,6 +4,7 @@ import '@/app/admin/css/custom.css';
 import AdminModal from '@/components/admin/AdminModal';
 import { useAdminData } from '@/context/AdminDataContext';
 import * as api from '@/services/adminApi';
+import Swal from 'sweetalert2';
 
 const HomeSections = () => {
     const { data, addRecord, updateRecord, deleteRecord, loading } = useAdminData();
@@ -45,7 +46,16 @@ const HomeSections = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this section?')) {
+        const result = await Swal.fire({
+            title: 'Delete this section?',
+            text: 'Are you sure you want to delete this section?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it'
+        });
+        if (result.isConfirmed) {
             await deleteRecord('homeSections', id, api.deleteHomeSection);
         }
     };

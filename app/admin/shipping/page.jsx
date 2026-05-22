@@ -7,6 +7,7 @@ import '@/app/admin/css/datatable.css';
 import '@/app/admin/css/custom.css';
 import { useAdminData } from '@/context/AdminDataContext';
 import AdminModal from '@/components/admin/AdminModal';
+import Swal from 'sweetalert2';
 
 const ShippingList = () => {
   const { data, addRecord, deleteRecord } = useAdminData();
@@ -47,9 +48,18 @@ const ShippingList = () => {
       formatter: () => `<div style="display:flex;gap:6px;justify-content:flex-end">
         <button class="btn-icon btn-icon-delete" title="Delete"><i class="fas fa-trash-alt"></i></button>
       </div>`,
-      cellClick: (e, cell) => {
+      cellClick: async (e, cell) => {
         if (e.target.closest('.btn-icon-delete')) {
-          if (window.confirm('Delete this method?')) deleteRecord('shippingMethods', cell.getRow().getData().id);
+          const result = await Swal.fire({
+            title: 'Delete this method?',
+            text: "Are you sure you want to delete this shipping method?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it'
+          });
+          if (result.isConfirmed) deleteRecord('shippingMethods', cell.getRow().getData().id);
         }
       }
     }

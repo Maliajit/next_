@@ -10,6 +10,8 @@ import PageHeader from '@/components/admin/ui/PageHeader';
 import Loader from '@/components/admin/ui/Loader';
 import ErrorBanner from '@/components/admin/ui/ErrorBanner';
 import { useToast } from '@/context/ToastContext';
+import { deleteOrderApi } from '@/lib/api';
+import Swal from 'sweetalert2';
 
 const OrdersPage = () => {
   const router = useRouter();
@@ -32,6 +34,29 @@ const OrdersPage = () => {
 
     actionsRef.current = {
       onView: (id) => router.push(`/admin/orders/${id}`),
+      onDelete: async (id) => {
+        const result = await Swal.fire({
+          title: 'Delete this order?',
+          text: "Are you sure you want to delete this order?",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Yes, delete it'
+        });
+        if (!result.isConfirmed) return;
+        try {
+          const res = await deleteOrderApi(id);
+          if (res.success) {
+            toast.success('Order deleted successfully');
+            refetch.orders();
+          } else {
+            toast.error(res.error || 'Failed to delete order');
+          }
+        } catch (error) {
+          toast.error('Failed to delete order');
+        }
+      }
     };
 
     tabulatorRef.current = new Tabulator(tableRef.current, {
@@ -121,10 +146,12 @@ const OrdersPage = () => {
           title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 100,
           formatter: () => `<div style="display:flex;gap:8px;justify-content:flex-end">
             <button class="btn-icon btn-icon-edit" title="View Details"><i class="fas fa-eye"></i></button>
+            <button class="btn-icon btn-icon-delete" title="Delete Order"><i class="fas fa-trash"></i></button>
           </div>`,
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
             if (e.target.closest('.btn-icon-edit')) actionsRef.current.onView(d.id);
+            if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(d.id);
           },
         },
       ],
