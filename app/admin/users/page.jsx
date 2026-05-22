@@ -25,6 +25,8 @@ const UsersPage = () => {
   const [tableBuilt, setTableBuilt] = useState(false);
   const [blockTarget, setBlockTarget] = useState(null); // { id, name, isBlocked }
   const [blocking, setBlocking] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, name }
+  const [deleting, setDeleting] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [fetchingProfile, setFetchingProfile] = useState(false);
@@ -49,6 +51,7 @@ const UsersPage = () => {
         setFetchingProfile(false);
       },
       onBlock: (u) => setBlockTarget({ id: u.id, name: u.name, isBlocked: u.isBlocked }),
+      onDelete: (u) => setDeleteTarget({ id: u.id, name: u.name }),
     };
 
     tabulatorRef.current = new Tabulator(tableRef.current, {
@@ -93,19 +96,21 @@ const UsersPage = () => {
           },
         },
         {
-          title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 110,
+          title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 150,
           formatter: (cell) => {
             const u = cell.getRow().getData();
             const blockIcon = u.isBlocked ? 'fa-unlock' : 'fa-ban';
             return `<div style="display:flex;gap:8px;justify-content:flex-end">
               <button class="btn-icon btn-icon-edit" style="background:#f5f3ff;color:#6366f1" title="View Details"><i class="fas fa-eye"></i></button>
-              <button class="btn-icon btn-icon-delete" style="background:#fef2f2;color:#ef4444" title="${u.isBlocked ? 'Unblock' : 'Block'} User"><i class="fas ${blockIcon}"></i></button>
+              <button class="btn-icon btn-icon-block" style="background:#fef2f2;color:#ef4444" title="${u.isBlocked ? 'Unblock' : 'Block'} User"><i class="fas ${blockIcon}"></i></button>
+              <button class="btn-icon btn-icon-delete" style="background:#fef2f2;color:#ef4444" title="Delete User"><i class="fas fa-trash"></i></button>
             </div>`;
           },
           cellClick: (e, cell) => {
             const u = cell.getRow().getData();
             if (e.target.closest('.btn-icon-edit')) actionsRef.current.onView(u);
-            if (e.target.closest('.btn-icon-delete')) actionsRef.current.onBlock(u);
+            if (e.target.closest('.btn-icon-block')) actionsRef.current.onBlock(u);
+            if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(u);
           },
         },
       ],
@@ -136,6 +141,20 @@ const UsersPage = () => {
     setBlocking(false);
     if (success) {
       setBlockTarget(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const res = await api.deleteUser(deleteTarget.id);
+    setDeleting(false);
+    if (res.success) {
+      toast.success(res.message || 'User deleted successfully');
+      setDeleteTarget(null);
+      refetch.users();
+    } else {
+      toast.error(res.error || 'Failed to delete user');
     }
   };
 
@@ -265,6 +284,17 @@ const UsersPage = () => {
         confirmLabel={blockTarget?.isBlocked ? 'Unblock Account' : 'Block Account'}
         loading={blocking}
         danger={!blockTarget?.isBlocked}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete Customer"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone and may fail if the user has existing orders.`}
+        confirmLabel="Delete Account"
+        loading={deleting}
+        danger={true}
       />
     </div>
   );

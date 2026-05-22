@@ -116,6 +116,7 @@ export const updateOrderPaymentStatus = (id, payment_status) => put(`/orders/${i
 export const getUsers = () => get('/users');
 export const getUser = (id) => get(`/users/${id}`);
 export const updateUser = (id, data) => put(`/users/${id}`, data);
+export const deleteUser = (id) => del(`/users/${id}`);
 
 // ─── Offers ───────────────────────────────────────────────────
 export const getOffers = () => get('/marketing/offers');
