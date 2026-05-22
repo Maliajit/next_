@@ -45,6 +45,7 @@ const Checkout = () => {
   });
 
   const [couponInput, setCouponInput] = useState('');
+  const [couponErrorMsg, setCouponErrorMsg] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
@@ -86,6 +87,11 @@ const Checkout = () => {
             setIsServiceable(res.data.serviceable !== false);
             setIsCodAvailable(res.data.codAvailable !== false);
             setShippingMessage(res.data.message || '');
+            if (res.data.couponError) {
+                setCouponErrorMsg(res.data.couponError);
+            } else {
+                setCouponErrorMsg('');
+            }
             setError(null);
 
             if (res.data.codAvailable === false && formData.paymentMethod === 'cod') {
@@ -466,23 +472,30 @@ const Checkout = () => {
               </div>
               
               <div className="summary-divider" />
-              <div className="coupon-section" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-                 <input 
-                   type="text" 
-                   value={couponInput} 
-                   onChange={(e) => setCouponInput(e.target.value)} 
-                   placeholder="Gift card or discount code" 
-                   style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }}
-                 />
-                 <button 
-                   type="button" 
-                   style={{ padding: '0 20px', borderRadius: '8px', background: '#1a1a1a', color: 'white', fontWeight: 600, fontSize: '12px', cursor: 'pointer', border: 'none' }}
-                   onClick={() => {
-                       setFormData(prev => ({ ...prev, couponCode: couponInput.trim() }));
-                   }}
-                 >
-                   Apply
-                 </button>
+              <div className="coupon-section" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                 <div style={{ display: 'flex', gap: '8px' }}>
+                   <input 
+                     type="text" 
+                     value={couponInput} 
+                     onChange={(e) => setCouponInput(e.target.value)} 
+                     placeholder="Gift card or discount code" 
+                     style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }}
+                   />
+                   <button 
+                     type="button" 
+                     style={{ padding: '0 20px', borderRadius: '8px', background: formData.couponCode && formData.couponCode === couponInput.trim() && !couponErrorMsg && totals.discount > 0 ? '#059669' : '#1a1a1a', color: 'white', fontWeight: 600, fontSize: '12px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
+                     onClick={() => {
+                         setFormData(prev => ({ ...prev, couponCode: couponInput.trim() }));
+                     }}
+                   >
+                     {isCalculating ? 'Wait...' : (formData.couponCode && formData.couponCode === couponInput.trim() && !couponErrorMsg && totals.discount > 0 ? 'Applied' : 'Apply')}
+                   </button>
+                 </div>
+                 {couponErrorMsg && (
+                   <span style={{ color: '#ef4444', fontSize: '11px', fontWeight: 500, paddingLeft: '4px' }}>
+                     {couponErrorMsg}
+                   </span>
+                 )}
               </div>
 
               <div className="summary-lines">
