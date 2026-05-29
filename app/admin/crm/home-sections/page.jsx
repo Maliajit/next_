@@ -12,7 +12,10 @@ import { useToast } from '@/context/ToastContext';
 const HomeSections = () => {
     const toast = useToast();
     const { data, loading, errors, refetch, updateRecord } = useAdminData();
-    const sections = (data.homeSections || []).sort((a,b) => a.order - b.order);
+    const activeSectionKeys = ['s1', 's2', 's3', 's4', 'featured', 'gallery'];
+    const sections = (data.homeSections || [])
+        .filter(s => activeSectionKeys.includes(s.type))
+        .sort((a,b) => a.order - b.order);
 
     const [confirmTarget, setConfirmTarget] = useState(null);
     const [submitting, setSubmitting] = useState(false);
