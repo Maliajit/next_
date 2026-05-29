@@ -10,6 +10,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
+import productsData from '@/data/productsData';
+import { ProductSkeleton } from '@/components/ui/Skeleton';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -221,9 +223,6 @@ const GalleryCarousel = ({ items }: { items?: any[] }) => {
     </div>
   );
 };
-
-import productsData from '@/data/productsData';
-import { ProductSkeleton } from '@/components/ui/Skeleton';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
 
