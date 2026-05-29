@@ -277,7 +277,7 @@ const Home = () => {
         if (hSections && hSections.length > 0) {
           const sectionMap: Record<string, boolean> = {};
           hSections.forEach((s: any) => {
-            sectionMap[s.type] = s.status === true || s.status === 'true';
+            sectionMap[s.type] = s.status === true || s.status === 'true' || s.status === 1 || s.status === '1';
           });
           setHomeSections(sectionMap);
           // Refresh ScrollTrigger after a short delay to allow DOM to settle
