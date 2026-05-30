@@ -10,8 +10,9 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
-  const { login } = useAuth();
+  const { setSession } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function AdminLogin() {
         localStorage.setItem('admin_token', data.access_token);
         
         // Update AuthContext (uses 'fylexx_user' key internally)
-        login(data.user);
+        setSession(data.access_token, data.user);
         
         // Redirect to dashboard
         router.push('/admin/dashboard');
@@ -90,12 +91,20 @@ export default function AdminLogin() {
             <div className="input-wrapper">
               <i className="fas fa-lock"></i>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
               />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1"
+              >
+                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              </button>
             </div>
           </div>
 
@@ -272,6 +281,31 @@ export default function AdminLogin() {
           border-color: #0ea5e9;
           background: rgba(15, 23, 42, 0.8);
           box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        }
+
+        .password-toggle {
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.2s;
+        }
+
+        .password-toggle:hover {
+          color: #e2e8f0;
+        }
+
+        .password-toggle i {
+          position: static !important;
+          transform: none !important;
         }
 
         .submit-btn {
