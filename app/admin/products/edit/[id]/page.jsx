@@ -247,31 +247,61 @@ const EditProductPage = () => {
     const generateVariants = async () => {
         if (!form.categoryId) return toast.error("Select category first");
         
-        const selections = Object.entries(selectedAttributeValues)
-            .filter(([_, vals]) => vals.length > 0)
-            .map(([attrId, vals]) => ({
-                attributeId: parseInt(attrId),
-                attributeValueIds: vals.map(id => parseInt(id))
-            }));
+        const selectedAttrs = [];
+        categoryDetails?.attributes?.forEach(attrWrapper => {
+            const attr = attrWrapper.attribute;
+            const selectedValIds = selectedAttributeValues[attr.id.toString()] || [];
+            if (selectedValIds.length > 0) {
+                const vals = attr.values.filter(v => selectedValIds.includes(v.id.toString()));
+                selectedAttrs.push({
+                    attrId: attr.id.toString(),
+                    attrName: attr.name,
+                    values: vals
+                });
+            }
+        });
 
-        if (selections.length === 0) return toast.error("Select at least one attribute value");
+        if (selectedAttrs.length === 0) return toast.error("Select at least one attribute value");
 
-        const res = await api.generateVariants(productId, selections);
-        if (res.success) {
-            setVariants(res.data.map(v => ({
-                id: v.id,
-                sku: v.sku,
-                price: v.price?.toString() || form.price,
-                stock: v.stock?.toString() || '0',
-                name: v.name,
-                attributeValues: v.attributeValues,
-                heroImage: v.heroImage?.url || v.heroImage || null,
-                heroBgImage: v.heroBgImage?.url || v.heroBgImage || null,
-                gallery: (v.gallery || []).map(g => g.url || g)
-            })));
-            toast.success(`Generated ${res.data.length} variants`);
+        const cartesian = (arrays) => arrays.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())), [[]]);
+        const valueArrays = selectedAttrs.map(a => a.values.map(v => ({ attrId: a.attrId, val: v })));
+        const combinations = cartesian(valueArrays);
+
+        const newVariants = [];
+        
+        combinations.forEach((combo, idx) => {
+            const comboIds = combo.map(c => c.val.id.toString()).sort().join(',');
+            
+            const exists = variants.find(v => {
+                const vComboIds = v.attributeValues.map(av => av.attributeValueId.toString()).sort().join(',');
+                return vComboIds === comboIds;
+            });
+
+            if (!exists) {
+                const name = combo.map(c => c.val.label || c.val.value).join(', ');
+                const skuCodes = combo.map(c => (c.val.code || (c.val.label || c.val.value).substring(0,3).toUpperCase()));
+                newVariants.push({
+                    id: `new-${Date.now()}-${idx}`,
+                    sku: `${form.sku || form.productCode || 'PROD'}-${skuCodes.join('-')}`,
+                    price: '', 
+                    stock: '',
+                    name: name,
+                    attributeValues: combo.map(c => ({
+                        attributeId: c.attrId,
+                        attributeValueId: c.val.id.toString()
+                    })),
+                    heroImage: null,
+                    heroBgImage: null,
+                    gallery: []
+                });
+            }
+        });
+
+        if (newVariants.length > 0) {
+            setVariants(prev => [...prev, ...newVariants]);
+            toast.success(`Generated ${newVariants.length} variants`);
         } else {
-            toast.error(res.error || "Generation failed");
+            toast.info("No new variants to generate");
         }
     };
 
@@ -371,7 +401,7 @@ const EditProductPage = () => {
                 };
             }),
             variants: variants.map(v => ({
-                id: v.id,
+                ...(v.id?.toString().startsWith('new') ? {} : { id: v.id }),
                 sku: v.sku,
                 price: parseFloat(v.price) || 0,
                 stock: parseInt(v.stock) || 0,
