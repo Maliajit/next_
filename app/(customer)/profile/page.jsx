@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { fetchProfileDashboardApi, updateMyProfileApi } from '@/lib/api';
+import { getFileUrl } from '@/lib/utils';
 import './profile.css';
 
 const emptyDashboard = {
@@ -182,7 +183,7 @@ const Profile = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {recentOrders.length > 0 ? recentOrders.map(order => (
                   <div key={order.id} className="order-card-premium">
-                    <img src={order.preview?.image || '/assets/fylex-watch-v2/premium.png'} alt="Product" className="item-thumb" />
+                    <img src={getFileUrl(order.preview?.image) || '/assets/fylex-watch-v2/premium.png'} alt="Product" className="item-thumb" />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)' }}>#{order.orderNumber || order.id}</span>
                       <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--navy)', marginTop: '2px' }}>{order.preview?.title || 'Bespoke Timepiece'}</h4>

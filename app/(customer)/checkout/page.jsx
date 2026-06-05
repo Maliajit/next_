@@ -5,6 +5,7 @@ import { useCart } from '@/context/CartContext';
 import { useOrder } from '@/context/OrderContext';
 import { useAuth } from '@/context/AuthContext';
 import { addAddressApi, initiatePaymentApi, verifyPaymentApi, calculateTotalApi } from '@/lib/api';
+import Swal from 'sweetalert2';
 
 const Checkout = () => {
   const navigate = useRouter();
@@ -42,6 +43,8 @@ const Checkout = () => {
     email: user?.email || '',
     paymentMethod: 'razorpay',
     couponCode: '',
+    area: '',
+    state: '',
   });
 
   const [couponInput, setCouponInput] = useState('');
@@ -72,6 +75,45 @@ const Checkout = () => {
         }
     };
   }, [user]);
+
+  useEffect(() => {
+    const fetchPincodeDetails = async () => {
+      if (formData.postalCode.length === 6) {
+        try {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${formData.postalCode}`);
+          const result = await res.json();
+          if (result[0]?.Status === 'Success') {
+            const postOffice = result[0].PostOffice[0];
+            setFormData(prev => ({
+              ...prev,
+              city: postOffice.District,
+              area: postOffice.Name,
+              state: postOffice.State
+            }));
+            setValidationErrors(prev => {
+              const next = { ...prev };
+              delete next.city;
+              delete next.postalCode;
+              return next;
+            });
+          } else {
+             Swal.fire({
+              icon: 'error',
+              title: 'Invalid Pincode',
+              text: 'Please enter valid pincode',
+              confirmButtonColor: '#1C2E4A'
+            });
+            setFormData(prev => ({ ...prev, city: '', area: '', state: '' }));
+          }
+        } catch (err) {
+          console.error('Failed to fetch pincode', err);
+        }
+      } else {
+        setFormData(prev => ({ ...prev, area: '', state: '' }));
+      }
+    };
+    fetchPincodeDetails();
+  }, [formData.postalCode]);
 
   // REFRESH TOTALS FROM BACKEND
   useEffect(() => {
@@ -160,7 +202,7 @@ const Checkout = () => {
       const addrRes = await addAddressApi(currentUserId, {
         name: `${formData.firstName} ${formData.lastName}`,
         mobile: formData.phone,
-        address: formData.address,
+        address: `${formData.address}${formData.area ? `, ${formData.area}` : ''}${formData.state ? `, ${formData.state}` : ''}`,
         city: formData.city,
         pincode: formData.postalCode,
         country: 'India',
@@ -325,6 +367,7 @@ const Checkout = () => {
                       <label>Postal Code</label>
                       <input type="text" name="postalCode" value={formData.postalCode} onChange={updateFormData} placeholder="100001" maxLength={6} />
                       {validationErrors.postalCode && <span className="error-msg">{validationErrors.postalCode}</span>}
+                      {formData.area && formData.state && <span style={{ color: '#1C2E4A', fontWeight: 600, fontSize: '11px', marginTop: '6px', display: 'block' }}>Area: {formData.area}, {formData.state}</span>}
                     </div>
                     <div className={`form-group full ${validationErrors.phone ? 'error' : ''}`}>
                       <label>Phone Number</label>
