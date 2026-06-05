@@ -35,7 +35,7 @@ const CategoriesPage = () => {
 
     actionsRef.current = {
       onEdit: (rec) => {
-        setTimeout(() => router.push(`/admin/categories/edit/${rec.id}`), 0);
+        router.push(`/admin/categories/edit/${rec.id}`);
       },
       onDelete: (id, name) => setDeleteTarget({ id, name })
     };

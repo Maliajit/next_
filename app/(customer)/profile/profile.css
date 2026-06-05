@@ -650,7 +650,7 @@
 .form-input,
 .form-textarea {
   width: 100%;
-  background: var(--surface-raised);
+  background: var(--surface);
   padding: 13px 16px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border);

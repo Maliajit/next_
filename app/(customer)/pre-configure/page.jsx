@@ -503,16 +503,16 @@ const PreConfigure = () => {
             autoplay={{ delay: 4000, disableOnInteraction: false }}
             allowTouchMove={expandedIds.size === 0}
             pagination={{ clickable: true }}
-            loop={products.filter(p => activeCategory === 'All' || p.category === activeCategory).length > 1}
+            loop={true}
             className="mySwiper h-full w-full"
           >
             {products
               .filter(p => activeCategory === 'All' || p.category === activeCategory)
               .map((product) => (
                 <SwiperSlide key={product.id}>
-                  <div 
+                  <div
                     className={`slide-bg section-${product.theme}`}
-                    style={{ 
+                    style={{
                       backgroundColor: product.bgColor || undefined,
                       '--theme-text': product.textColor,
                       '--theme-accent': product.accentColor,
@@ -524,7 +524,7 @@ const PreConfigure = () => {
                     <div className="p-accent-beam"></div>
                   </div>
 
-                  <div className="slide-content" style={{ 
+                  <div className="slide-content" style={{
                     '--theme-text': product.textColor,
                     '--theme-accent': product.accentColor,
                     '--theme-bg': product.bgColor || '#fff'

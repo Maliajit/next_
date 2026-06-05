@@ -33,7 +33,7 @@ const OrdersPage = () => {
     tabulatorRef.current?.destroy();
 
     actionsRef.current = {
-      onView: (id) => setTimeout(() => router.push(`/admin/orders/${id}`), 0),
+      onView: (id) => router.push(`/admin/orders/${id}`),
       onDelete: async (id) => {
         const result = await Swal.fire({
           title: 'Delete this order?',

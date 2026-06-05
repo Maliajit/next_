@@ -124,6 +124,11 @@ export const AuthProvider = ({ children }) => {
       throw new Error(result?.error || 'Something went wrong');
     }
 
+    const payload = result.data;
+    if (payload?.access_token && payload?.user) {
+      persistSession(payload.access_token, payload.user);
+    }
+
     return result.data;
   };
 

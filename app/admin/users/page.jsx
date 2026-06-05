@@ -225,8 +225,8 @@ const UsersPage = () => {
                 <div className="admin-card" style={{ padding: 20, borderRadius: 16, background: '#fff' }}>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Date of Birth</span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{selectedUser.dob ? new Date(selectedUser.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Not provided'}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Address</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{selectedUser.address ? selectedUser.address : 'Not provided'}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Account Status</span>

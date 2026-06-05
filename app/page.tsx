@@ -179,12 +179,12 @@ const GalleryCarousel = ({ items }: { items?: any[] }) => {
   // Guarantee visual stability: pad items to complete the 3-2-3 grid pattern & cover screen width
   const sourceItems = items && items.length > 0 ? items : gallery;
   let safeItems = [...sourceItems];
-  
+
   // 1. Must be at least as long as the original gallery to overflow standard screens and prevent gaps
   while (safeItems.length < gallery.length) {
     safeItems = [...safeItems, ...sourceItems];
   }
-  
+
   // 2. Must end cleanly on a grid cycle (length % 5 === 0 or length % 5 === 3)
   while (safeItems.length % 5 !== 0 && safeItems.length % 5 !== 3) {
     safeItems.push(sourceItems[safeItems.length % sourceItems.length]);
@@ -946,7 +946,7 @@ const Home = () => {
                         clickable: true,
                         dynamicBullets: false
                       }}
-                      loop={featuredProducts.length > (isMobile ? 1 : 2)}
+                      loop={featuredProducts.length >= (isMobile ? 1 : 2)}
                       className="featured-swiper"
                     >
                       {featuredProducts.map((p) => {

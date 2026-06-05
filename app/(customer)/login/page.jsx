@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { checkMobileApi } from '@/lib/api';
+import Swal from 'sweetalert2';
 
 const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
   id: i,
@@ -14,13 +16,14 @@ const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
   opacity: 0.08 + Math.random() * 0.14,
 }));
 
-function InputField({ label, type, id, value, onChange, placeholder, icon, autoComplete }) {
+function InputField({ label, type, id, value, onChange, placeholder, icon, autoComplete, prefix, maxLength }) {
   const [focused, setFocused] = useState(false);
   return (
     <div className="lp-field-wrapper">
       <label className="lp-field-label" htmlFor={id}>{label}</label>
       <div className={`lp-field-box ${focused ? 'lp-field-focused' : ''} ${value ? 'lp-field-filled' : ''}`}>
-        <span className="lp-field-icon">{icon}</span>
+        {icon && <span className="lp-field-icon">{icon}</span>}
+        {prefix && <span className="lp-field-prefix" style={{fontWeight: 600, color: '#1C2E4A', marginRight: '4px'}}>{prefix}</span>}
         <input
           id={id}
           type={type}
@@ -31,6 +34,7 @@ function InputField({ label, type, id, value, onChange, placeholder, icon, autoC
           onBlur={() => setFocused(false)}
           className="lp-input"
           autoComplete={autoComplete}
+          maxLength={maxLength}
         />
       </div>
     </div>
@@ -55,16 +59,41 @@ export default function Login() {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  const handleMobileSubmit = (e) => {
+  const handleMobileSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!mobile || mobile.length < 10) {
+    if (!mobile || !/^\d{10}$/.test(mobile.trim())) {
       setError('Please enter a valid 10-digit mobile number.');
       setShake(true);
       setTimeout(() => setShake(false), 600);
       return;
     }
-    setStep(2);
+    
+    setSubmitting(true);
+    try {
+      const result = await checkMobileApi({ mobile });
+      if (!result.success) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Not Registered',
+          text: 'This mobile number is not registered. Please sign up to create an account.',
+          confirmButtonText: 'Sign Up Now',
+          confirmButtonColor: '#4a6fa5',
+          showCancelButton: true,
+          cancelButtonText: 'Try Another'
+        }).then((res) => {
+          if (res.isConfirmed) {
+            navigate.push('/signup');
+          }
+        });
+        return;
+      }
+      setStep(2);
+    } catch (err) {
+      setError('Unable to verify mobile. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleOtpSubmit = async (e) => {
@@ -167,9 +196,14 @@ export default function Login() {
                   type="tel"
                   id="login-mobile"
                   value={mobile}
-                  onChange={e => setMobile(e.target.value)}
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setMobile(val);
+                  }}
                   placeholder="Enter 10-digit number"
                   autoComplete="tel"
+                  prefix="+91"
+                  maxLength={10}
                   icon={
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
@@ -179,11 +213,17 @@ export default function Login() {
 
                 {error && <div className="lp-error-box">{error}</div>}
 
-                <button type="submit" className="lp-submit-btn">
-                  <span>Send OTP</span>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                <button type="submit" className={`lp-submit-btn ${submitting ? 'lp-submitting' : ''}`} disabled={submitting}>
+                  {submitting ? (
+                    <span className="lp-spinner" />
+                  ) : (
+                    <>
+                      <span>Send OTP</span>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </>
+                  )}
                 </button>
               </form>
             ) : (

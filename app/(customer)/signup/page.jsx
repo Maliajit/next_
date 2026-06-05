@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import Swal from 'sweetalert2';
 
 const ORBS = [
   { w: 650, h: 650, top: '-180px', left: '-180px', c: 'rgba(74,111,165,0.20)', dur: 13 },
@@ -41,13 +42,14 @@ function StepIndicator({ current }) {
   );
 }
 
-function InputField({ label, type = 'text', id, value, onChange, placeholder, icon, hint }) {
+function InputField({ label, type = 'text', id, value, onChange, placeholder, icon, hint, prefix, maxLength }) {
   const [focused, setFocused] = useState(false);
   return (
     <div className="sp-field-wrapper">
       <label className="sp-field-label" htmlFor={id}>{label}</label>
       <div className={`sp-field-box ${focused ? 'sp-field-focused' : ''} ${value ? 'sp-field-filled' : ''}`}>
         {icon && <span className="sp-field-icon">{icon}</span>}
+        {prefix && <span className="sp-field-prefix" style={{fontWeight: 600, color: '#1C2E4A', marginRight: '4px'}}>{prefix}</span>}
         <input
           id={id}
           type={type}
@@ -58,6 +60,7 @@ function InputField({ label, type = 'text', id, value, onChange, placeholder, ic
           onBlur={() => setFocused(false)}
           className="sp-input"
           autoComplete="off"
+          maxLength={maxLength}
         />
       </div>
       {hint && <span className="sp-field-hint">{hint}</span>}
@@ -66,6 +69,35 @@ function InputField({ label, type = 'text', id, value, onChange, placeholder, ic
 }
 
 function StepAccount({ data, setData }) {
+  const handlePincodeChange = async (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setData(p => ({ ...p, pincode: val }));
+    
+    if (val.length === 6) {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        const result = await res.json();
+        if (result[0]?.Status === 'Success') {
+          const postOffice = result[0].PostOffice[0];
+          const area = `${postOffice.Name}, ${postOffice.District}, ${postOffice.State}`;
+          setData(p => ({ ...p, area }));
+        } else {
+          setData(p => ({ ...p, area: '' }));
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid Pincode',
+            text: 'Please enter valid pincode',
+            confirmButtonColor: '#1C2E4A'
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch pincode', err);
+      }
+    } else {
+      setData(p => ({ ...p, area: '' }));
+    }
+  };
+
   return (
     <div className="sp-step-content">
       <InputField
@@ -85,8 +117,13 @@ function StepAccount({ data, setData }) {
         type="tel"
         id="sp-mobile"
         value={data.mobile}
-        onChange={e => setData(p => ({ ...p, mobile: e.target.value }))}
+        onChange={e => {
+          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+          setData(p => ({ ...p, mobile: val }));
+        }}
         placeholder="Enter 10-digit number"
+        prefix="+91"
+        maxLength={10}
         icon={
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
@@ -103,6 +140,32 @@ function StepAccount({ data, setData }) {
         icon={
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <rect x="2" y="4" width="20" height="16" rx="3" /><path d="m2 7 10 7 10-7" strokeLinecap="round" />
+          </svg>
+        }
+      />
+      <InputField
+        label="Pincode"
+        id="sp-pincode"
+        value={data.pincode}
+        onChange={handlePincodeChange}
+        placeholder="Enter 6-digit pincode"
+        maxLength={6}
+        hint={data.area ? <span style={{ color: '#1C2E4A', fontWeight: 600 }}>Area: {data.area}</span> : null}
+        icon={
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" />
+          </svg>
+        }
+      />
+      <InputField
+        label="Full Address"
+        id="sp-address"
+        value={data.address}
+        onChange={e => setData(p => ({ ...p, address: e.target.value }))}
+        placeholder="123 Luxury Lane, City"
+        icon={
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
           </svg>
         }
       />
@@ -150,7 +213,7 @@ export default function Signup() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: '', email: '', password: '',
-    mobile: '', otp: '',
+    mobile: '', otp: '', address: '', pincode: '', area: ''
   });
   const [loaded, setLoaded] = useState(false);
   const [contentKey, setContentKey] = useState(0);
@@ -177,7 +240,7 @@ export default function Signup() {
     setError('');
     if (step === 0) {
       if (!data.name.trim()) return setError('Please enter your full name');
-      if (!data.mobile.trim() || data.mobile.length < 10) return setError('Please enter a valid 10-digit mobile number');
+      if (!data.mobile.trim() || !/^\d{10}$/.test(data.mobile.trim())) return setError('Please enter a valid 10-digit mobile number');
       if (!data.email.trim()) return setError('Please enter your email address');
       if (!validateEmail(data.email)) return setError('Please enter a valid email address');
       
@@ -201,6 +264,7 @@ export default function Signup() {
           name: data.name,
           email: data.email,
           mobile: data.mobile,
+          address: `${data.address}${data.area ? `, ${data.area}` : ''}${data.pincode ? ` - ${data.pincode}` : ''}`,
           otp: data.otp,
         });
         setDone(true);
@@ -288,7 +352,7 @@ export default function Signup() {
                 </div>
                 <h3 className="sp-success-title">Account Created!</h3>
                 <p className="sp-success-sub">Welcome to Fylexx, {data.name.split(' ')[0] || 'Friend'}. Your journey begins now.</p>
-                <Link href="/login" className="sp-success-btn">Sign In to Your Account</Link>
+                <Link href="/" className="sp-success-btn">Continue to Store</Link>
               </div>
             ) : (
               <>
