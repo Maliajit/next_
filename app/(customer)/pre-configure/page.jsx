@@ -503,7 +503,7 @@ const PreConfigure = () => {
             autoplay={{ delay: 4000, disableOnInteraction: false }}
             allowTouchMove={expandedIds.size === 0}
             pagination={{ clickable: true }}
-            loop={true}
+            loop={products.filter(p => activeCategory === 'All' || p.category === activeCategory).length > 1}
             className="mySwiper h-full w-full"
           >
             {products

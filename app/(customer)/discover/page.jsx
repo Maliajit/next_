@@ -520,7 +520,7 @@ function DiscoverContent() {
           min-height: 100vh;
           background: radial-gradient(circle at center, #ffffff 0%, #e8edf3 100%);
           display: flex;
-          align-items: flex-start; /* Changed from center to start */
+          align-items: center; /* Vertically center to prevent cutting by navbar */
           justify-content: center;
           position: relative;
           padding: 80px 0;
@@ -548,7 +548,7 @@ function DiscoverContent() {
           align-items: center;
           justify-content: center;
           transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-          margin-top: 0; /* Touch the top area */
+          margin-top: 40px; /* Add some margin to push it further down if needed, but centering should be enough */
           height: 65vh; 
         }
 
@@ -570,6 +570,7 @@ function DiscoverContent() {
         .cfg-hero-product-img {
           width: 100%;
           height: auto;
+          max-height: 70vh;
           object-fit: contain;
           z-index: 12;
           filter: drop-shadow(0 30px 60px rgba(0,0,0,0.12));

@@ -858,9 +858,9 @@ const EditProductPage = () => {
 
             {/* Variant Image Type Selection Modal */}
             {variantImageModal && (
-                <div className="fixed inset-0 z-[100] flex items-end justify-center pb-48 p-4 bg-black/50" onClick={() => setVariantImageModal(null)}>
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/50" onClick={() => setVariantImageModal(null)}>
                     <div
-                        className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300 !p-4"
+                        className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 !p-4"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="!px-6 !py-5 border-b border-gray-100 flex items-center justify-between">

@@ -108,7 +108,7 @@ const AdminProducts = () => {
           </div>`,
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
-            if (e.target.closest('.btn-icon-edit')) router.push(`/admin/products/edit/${d.id}`);
+            if (e.target.closest('.btn-icon-edit')) setTimeout(() => router.push(`/admin/products/edit/${d.id}`), 0);
             if (e.target.closest('.btn-icon-delete')) actionsRef.current.onDelete(d.id, d.name);
           },
         },

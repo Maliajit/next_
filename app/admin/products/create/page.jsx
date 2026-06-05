@@ -665,9 +665,9 @@ const AddProductPage = () => {
 
             {/* Variant Image Type Selection Modal */}
             {variantImageModal && (
-                <div className="fixed inset-0 z-[100] flex items-end justify-center pb-48 p-4 bg-black/50" onClick={() => setVariantImageModal(null)}>
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/50" onClick={() => setVariantImageModal(null)}>
                     <div
-                        className="bg-white rounded-xl shadow-2xl w-full overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-300"
+                        className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
@@ -680,6 +680,31 @@ const AddProductPage = () => {
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
+                            {variants[variantImageModal.index]?.heroImage && (
+                                <div className="mb-4">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Primary Image</label>
+                                    <div className="flex gap-2.5">
+                                        <div className="relative flex-none w-24 h-24 rounded-xl border-2 border-indigo-200 overflow-hidden shadow-sm">
+                                            <img src={getFileUrl(variants[variantImageModal.index].heroImage.url || variants[variantImageModal.index].heroImage)} className="w-full h-full object-cover" />
+                                            <div className="absolute top-1 right-1 bg-indigo-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">MAIN</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Hero Background Preview */}
+                            {variants[variantImageModal.index]?.heroBgImage && (
+                                <div className="mb-4">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Variant Background</label>
+                                    <div className="flex gap-2.5">
+                                        <div className="relative flex-none w-24 h-24 rounded-xl border-2 border-emerald-200 overflow-hidden shadow-sm">
+                                            <img src={getFileUrl(variants[variantImageModal.index].heroBgImage.url || variants[variantImageModal.index].heroBgImage)} className="w-full h-full object-cover" />
+                                            <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">BG</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Variant Gallery Preview & Reorder */}
                             {variants[variantImageModal.index]?.gallery?.length > 0 && (
                                 <div className="mb-2">
@@ -741,6 +766,23 @@ const AddProductPage = () => {
                                 <div className="text-left">
                                     <div className="font-bold text-gray-900">Add to Gallery</div>
                                     <div className="text-xs text-gray-500">Upload lifestyle or angle shots</div>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPickerTarget({ variantIndex: variantImageModal.index, type: 'background' });
+                                    setVariantImageModal(null);
+                                }}
+                                className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group/btn cursor-pointer"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover/btn:bg-emerald-600 group-hover/btn:text-white transition-all">
+                                    <i className="fas fa-mountain text-lg"></i>
+                                </div>
+                                <div className="text-left">
+                                    <div className="font-bold text-gray-900">Variant Hero Background</div>
+                                    <div className="text-xs text-gray-500">Specific backdrop for this variant</div>
                                 </div>
                             </button>
                         </div>

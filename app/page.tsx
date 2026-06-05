@@ -946,7 +946,7 @@ const Home = () => {
                         clickable: true,
                         dynamicBullets: false
                       }}
-                      loop={featuredProducts.length >= (isMobile ? 1 : 2)}
+                      loop={featuredProducts.length > (isMobile ? 1 : 2)}
                       className="featured-swiper"
                     >
                       {featuredProducts.map((p) => {
