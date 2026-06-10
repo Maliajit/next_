@@ -752,7 +752,7 @@ const EditProductPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={generateVariants}
-                                                className="!px-6 !py-3 bg-gray-900 text-white rounded-lg font-bold hover:bg-black transition-all shadow-lg flex items-center gap-2"
+                                                className="!px-6 !py-3 bg-gray-900 text-white rounded-lg font-bold transition-all shadow-lg flex items-center gap-2"
                                             >
                                                 <i className="fas fa-magic"></i> Update Configurations
                                             </button>
@@ -840,7 +840,7 @@ const EditProductPage = () => {
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="!px-8 !py-4 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="!px-8 !py-4 bg-indigo-600 text-white rounded-lg font-bold text-sm transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {submitting ? <><i className="fas fa-spinner fa-spin"></i> Processing...</> : <><i className="fas fa-check-circle"></i> Finalize Changes</>}
                             </button>

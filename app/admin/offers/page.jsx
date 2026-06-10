@@ -320,7 +320,7 @@ const OffersPage = () => {
               <button
                 type="button"
                 onClick={generateCode}
-                className="mt-2 text-xs text-indigo-600 font-medium hover:text-indigo-800 flex items-center gap-1"
+                className="mt-2 text-xs text-indigo-600 font-medium flex items-center gap-1"
               >
                 <i className="fas fa-magic"></i> Auto-Generate One-Time Code
               </button>

@@ -18,6 +18,12 @@ const navItems = [
     path: '/admin/dashboard',
   },
   {
+    key: 'reports',
+    title: 'Reports',
+    icon: 'fas fa-chart-line',
+    path: '/admin/reports',
+  },
+  {
     key: 'products',
     title: 'Products',
     icon: 'fas fa-cube',
@@ -25,6 +31,7 @@ const navItems = [
     submenu: [
       { title: 'All Products', path: '/admin/products' },
       { title: 'Add Product', path: '/admin/products/create' },
+      { title: 'Variants', path: '/admin/products/variants' },
       { title: 'Attributes', path: '/admin/products/attributes' },
       { title: 'Specifications', path: '/admin/products/specifications' },
       { title: 'Tags', path: '/admin/products/tags' },
@@ -102,6 +109,12 @@ const navItems = [
     title: 'Community',
     icon: 'fas fa-camera-retro',
     path: '/admin/community',
+  },
+  {
+    key: 'shipping',
+    title: 'Shipping',
+    icon: 'fas fa-truck',
+    path: '/admin/shipping',
   },
   {
     key: 'settings',

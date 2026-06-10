@@ -131,8 +131,8 @@ const TaxPage = () => {
         {
           title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 120,
           formatter: () => `<div class="flex gap-2 justify-end">
-            <button class="btn-icon-edit w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors" title="Edit"><i class="fas fa-edit"></i></button>
-            <button class="btn-icon-delete w-9 h-9 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors" title="Delete"><i class="fas fa-trash-alt"></i></button>
+            <button class="btn-icon-edit w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl transition-colors" title="Edit"><i class="fas fa-edit"></i></button>
+            <button class="btn-icon-delete w-9 h-9 bg-rose-50 text-rose-600 rounded-xl transition-colors" title="Delete"><i class="fas fa-trash-alt"></i></button>
           </div>`,
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
@@ -197,8 +197,8 @@ const TaxPage = () => {
         {
           title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 120,
           formatter: () => `<div class="flex gap-2 justify-end">
-            <button class="btn-icon-edit w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors" title="Edit"><i class="fas fa-edit"></i></button>
-            <button class="btn-icon-delete w-9 h-9 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors" title="Delete"><i class="fas fa-trash-alt"></i></button>
+            <button class="btn-icon-edit w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl transition-colors" title="Edit"><i class="fas fa-edit"></i></button>
+            <button class="btn-icon-delete w-9 h-9 bg-rose-50 text-rose-600 rounded-xl transition-colors" title="Delete"><i class="fas fa-trash-alt"></i></button>
           </div>`,
           cellClick: (e, cell) => {
             const d = cell.getRow().getData();
@@ -490,8 +490,8 @@ const TaxPage = () => {
             </div>
 
             <div className="flex gap-3 justify-end pt-6 border-t border-slate-100">
-                <button type="button" className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors" onClick={closeRateModal}>Cancel</button>
-                <button type="submit" className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2" disabled={submitting}>
+                <button type="button" className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold transition-colors" onClick={closeRateModal}>Cancel</button>
+                <button type="submit" className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
                     {submitting ? <i className="fas fa-circle-notch fa-spin"></i> : <i className="fas fa-check"></i>}
                     {editingRate ? 'Update Rate' : 'Create Tax Rate'}
                 </button>
@@ -562,8 +562,8 @@ const TaxPage = () => {
             </label>
 
             <div className="flex gap-3 justify-end pt-6 border-t border-slate-100">
-                <button type="button" className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors" onClick={closeClassModal}>Cancel</button>
-                <button type="submit" className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2" disabled={submitting}>
+                <button type="button" className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold transition-colors" onClick={closeClassModal}>Cancel</button>
+                <button type="submit" className="px-8 py-2.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
                     {submitting ? <i className="fas fa-circle-notch fa-spin"></i> : <i className="fas fa-save"></i>}
                     {editingClass ? 'Update Class' : 'Create Tax Class'}
                 </button>

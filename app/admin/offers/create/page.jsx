@@ -86,7 +86,7 @@ const CreateOffer = () => {
           title="Add New Offer"
           subtitle="Create a discount code or promotional campaign"
         >
-          <Link href="/admin/offers" className="h-10 px-4 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 transition-all">
+          <Link href="/admin/offers" className="h-10 px-4 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium flex items-center gap-2 transition-all">
             <i className="fas fa-arrow-left text-xs"></i>
             Back to Offers
           </Link>
@@ -126,7 +126,7 @@ const CreateOffer = () => {
                     <button
                       type="button"
                       onClick={generateCode}
-                      className="mt-2 text-xs text-indigo-600 font-medium hover:text-indigo-800 flex items-center gap-1"
+                      className="mt-2 text-xs text-indigo-600 font-medium flex items-center gap-1"
                     >
                       <i className="fas fa-magic"></i> Auto-Generate One-Time Code
                     </button>
@@ -214,7 +214,7 @@ const CreateOffer = () => {
               <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
                 <button
                   type="submit"
-                  className="h-11 px-8 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 disabled:opacity-70 flex-1 md:flex-none"
+                  className="h-11 px-8 bg-indigo-600 text-white rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-70 flex-1 md:flex-none"
                   disabled={submitting}
                 >
                   {submitting ? (
@@ -223,7 +223,7 @@ const CreateOffer = () => {
                     <><i className="fas fa-plus"></i> Create Offer</>
                   )}
                 </button>
-                <Link href="/admin/offers" className="h-11 px-8 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center justify-center transition-all flex-1 md:flex-none">
+                <Link href="/admin/offers" className="h-11 px-8 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center transition-all flex-1 md:flex-none">
                   Cancel
                 </Link>
               </div>

@@ -452,8 +452,8 @@ const SpecificationManagement = () => {
              />
            </div>
            <div className="flex gap-2">
-              <button className="!p-3 !text-slate-400 hover:text-indigo-500 hover:bg-slate-100 rounded-xl transition-all"><i className="fas fa-arrows-rotate"></i></button>
-              <button className="!p-3 !text-slate-400 hover:text-indigo-500 hover:bg-slate-100 rounded-xl transition-all"><i className="fas fa-ellipsis-v"></i></button>
+              <button className="!p-3 !text-slate-400 rounded-xl transition-all"><i className="fas fa-arrows-rotate"></i></button>
+              <button className="!p-3 !text-slate-400 rounded-xl transition-all"><i className="fas fa-ellipsis-v"></i></button>
            </div>
         </div>
         
@@ -515,7 +515,7 @@ const SpecificationManagement = () => {
                 { k: 'isFilterable', l: 'Searchable', d: 'Available in frontend filters' }, 
                 { k: 'isActive', l: 'Published', d: 'Visible in admin list' } 
               ].map(f => (
-                  <label key={f.k} className="flex items-start gap-4 p-3 bg-white rounded-xl border border-slate-100 cursor-pointer hover:shadow-soft-sm transition-all group">
+                  <label key={f.k} className="flex items-start gap-4 p-3 bg-white rounded-xl border border-slate-100 cursor-pointer transition-all group">
                       <input 
                         type="checkbox" 
                         checked={form[f.k]} 
@@ -532,8 +532,8 @@ const SpecificationManagement = () => {
           </div>
 
           <div className="flex justify-end gap-3 pt-6">
-            <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-2xl transition-all">Cancel</button>
-            <button type="submit" className="!px-10 !py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2" disabled={submitting}>
+            <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 rounded-2xl transition-all">Cancel</button>
+            <button type="submit" className="!px-10 !py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2" disabled={submitting}>
                {submitting ? <Loader size="xs" /> : <i className="fas fa-circle-check"></i>}
                {editingRecord ? 'Update Changes' : 'Create Specification'}
             </button>
@@ -550,7 +550,7 @@ const SpecificationManagement = () => {
                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Specifications Registry</label>
                <div className="border border-slate-200 rounded-[20px] p-3 bg-slate-50/30  overflow-y-auto space-y-2 custom-scrollbar">
                   {specifications.map(s => (
-                    <label key={s.id} className="flex items-center gap-3 !p-3 bg-white border border-slate-100 rounded-xl hover:border-indigo-200 cursor-pointer transition-all hover:bg-indigo-50/20 group">
+                    <label key={s.id} className="flex items-center gap-3 !p-3 bg-white border border-slate-100 rounded-xl cursor-pointer transition-all /20 group">
                         <input 
                           type="checkbox" 
                           checked={groupForm.specificationIds.includes(s.id.toString())} 
@@ -582,8 +582,8 @@ const SpecificationManagement = () => {
             </div>
 
             <div className="flex justify-end gap-3 pt-6 border-t border-slate-50">
-              <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-2xl transition-all">Cancel</button>
-              <button type="submit" className="!px-10 !py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
+              <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 rounded-2xl transition-all">Cancel</button>
+              <button type="submit" className="!px-10 !py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
                  {submitting ? <Loader size="xs" /> : <i className="fas fa-layer-group"></i>}
                  {editingRecord ? 'Push Updates' : 'Confirm Group'}
               </button>
@@ -626,7 +626,7 @@ const SpecificationManagement = () => {
             </div>
 
             <div className="flex justify-end gap-3 !pt-6">
-              <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-2xl transition-all">Cancel</button>
+              <button type="button" onClick={closeModal} className="px-6 py-3 font-bold text-slate-500 rounded-2xl transition-all">Cancel</button>
               <button type="submit" className="!px-10 !py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all flex items-center gap-2" disabled={submitting}>
                  <i className="fas fa-bolt"></i> Register Value
               </button>
@@ -673,7 +673,7 @@ const SpecificationManagement = () => {
             )}
          </div>
          <div className="flex justify-center pt-10 border-t border-slate-50 mt-6">
-            <button onClick={closeModal} className="!px-10 !py-3 bg-slate-800 text-white font-bold rounded-2xl hover:scale-105 transition-all shadow-xl">Close Registry</button>
+            <button onClick={closeModal} className="!px-10 !py-3 bg-slate-800 text-white font-bold rounded-2xl transition-all shadow-xl">Close Registry</button>
          </div>
       </AdminModal>
 

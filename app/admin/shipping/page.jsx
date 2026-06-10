@@ -6,19 +6,40 @@ import 'tabulator-tables/dist/css/tabulator.min.css';
 import '@/app/admin/css/datatable.css';
 import '@/app/admin/css/custom.css';
 import { useAdminData } from '@/context/AdminDataContext';
+import * as api from '@/services/adminApi';
 import AdminModal from '@/components/admin/AdminModal';
 import Swal from 'sweetalert2';
 
 const ShippingList = () => {
   const { data, addRecord, deleteRecord } = useAdminData();
-  const methods = data.shippingMethods || [];
+  
+  const methods = (data.shippingMethods || []).map(m => {
+    let conf = {};
+    if (typeof m.config === 'string') try { conf = JSON.parse(m.config); } catch(e){}
+    else if (typeof m.config === 'object' && m.config) conf = m.config;
+    return { ...m, provider: conf.provider || '-', rate: conf.rate ? `₹${conf.rate}` : '-', min_amount: conf.min_amount ? `₹${conf.min_amount}` : '-' };
+  });
+
   const tableRef = useRef(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [form, setForm] = useState({ name: '', provider: 'BlueDart', rate: '', min_amount: '' });
 
   const handleSave = () => {
-    if (!form.name) return;
-    addRecord('shippingMethods', { ...form, status: 'active', rate: `₹${form.rate}`, min_amount: `₹${form.min_amount || 0}` });
+    if (!form.name || form.rate < 0 || form.min_amount < 0) return Swal.fire('Error', 'Please fill valid details', 'error');
+    
+    const configData = {
+      provider: form.provider,
+      rate: form.rate,
+      min_amount: form.min_amount || 0
+    };
+
+    addRecord('shippingMethods', { 
+      name: form.name, 
+      code: form.name.toLowerCase().replace(/\s+/g, '-'),
+      isActive: true, 
+      config: configData 
+    }, api.createShippingMethod);
+    
     setForm({ name: '', provider: 'BlueDart', rate: '', min_amount: '' });
     setShowAddModal(false);
   };
@@ -59,7 +80,7 @@ const ShippingList = () => {
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'Yes, delete it'
           });
-          if (result.isConfirmed) deleteRecord('shippingMethods', cell.getRow().getData().id);
+          if (result.isConfirmed) deleteRecord('shippingMethods', cell.getRow().getData().id, api.deleteShippingMethod);
         }
       }
     }

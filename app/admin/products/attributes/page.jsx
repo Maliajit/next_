@@ -387,7 +387,7 @@ const AttributeList = () => {
             options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]}
           />
 
-          <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+          <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl cursor-pointer transition-colors">
             <input type="checkbox" name="isVariant" checked={attrForm.isVariant} onChange={handleChange} className="w-5 h-5 rounded text-indigo-600 border-slate-300" />
             <div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>Variant Property</div>
@@ -430,7 +430,7 @@ const AttributeList = () => {
               <div className="grid grid-cols-2 gap-6 items-end">
                 <FormField label="Sort Order" type="number" value={valForm.sortOrder} onChange={e => setValForm({...valForm, sortOrder: e.target.value})} placeholder="0" />
                 
-                <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer border border-slate-100 hover:bg-slate-100 transition-colors h-[48px]">
+                <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer border border-slate-100 transition-colors h-[48px]">
                   <input type="checkbox" checked={valForm.isActive} onChange={e => setValForm({...valForm, isActive: e.target.checked})} className="w-5 h-5 rounded text-indigo-600 border-slate-300" />
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>Active Status</span>
                 </label>

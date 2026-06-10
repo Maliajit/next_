@@ -202,7 +202,7 @@ const EditCategoryPage = () => {
                     <button
                         onClick={handleSubmit}
                         disabled={submitting}
-                        className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                        className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-lg shadow-indigo-100"
                     >
                         {submitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
                         Update Category (Ctrl+S)
@@ -314,7 +314,7 @@ const EditCategoryPage = () => {
                             {filteredSpecGroups.map(group => (
                                 <label
                                     key={group.id}
-                                    className={`flex items-center gap-4 !p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedSpecGroups.includes(group.id) ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-100 bg-slate-50/50 hover:border-slate-200'}`}
+                                    className={`flex items-center gap-4 !p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedSpecGroups.includes(group.id) ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-100 bg-slate-50/50 '}`}
                                 >
                                     <input
                                         type="checkbox"
@@ -595,7 +595,7 @@ const EditCategoryPage = () => {
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex-[1.5] !py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                                    className="flex-[1.5] !py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200"
                                 >
                                     {submitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save font-light"></i>}
                                     Update Category
@@ -613,7 +613,7 @@ const EditCategoryPage = () => {
                     type="button"
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="w-full py-4 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"
+                    className="w-full py-4 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200"
                 >
                     {submitting ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save font-light"></i>}
                     Update Category

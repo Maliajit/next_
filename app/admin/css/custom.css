@@ -767,15 +767,7 @@
     overflow: hidden;
 }
 
-.btn-primary:hover, .btn-primary:active {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    color: #fff !important;
-}
+/* Hover effects removed for btn-primary */
 
 .btn-indigo-gradient {
     display: inline-flex;
@@ -796,15 +788,7 @@
     white-space: nowrap;
 }
 
-.btn-indigo-gradient:hover, .btn-indigo-gradient:active {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    color: #fff !important;
-}
+/* Hover effects removed for btn-indigo-gradient */
 
 .btn-filter-dark {
     display: inline-flex;
@@ -824,15 +808,7 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.btn-filter-dark:hover, .btn-filter-dark:active {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    color: #fff !important;
-}
+/* Hover effects removed for btn-filter-dark */
 
 /* Hover effects for btn-primary moved above */
 
@@ -855,15 +831,7 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-.btn-secondary:hover, .btn-secondary:active {
-    background: rgba(0, 0, 0, 0.05) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-color: #1a1a1a;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    color: #1a1a1a !important;
-}
+/* Hover effects removed for btn-secondary */
 
 /* Legacy alias */
 .btn-indigo {
@@ -885,15 +853,7 @@
     white-space: nowrap;
 }
 
-.btn-indigo:hover, .btn-indigo:active {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    color: #fff !important;
-}
+/* Hover effects removed for btn-indigo */
 
 /* Icon Buttons */
 .btn-icon {

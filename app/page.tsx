@@ -425,11 +425,24 @@ const Home = () => {
 
         /* ── Featured Grid Section ── */
         .featured-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(2.5rem, 5vw, 3.5rem);
+          font-weight: 400; 
+          color: #111;
+          letter-spacing: 0.03em;
+          margin: 0;
+        }
+        .featured-title em {
+          font-style: italic;
+          color: #d4af37;
+        }
+        .featured-subtitle {
           font-family: 'Inter', sans-serif;
-          font-size: 1.5rem;
-          font-weight: 500; color: #111;
-          letter-spacing: -0.01em;
-          margin-bottom: 2rem;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.15em;
+          color: #8A8A8A;
+          margin-bottom: 8px;
         }
         .featured-grid-wrap {
           display: flex; flex-direction: column;
@@ -445,8 +458,8 @@ const Home = () => {
           background: #fff;
         }
         .featured-grid-header { 
-          padding: 0 4% 1rem; 
-          text-align: left;
+          padding: 0 4% 2rem; 
+          text-align: center;
           width: 100%;
         }
         .featured-container {
@@ -548,8 +561,8 @@ const Home = () => {
             min-height: 60vh;
             border-radius: 0;
           }
-          .featured-grid-header { padding: 40px 24px 24px; }
-          .featured-title { font-size: 1.25rem; margin-bottom: 1rem; }
+          .featured-grid-header { padding: 40px 24px 24px; text-align: center; }
+          .featured-title { font-size: 2.2rem; }
           .featured-container { display: block; }
           .featured-item-v2 { height: 60vh; border-radius: 0; }
           .featured-content { bottom: 80px; left: 24px; }
@@ -927,7 +940,8 @@ const Home = () => {
           {homeSections.featured && (
             <div className="section featured-grid-wrap s5" ref={el => { sectionsRef.current[5] = el; }}>
               <div className="featured-grid-header">
-                <h2 className="featured-title">Featured</h2>
+                <p className="featured-subtitle">Curated Collection</p>
+                <h2 className="featured-title"><em>Featured</em> Timepieces</h2>
               </div>
               <div className="featured-container">
                 {loadingFeatured ? (

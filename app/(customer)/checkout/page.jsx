@@ -52,6 +52,10 @@ const Checkout = () => {
   const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
+    if (!user) {
+      navigate.push('/login');
+      return;
+    }
     setIsLoaded(true);
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';

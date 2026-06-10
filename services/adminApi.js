@@ -82,12 +82,23 @@ export const adminLogout = () => {
 // ─── Dashboard ────────────────────────────────────────────────
 export const getDashboard = () => get('/dashboard');
 
+// ─── Reports ────────────────────────────────────────────────────
+export const getDashboardReports = () => get('/reports/dashboard');
+export const getVariantPerformanceReport = () => get('/reports/variant-performance');
+export const getRevenueReport = () => get('/reports/revenue');
+export const getOrdersReport = () => get('/reports/orders');
+export const getInventoryReport = () => get('/reports/inventory');
+export const getFinancialReport = () => get('/reports/financial');
+export const getTrafficReport = () => get('/reports/traffic');
+
 // ─── Products ─────────────────────────────────────────────────
 export const getProducts = () => get('/products');
 export const getProduct = (id) => get(`/products/${id}`);
 export const createProduct = (data) => post('/products', data);
 export const updateProduct = (id, data) => put(`/products/${id}`, data);
 export const deleteProduct = (id) => del(`/products/${id}`);
+
+export const getAllVariants = (page=1, limit=50) => get(`/variants?page=${page}&limit=${limit}`);
 export const generateVariants = (productId, selections) => post(`/products/${productId}/generate-variants`, { selections });
 export const getProductVariants = (productId) => get(`/products/${productId}/variants`);
 export const upload360Media = (productId, formData) => post(`/products/${productId}/media/360`, formData);
