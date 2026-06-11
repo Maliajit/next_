@@ -32,6 +32,7 @@ function DiscoverContent() {
   const [activeModalData, setActiveModalData] = useState(null);
   const [activeSpecGroup, setActiveSpecGroup] = useState(null);
   const [activeSection, setActiveSection] = useState('hero');
+  const [isAdded, setIsAdded] = useState(false);
   const lastScrollY = useRef(0);
   const heroRef = useRef(null);
 
@@ -208,6 +209,7 @@ function DiscoverContent() {
 
     if (targetVariant) {
       addToCart(targetVariant.id.toString(), 1, { title: product.name });
+      setIsAdded(true);
     } else {
       throw new Error("ENFORCEMENT: Cannot add to cart without matching variant");
     }
@@ -487,6 +489,19 @@ function DiscoverContent() {
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
+        
+        .btn-added {
+          background: #000000 !important;
+          color: #ffffff !important;
+          animation: popBtn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          pointer-events: none;
+        }
+        @keyframes popBtn {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+
         .top-actions { 
           position: fixed; 
           top: 100px; 
@@ -1638,7 +1653,13 @@ function DiscoverContent() {
 
                 <div className="cfg-actions-group">
                   {hasConfig && (
-                    <button className="cfg-add-now-btn" style={product.heroBgImage ? { background: '#ffffff', color: '#000000' } : {}} onClick={handleBookNow}>Add to Cart</button>
+                    <button 
+                      className={`cfg-add-now-btn cfg-book-btn ${isAdded ? 'btn-added' : ''}`} 
+                      style={!isAdded && product.heroBgImage ? { background: '#ffffff', color: '#000000' } : {}} 
+                      onClick={handleBookNow}
+                    >
+                      {isAdded ? 'Added ✓' : 'Add to Cart'}
+                    </button>
                   )}
                 </div>
               </div>
@@ -1803,7 +1824,6 @@ function DiscoverContent() {
               )}
               <div className="cfg-sold-stats" onClick={() => openInfoModal(product)}>
                 <span className="shimmer-sweep"></span>
-                <span className="stats-numbers">{product.sold}/{product.totalStock}</span>
                 <span className="stats-label">Configurations Sold</span>
                 <div className="cfg-see-variants">
                   {/* <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

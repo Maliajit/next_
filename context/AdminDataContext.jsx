@@ -41,6 +41,8 @@ export const AdminDataProvider = ({ children }) => {
     settings: null,
     inventory: [],
     shippingMethods: [],
+    faqs: [],
+    productCareSteps: [],
   });
 
   const [loading, setLoading] = useState({
@@ -65,6 +67,8 @@ export const AdminDataProvider = ({ children }) => {
     settings: true,
     inventory: true,
     shippingMethods: true,
+    faqs: true,
+    productCareSteps: true,
   });
 
   const [errors, setErrors] = useState({});
@@ -113,6 +117,8 @@ export const AdminDataProvider = ({ children }) => {
     fetchEntity('settings', api.getSettings);
     fetchEntity('inventory', api.getInventory);
     fetchEntity('shippingMethods', api.getShippingMethods);
+    fetchEntity('faqs', api.getFaqs);
+    fetchEntity('productCareSteps', api.getProductCareStepsGrouped);
   }, [fetchEntity]);
 
   // ─── Memoized API Actions ──────────────────────────────────
@@ -138,6 +144,8 @@ export const AdminDataProvider = ({ children }) => {
     settings: () => fetchEntity('settings', api.getSettings),
     inventory: () => fetchEntity('inventory', api.getInventory),
     shippingMethods: () => fetchEntity('shippingMethods', api.getShippingMethods),
+    faqs: () => fetchEntity('faqs', api.getFaqs),
+    productCareSteps: () => fetchEntity('productCareSteps', api.getProductCareStepsGrouped),
   }), [fetchEntity]);
 
   // ─── CRUD Operations (optimistic + real API) ────────────────

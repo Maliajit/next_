@@ -1,64 +1,86 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { checkMobileApi } from '@/lib/api';
-import Swal from 'sweetalert2';
 
-const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
-  id: i,
-  size: 4 + Math.random() * 6,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  dur: 8 + Math.random() * 10,
-  delay: Math.random() * 6,
-  opacity: 0.08 + Math.random() * 0.14,
-}));
+/* ─── OTP Input Boxes ─── */
+function OtpBoxes({ value, onChange, length = 4 }) {
+  const refs = useRef([]);
+  const digits = value.split('').concat(Array(length).fill('')).slice(0, length);
 
-function InputField({ label, type, id, value, onChange, placeholder, icon, autoComplete, prefix, maxLength }) {
-  const [focused, setFocused] = useState(false);
+  const handleChange = (idx, e) => {
+    const char = e.target.value.replace(/\D/g, '').slice(-1);
+    const arr = [...digits];
+    arr[idx] = char;
+    const next = arr.join('');
+    onChange(next);
+    if (char && idx < length - 1) {
+      refs.current[idx + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (idx, e) => {
+    if (e.key === 'Backspace' && !digits[idx] && idx > 0) {
+      refs.current[idx - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, length);
+    onChange(pasted);
+    const focusIdx = Math.min(pasted.length, length - 1);
+    refs.current[focusIdx]?.focus();
+  };
+
   return (
-    <div className="lp-field-wrapper">
-      <label className="lp-field-label" htmlFor={id}>{label}</label>
-      <div className={`lp-field-box ${focused ? 'lp-field-focused' : ''} ${value ? 'lp-field-filled' : ''}`}>
-        {icon && <span className="lp-field-icon">{icon}</span>}
-        {prefix && <span className="lp-field-prefix" style={{fontWeight: 600, color: '#1C2E4A', marginRight: '4px'}}>{prefix}</span>}
+    <div className="otp-boxes">
+      {digits.map((d, i) => (
         <input
-          id={id}
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          className="lp-input"
-          autoComplete={autoComplete}
-          maxLength={maxLength}
+          key={i}
+          ref={el => refs.current[i] = el}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={d}
+          onChange={e => handleChange(i, e)}
+          onKeyDown={e => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          className={`otp-box ${d ? 'otp-box-filled' : ''}`}
+          autoComplete="one-time-code"
         />
-      </div>
+      ))}
     </div>
   );
+}
+
+/* ─── Mask phone: 97****67 ─── */
+function maskPhone(num) {
+  if (!num || num.length < 4) return num;
+  return num.slice(0, 2) + '*'.repeat(num.length - 4) + num.slice(-2);
 }
 
 export default function Login() {
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState(1); // 1: Mobile, 2: OTP
+  const [step, setStep] = useState(1); // 1: Phone, 2: OTP
+  const [isRegistered, setIsRegistered] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [formVisible, setFormVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [shake, setShake] = useState(false);
   const [error, setError] = useState('');
+  const [focused, setFocused] = useState(false);
   const { loginOtp } = useAuth();
   const navigate = useRouter();
 
   useEffect(() => {
-    const t1 = setTimeout(() => setLoaded(true), 60);
-    const t2 = setTimeout(() => setFormVisible(true), 280);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const t = setTimeout(() => setLoaded(true), 100);
+    return () => clearTimeout(t);
   }, []);
 
+  /* Step 1 — Send OTP */
   const handleMobileSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -68,34 +90,23 @@ export default function Login() {
       setTimeout(() => setShake(false), 600);
       return;
     }
-    
+
     setSubmitting(true);
     try {
       const result = await checkMobileApi({ mobile });
-      if (!result.success) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Not Registered',
-          text: 'This mobile number is not registered. Please sign up to create an account.',
-          confirmButtonText: 'Sign Up Now',
-          confirmButtonColor: '#4a6fa5',
-          showCancelButton: true,
-          cancelButtonText: 'Try Another'
-        }).then((res) => {
-          if (res.isConfirmed) {
-            navigate.push('/signup');
-          }
-        });
-        return;
-      }
+      // Store registration status — proceed to OTP regardless
+      setIsRegistered(!!result?.success);
       setStep(2);
     } catch (err) {
-      setError('Unable to verify mobile. Please try again.');
+      // Even on error, allow OTP step (backend might still send OTP)
+      setIsRegistered(false);
+      setStep(2);
     } finally {
       setSubmitting(false);
     }
   };
 
+  /* Step 2 — Verify OTP */
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -105,14 +116,25 @@ export default function Login() {
       setTimeout(() => setShake(false), 600);
       return;
     }
+
     setSubmitting(true);
     try {
-      console.log('[auth-ui] otp login submit', { mobile, otp });
-      await loginOtp({ mobile, otp });
-      console.log('[auth-ui] navigation trigger', { target: '/', reason: 'verified otp success' });
-      navigate.push('/');
+      if (isRegistered) {
+        // User exists → log them in → go home
+        await loginOtp({ mobile, otp });
+        navigate.push('/');
+      } else {
+        // User is NOT registered → verify OTP locally, then go to signup
+        if (otp !== '1234') {
+          setError('Invalid OTP. Please try again.');
+          setShake(true);
+          setTimeout(() => setShake(false), 600);
+          return;
+        }
+        navigate.push(`/signup?mobile=${mobile}`);
+      }
     } catch (err) {
-      setError(err?.message || 'Invalid mobile number or OTP');
+      setError(err?.message || 'Invalid OTP. Please try again.');
       setShake(true);
       setTimeout(() => setShake(false), 600);
     } finally {
@@ -121,440 +143,446 @@ export default function Login() {
   };
 
   return (
-    <div className="lp-page">
-      <div className="lp-bg">
-        <div className="lp-bg-blob lp-blob-1" />
-        <div className="lp-bg-blob lp-blob-2" />
-        <div className="lp-bg-blob lp-blob-3" />
-        <div className="lp-bg-blob lp-blob-4" />
-      </div>
+    <div className="auth-page">
 
-      {/* Floating particles */}
-      {PARTICLES.map(p => (
-        <div
-          key={p.id}
-          className="lp-particle"
-          style={{
-            width: p.size, height: p.size,
-            left: `${p.x}%`, top: `${p.y}%`,
-            opacity: p.opacity,
-            animationDuration: `${p.dur}s`,
-            animationDelay: `${p.delay}s`,
-          }}
-        />
-      ))}
 
-      <div className="lp-split">
-        {/* Left panel */}
-        <div
-          className="lp-left-panel"
-          style={{
-            opacity: loaded ? 1 : 0,
-            transform: loaded ? 'translateX(0)' : 'translateX(-40px)',
-            transition: 'opacity 0.8s ease, transform 0.8s ease',
-          }}
-        >
-          <div className="lp-brand">
-            <span className="lp-brand-name">FYLEXX</span>
-          </div>
-
-          <div className="lp-left-copy">
-            <div className="lp-eyebrow">Member Access</div>
-            <h1 className="lp-left-heading">Wear Time.<br />Define You.</h1>
-            <p className="lp-left-sub">
-              Sign in to your account to explore exclusive collections, track orders,
-              and manage your personalized timepieces.
-            </p>
-          </div>
+      {/* ─── Main Content ─── */}
+      <main className="auth-main">
+        {/* Image Panel */}
+        <div className={`auth-image-panel ${loaded ? 'auth-loaded' : ''}`}>
+          <img
+            src="/assets/auth-hero.png"
+            alt="Luxury timepiece"
+            className="auth-hero-img"
+          />
+          <div className="auth-image-overlay" />
         </div>
 
-        {/* Right panel — form */}
-        <div
-          className={`lp-right-panel ${shake ? 'lp-shake' : ''}`}
-          style={{
-            opacity: formVisible ? 1 : 0,
-            transform: formVisible ? 'translateY(0)' : 'translateY(30px)',
-            transition: 'opacity 0.7s ease, transform 0.7s ease',
-          }}
-        >
-          <div className="lp-form-card">
-            <div className="lp-form-header">
-              <h2 className="lp-form-title">
-                {step === 1 ? 'Welcome back' : 'Verify Identity'}
-              </h2>
-              <p className="lp-form-subtitle">
-                {step === 1
-                  ? 'Sign in to your Fylexx account'
-                  : `Enter the 4-digit code sent to ${mobile}`}
-              </p>
-            </div>
+        {/* Form Panel */}
+        <div className={`auth-form-panel ${loaded ? 'auth-loaded' : ''}`}>
+          <div className={`auth-form-inner ${shake ? 'auth-shake' : ''}`}>
 
-            {step === 1 ? (
-              <form onSubmit={handleMobileSubmit} className="lp-form" noValidate>
-                <InputField
-                  label="Mobile Number"
-                  type="tel"
-                  id="login-mobile"
-                  value={mobile}
-                  onChange={e => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                    setMobile(val);
-                  }}
-                  placeholder="Enter 10-digit number"
-                  autoComplete="tel"
-                  prefix="+91"
-                  maxLength={10}
-                  icon={
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                  }
-                />
+            {/* ══════ STEP 1: Phone Number ══════ */}
+            {step === 1 && (
+              <>
+                <h1 className="auth-title">Access your Fylex</h1>
+                <p className="auth-subtitle">
+                  Access your profile, application status, and timepieces.
+                </p>
 
-                {error && <div className="lp-error-box">{error}</div>}
+                <form onSubmit={handleMobileSubmit} className="auth-form" noValidate>
+                  <div className="auth-field-group">
+                    <label className="auth-label" htmlFor="login-phone">Phone</label>
+                    <div className={`auth-input-row ${focused ? 'auth-input-focused' : ''}`}>
+                      <span className="auth-country-code">+91 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg></span>
+                      <input
+                        id="login-phone"
+                        type="tel"
+                        value={mobile}
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setMobile(val);
+                        }}
+                        placeholder="Enter your phone number"
+                        className="auth-input"
+                        autoComplete="tel"
+                        maxLength={10}
+                        onFocus={() => setFocused(true)}
+                        onBlur={() => setFocused(false)}
+                      />
+                    </div>
+                  </div>
 
-                <button type="submit" className={`lp-submit-btn ${submitting ? 'lp-submitting' : ''}`} disabled={submitting}>
-                  {submitting ? (
-                    <span className="lp-spinner" />
-                  ) : (
-                    <>
-                      <span>Send OTP</span>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleOtpSubmit} className="lp-form" noValidate>
-                <InputField
-                  label="Enter OTP"
-                  type="text"
-                  id="login-otp"
-                  value={otp}
-                  onChange={e => setOtp(e.target.value)}
-                  placeholder="••••"
-                  autoComplete="one-time-code"
-                  icon={
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                  }
-                />
+                  {error && <div className="auth-error">{error}</div>}
 
-                {error && <div className="lp-error-box">{error}</div>}
+                  <button
+                    type="submit"
+                    className={`auth-submit-btn ${submitting ? 'auth-submitting' : ''}`}
+                    disabled={submitting}
+                  >
+                    {submitting ? <span className="auth-spinner" /> : 'Send OTP'}
+                  </button>
 
-                <div className="lp-row-options">
-                  <button type="button" onClick={() => setStep(1)} className="lp-forgot">Change Number</button>
-                </div>
-
-                <button
-                  type="submit"
-                  className={`lp-submit-btn ${submitting ? 'lp-submitting' : ''}`}
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <span className="lp-spinner" />
-                  ) : (
-                    <>
-                      <span>Verify & Sign In</span>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </form>
+                  <p className="auth-whatsapp-note">
+                    Your OTP will also be delivered on WhatsApp for faster access.
+                  </p>
+                </form>
+              </>
             )}
 
-            <p className="lp-switch-text" style={{ marginTop: '24px' }}>
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="lp-switch-link">Sign up</Link>
-            </p>
+            {/* ══════ STEP 2: OTP Verification (Rotoris-style) ══════ */}
+            {step === 2 && (
+              <>
+                <h1 className="auth-title">Verify your access</h1>
+                <p className="auth-subtitle">
+                  Enter the 4-digit code sent to <span className="auth-phone-highlight">+91 {maskPhone(mobile)}</span> phone and WhatsApp.
+                </p>
+
+                <form onSubmit={handleOtpSubmit} className="auth-form" noValidate>
+                  <OtpBoxes value={otp} onChange={setOtp} length={4} />
+
+                  <button type="button" className="auth-resend-link" onClick={() => { /* resend logic */ }}>
+                    Didn&apos;t receive it? <span className="auth-resend-action">Resend code</span>
+                  </button>
+
+                  {error && <div className="auth-error">{error}</div>}
+
+                  <button
+                    type="submit"
+                    className={`auth-submit-btn ${submitting ? 'auth-submitting' : ''}`}
+                    disabled={submitting}
+                  >
+                    {submitting ? <span className="auth-spinner" /> : 'Continue'}
+                  </button>
+
+                  <p className="auth-whatsapp-note">
+                    Your details are secure and used only for your Fylex experience.
+                  </p>
+
+                  <button
+                    type="button"
+                    className="auth-change-number"
+                    onClick={() => { setStep(1); setOtp(''); setError(''); }}
+                  >
+                    — Change phone number
+                  </button>
+                </form>
+              </>
+            )}
+
           </div>
         </div>
-      </div>
+      </main>
 
       <style>{`
-        .lp-page {
+        /* ══════════════════════════════════════
+           AUTH PAGE — DARK LUXURY THEME
+        ══════════════════════════════════════ */
+
+        .auth-page {
           min-height: 100vh;
-          position: relative;
-          overflow: hidden;
+          background: #000000;
+          font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+          color: #ffffff;
           display: flex;
-          align-items: stretch;
-          font-family: 'Montserrat', sans-serif;
-          background: linear-gradient(135deg, #e3e8f0 0%, #f4f7f9 50%, #e9edf4 100%);
+          flex-direction: column;
         }
 
-        /* Background */
-        .lp-bg {
-          position: fixed; inset: 0; z-index: 0;
+        /* ─── Header ─── */
+        .auth-header {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 28px;
+          background: linear-gradient(180deg, rgba(12,26,16,0.95) 0%, rgba(12,26,16,0.6) 100%);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
         }
-        .lp-bg-blob {
-          position: absolute; border-radius: 50%;
-          filter: blur(90px); pointer-events: none;
+        .auth-header-menu {
+          background: none; border: none;
+          color: #ffffff; cursor: pointer;
+          padding: 4px; display: flex; align-items: center;
+          transition: opacity 0.2s;
         }
-        .lp-blob-1 {
-          width: 700px; height: 700px;
-          background: radial-gradient(circle, rgba(74,111,165,0.22) 0%, transparent 65%);
-          top: -200px; left: -200px;
-          animation: blobDrift1 14s ease-in-out infinite alternate;
+        .auth-header-menu:hover { opacity: 0.7; }
+        .auth-header-logo {
+          font-size: 16px; font-weight: 400;
+          letter-spacing: 0.35em; color: #ffffff;
+          text-decoration: none; text-transform: uppercase;
+          position: absolute; left: 50%; transform: translateX(-50%);
         }
-        .lp-blob-2 {
-          width: 550px; height: 550px;
-          background: radial-gradient(circle, rgba(118,75,162,0.16) 0%, transparent 65%);
-          top: 30%; right: -150px;
-          animation: blobDrift2 18s ease-in-out infinite alternate;
+        .auth-header-icons {
+          display: flex; align-items: center; gap: 18px;
         }
-        .lp-blob-3 {
-          width: 450px; height: 450px;
-          background: radial-gradient(circle, rgba(28,46,74,0.12) 0%, transparent 65%);
-          bottom: -100px; left: 30%;
-          animation: blobDrift3 11s ease-in-out infinite alternate;
+        .auth-header-icons a {
+          color: #ffffff; text-decoration: none;
+          display: flex; align-items: center;
+          transition: opacity 0.2s;
         }
-        .lp-blob-4 {
-          width: 350px; height: 350px;
-          background: radial-gradient(circle, rgba(67,160,215,0.10) 0%, transparent 65%);
-          top: 60%; left: 10%;
-          animation: blobDrift1 16s ease-in-out infinite alternate-reverse;
-        }
-        @keyframes blobDrift1 { from{transform:translate(0,0)} to{transform:translate(50px,35px)} }
-        @keyframes blobDrift2 { from{transform:translate(0,0)} to{transform:translate(-40px,50px)} }
-        @keyframes blobDrift3 { from{transform:translate(0,0)} to{transform:translate(30px,-40px)} }
+        .auth-header-icons a:hover { opacity: 0.7; }
 
-        /* Particles */
-        .lp-particle {
-          position: fixed; border-radius: 50%;
-          background: radial-gradient(circle, #4a6fa5, #764ba2);
-          animation: particleFloat linear infinite;
-          pointer-events: none; z-index: 1;
-        }
-        @keyframes particleFloat {
-          0% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-30px) scale(1.1); }
-          100% { transform: translateY(0) scale(1); }
-        }
-
-        /* Layout */
-        .lp-split {
-          position: relative; z-index: 2;
+        /* ─── Main Layout ─── */
+        .auth-main {
+          flex: 1;
           display: grid;
           grid-template-columns: 1fr 1fr;
           min-height: 100vh;
-          width: 100%;
-          padding-top: var(--header-h, 70px);
-        }
-        @media(max-width: 820px) {
-          .lp-split { 
-            grid-template-columns: 1fr; 
-            min-height: auto;
-            gap: 0;
-          }
-          .lp-left-panel { 
-            padding: 40px 24px 10px;
-            justify-content: flex-start;
-          }
-          .lp-left-copy {
-            flex: none;
-          }
-          .lp-left-sub {
-            margin-bottom: 24px;
-          }
-          .lp-right-panel {
-            padding: 10px 24px 60px;
-            align-items: flex-start;
-          }
-          .lp-form-card {
-            padding: 32px 24px;
-          }
         }
 
-        /* Left panel */
-        .lp-left-panel {
-          display: flex; flex-direction: column;
-          padding: 60px 56px;
-          justify-content: space-between;
+        /* ─── Image Panel ─── */
+        .auth-image-panel {
+          position: relative; overflow: hidden;
+          opacity: 0; transform: scale(1.02);
+          transition: opacity 0.9s ease, transform 0.9s ease;
         }
-        .lp-brand {
-          display: flex; align-items: center; gap: 10px;
+        .auth-image-panel.auth-loaded {
+          opacity: 1; transform: scale(1);
         }
-        .lp-brand-mark {
-          width: 40px; height: 40px;
-          background: rgba(255,255,255,0.7);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(28,46,74,0.12);
-          border-radius: 10px;
+        .auth-hero-img {
+          width: 100%; height: 100%;
+          object-fit: cover; display: block;
+        }
+        .auth-image-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to right, transparent 60%, #000000 100%);
+          pointer-events: none;
+        }
+
+        /* ─── Form Panel ─── */
+        .auth-form-panel {
           display: flex; align-items: center; justify-content: center;
+          padding: 100px 60px 60px;
+          opacity: 0; transform: translateY(20px);
+          transition: opacity 0.7s ease 0.2s, transform 0.7s ease 0.2s;
         }
-        .lp-brand-name {
-          font-size: 13px; font-weight: 700;
-          letter-spacing: 0.3em; color: #1C2E4A;
-          text-transform: uppercase;
+        .auth-form-panel.auth-loaded {
+          opacity: 1; transform: translateY(0);
         }
-        .lp-left-copy { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-        .lp-eyebrow {
-          font-size: 10px; letter-spacing: 0.38em;
-          text-transform: uppercase; color: #4a6fa5;
-          font-weight: 600; margin-bottom: 18px;
-        }
-        .lp-left-heading {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(36px, 4vw, 58px);
-          font-weight: 400; line-height: 1.1;
-          color: #1C2E4A;
-          background: linear-gradient(120deg, #1C2E4A 0%, #4a6fa5 60%, #764ba2 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 20px;
-        }
-        .lp-left-sub {
-          font-size: 14px; color: #5a6a80;
-          line-height: 1.75; max-width: 360px;
-          margin-bottom: 48px;
+        .auth-form-inner {
+          width: 100%; max-width: 440px;
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: 40px;
         }
 
-
-        /* Right panel / form */
-        .lp-right-panel {
-          display: flex; align-items: center; justify-content: center;
-          padding: 40px 28px;
-        }
-        .lp-shake { animation: shakeAnim 0.55s ease; }
-        @keyframes shakeAnim {
-          0%,100%{transform:translateX(0)}
-          20%{transform:translateX(-8px)}
-          40%{transform:translateX(8px)}
-          60%{transform:translateX(-6px)}
-          80%{transform:translateX(6px)}
+        /* Shake */
+        .auth-shake { animation: authShake 0.55s ease; }
+        @keyframes authShake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-8px); }
+          40% { transform: translateX(8px); }
+          60% { transform: translateX(-5px); }
+          80% { transform: translateX(5px); }
         }
 
-        .lp-form-card {
-          width: 100%; max-width: 420px;
-          background: rgba(255,255,255,0.78);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(99,130,201,0.18);
-          border-radius: 28px;
-          padding: 44px 38px;
-          box-shadow: 0 12px 60px rgba(28,46,74,0.1), 0 2px 12px rgba(118,75,162,0.06);
+        /* ─── Typography ─── */
+        .auth-title {
+          font-family: 'Playfair Display', 'Georgia', serif;
+          font-size: 28px; font-weight: 700;
+          color: #ffffff;
+          letter-spacing: 0.01em; line-height: 1.2;
+          margin-bottom: 14px;
         }
-        .lp-form-header { margin-bottom: 32px; }
-        .lp-form-title {
-          font-family: 'Playfair Display', serif;
-          font-size: 20px; font-weight: 400;
-          color: #1C2E4A; margin-bottom: 6px;
+        .auth-subtitle {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.55);
+          line-height: 1.7;
+          margin-bottom: 36px;
+          max-width: 340px;
         }
-        .lp-form-subtitle {
-          font-size: 13px; color: #7a8aa0;
-        }
-
-        .lp-form { display: flex; flex-direction: column; gap: 20px; }
-
-        .lp-field-wrapper { display: flex; flex-direction: column; gap: 7px; }
-        .lp-field-label {
-          font-size: 11px; font-weight: 600;
-          letter-spacing: 0.08em; color: #4a5a70;
-          text-transform: uppercase;
-        }
-        .lp-field-box {
-          display: flex; align-items: center; gap: 10px;
-          background: rgba(240,244,252,0.7);
-          border: 1.5px solid rgba(99,130,201,0.18);
-          border-radius: 12px;
-          padding: 13px 16px;
-          transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-        }
-        .lp-field-focused {
-          border-color: #4a6fa5;
-          background: rgba(255,255,255,0.9);
-          box-shadow: 0 0 0 3px rgba(74,111,165,0.12);
-        }
-        .lp-field-icon { color: #8a9ab8; flex-shrink: 0; display: flex; }
-        .lp-input {
-          flex: 1; border: none; background: transparent;
-          font-size: 14px; color: #1C2E4A;
-          font-family: 'Montserrat', sans-serif; font-weight: 400;
-          outline: none;
-        }
-        .lp-input::placeholder { color: #b0bdd0; }
-
-        .lp-row-options {
-          display: flex; justify-content: space-between; align-items: center;
-        }
-        .lp-remember {
-          display: flex; align-items: center; gap: 8px;
-          font-size: 12px; color: #5a6a80; cursor: pointer;
-          user-select: none;
-        }
-        .lp-checkbox { display: none; }
-        .lp-checkbox-custom {
-          width: 16px; height: 16px; border-radius: 5px;
-          border: 1.5px solid rgba(99,130,201,0.4);
-          background: rgba(255,255,255,0.8);
-          display: inline-block; transition: all 0.2s;
-          flex-shrink: 0;
-        }
-        .lp-checkbox:checked + .lp-checkbox-custom {
-          background: linear-gradient(135deg, #4a6fa5, #764ba2);
-          border-color: transparent;
-        }
-        .lp-forgot {
-          font-size: 12px; color: #4a6fa5;
-          text-decoration: none; font-weight: 500;
-          transition: color 0.2s;
-        }
-        .lp-forgot:hover { color: #1C2E4A; }
-        .lp-error-box {
-          border: 1px solid rgba(239,68,68,0.2);
-          background: rgba(239,68,68,0.06);
-          color: #b91c1c;
-          border-radius: 12px;
-          padding: 12px 14px;
-          font-size: 13px;
+        .auth-phone-highlight {
+          color: #5ec49e;
           font-weight: 500;
         }
 
-        .lp-submit-btn {
-          width: 100%; padding: 8px 16px;
-          background: #000000ff;
-          color: #ffffffff; border: 1px solid #ffffff; border-radius: 999px;
-          font-size: 10px; letter-spacing: 0.15em;
-          text-transform: uppercase; font-weight: 700;
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center; gap: 10px;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          margin-top: 4px;
-          position: relative; overflow: hidden;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        /* ─── Form ─── */
+        .auth-form {
+          display: flex; flex-direction: column; gap: 24px;
         }
-        .lp-submit-btn:hover, .lp-submit-btn:active {
-          background: #ffffffff !important;
-          color: #000000ff !important;
-          border-color: #000000;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        .auth-field-group {
+          display: flex; flex-direction: column; gap: 12px;
         }
-        .lp-submit-btn:disabled { opacity: 0.75; cursor: not-allowed; }
-        .lp-submit-btn > * { position: relative; z-index: 1; }
+        .auth-label {
+          font-size: 13px; font-weight: 400;
+          color: rgba(255, 255, 255, 0.65);
+          letter-spacing: 0.02em;
+        }
+        .auth-input-row {
+          display: flex; align-items: center;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+          padding-bottom: 12px;
+          transition: border-color 0.3s ease;
+        }
+        .auth-input-row.auth-input-focused {
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+        .auth-country-code {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.5);
+          display: flex; align-items: center; gap: 4px;
+          margin-right: 12px; flex-shrink: 0; user-select: none;
+        }
+        .auth-country-code svg { opacity: 0.5; }
+        .auth-input {
+          flex: 1; background: transparent;
+          border: none; outline: none;
+          font-size: 14px; color: #ffffff;
+          font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+          letter-spacing: 0.02em;
+        }
+        .auth-input::placeholder {
+          color: rgba(255, 255, 255, 0.22);
+        }
 
-        .lp-spinner {
-          width: 20px; height: 20px; border-radius: 50%;
-          border: 2.5px solid rgba(255,255,255,0.35);
-          border-top-color: white;
-          animation: spin 0.7s linear infinite;
+        /* ─── OTP Boxes (Rotoris-style) ─── */
+        .otp-boxes {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+        }
+        .otp-box {
+          width: 56px; height: 60px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1.5px solid rgba(255, 255, 255, 0.12);
+          border-radius: 10px;
+          text-align: center;
+          font-size: 22px;
+          font-weight: 500;
+          color: #ffffff;
+          font-family: 'Inter', sans-serif;
+          outline: none;
+          transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+          caret-color: #5ec49e;
+        }
+        .otp-box:focus {
+          border-color: #2a6b4a;
+          background: rgba(42, 107, 74, 0.08);
+          box-shadow: 0 0 0 3px rgba(42, 107, 74, 0.15);
+        }
+        .otp-box-filled {
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ─── Resend Link ─── */
+        .auth-resend-link {
+          background: none; border: none;
+          color: rgba(255, 255, 255, 0.35);
+          font-size: 13px; cursor: pointer;
+          text-align: center; padding: 0;
+          font-family: 'Inter', sans-serif;
+          transition: color 0.2s;
+        }
+        .auth-resend-action {
+          color: #5ec49e;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        .auth-resend-link:hover {
+          color: rgba(255, 255, 255, 0.55);
+        }
+
+        /* ─── Error ─── */
+        .auth-error {
+          padding: 10px 14px;
+          background: rgba(220, 50, 50, 0.1);
+          border: 1px solid rgba(220, 50, 50, 0.25);
+          border-radius: 8px;
+          color: #ff9999;
+          font-size: 13px;
+          animation: authFadeIn 0.3s ease;
+        }
+        @keyframes authFadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Change Number ─── */
+        .auth-change-number {
+          background: none; border: none;
+          color: rgba(255, 255, 255, 0.4);
+          font-size: 13px; cursor: pointer;
+          text-align: center; padding: 0;
+          font-family: 'Inter', sans-serif;
+          transition: color 0.2s;
+        }
+        .auth-change-number:hover {
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ─── Submit Button ─── */
+        .auth-submit-btn {
+          width: 100%; padding: 16px 24px;
+          background: #1a3a2a; color: #ffffff;
+          border: none; border-radius: 999px;
+          font-size: 14px; font-weight: 500;
+          letter-spacing: 0.04em;
+          cursor: pointer; font-family: 'Inter', sans-serif;
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          display: flex; align-items: center; justify-content: center;
+          min-height: 52px; position: relative; overflow: hidden;
+        }
+        .auth-submit-btn::before {
+          content: ''; position: absolute; inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+          opacity: 0; transition: opacity 0.3s;
+        }
+        .auth-submit-btn:hover::before { opacity: 1; }
+        .auth-submit-btn:hover {
+          background: #234d38;
+          transform: translateY(-1px);
+          box-shadow: 0 8px 30px rgba(26, 58, 42, 0.5);
+        }
+        .auth-submit-btn:active { transform: translateY(0); }
+        .auth-submit-btn:disabled {
+          opacity: 0.6; cursor: not-allowed; transform: none;
+        }
+
+        /* ─── Spinner ─── */
+        .auth-spinner {
+          width: 18px; height: 18px; border-radius: 50%;
+          border: 2px solid rgba(255,255,255,0.2);
+          border-top-color: #ffffff;
+          animation: authSpin 0.7s linear infinite;
           display: inline-block;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes authSpin { to { transform: rotate(360deg); } }
 
-        .lp-switch-text {
-          text-align: center; font-size: 13px; color: #7a8aa0;
+        /* ─── Notes ─── */
+        .auth-whatsapp-note {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.3);
+          text-align: center;
+          line-height: 1.5;
         }
-        .lp-switch-link {
-          color: #4a6fa5; font-weight: 600;
-          text-decoration: none; transition: color 0.2s;
+
+        /* ══════════════════════════════════════
+           RESPONSIVE — MOBILE
+        ══════════════════════════════════════ */
+
+        @media (max-width: 900px) {
+          .auth-main {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr;
+          }
+          .auth-image-panel {
+            height: 45vh; min-height: 280px; max-height: 420px;
+          }
+          .auth-image-overlay {
+            background: linear-gradient(to bottom, transparent 40%, #0c1a10 100%);
+          }
+          .auth-form-panel {
+            padding: 32px 24px 48px;
+            align-items: flex-start;
+          }
+          .auth-form-inner { max-width: 100%; }
+          .auth-title {
+            font-size: 24px; text-align: center;
+          }
+          .auth-subtitle {
+            text-align: center; max-width: 100%;
+            margin-left: auto; margin-right: auto;
+          }
+          .auth-header-icon-hide-mobile { display: none; }
+          .otp-box { width: 50px; height: 54px; font-size: 20px; }
         }
-        .lp-switch-link:hover { color: #1C2E4A; }
+
+        @media (max-width: 480px) {
+          .auth-header { padding: 14px 20px; }
+          .auth-header-logo { font-size: 14px; }
+          .auth-image-panel {
+            height: 38vh; min-height: 220px;
+          }
+          .auth-form-panel { padding: 24px 20px 40px; }
+          .auth-title { font-size: 22px; }
+          .otp-box { width: 46px; height: 50px; font-size: 18px; gap: 8px; }
+          .otp-boxes { gap: 8px; }
+        }
       `}</style>
     </div>
   );

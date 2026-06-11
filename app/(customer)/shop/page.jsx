@@ -52,7 +52,7 @@ export default function Shop() {
         if (settings) {
           const videoMap = {};
           settings.forEach(s => {
-            if (s.group === 'video') videoMap[s.key] = s.value;
+            if (s.group === 'video' || s.group === 'shop_page') videoMap[s.key] = s.value;
           });
           setVideoSettings(videoMap);
         }
@@ -241,7 +241,7 @@ export default function Shop() {
     <div ref={container}>
       <style>{`
         #hero {
-          height: 100vh; min-height: 500px; position: relative; overflow: hidden; display: flex; align-items: center; background: var(--cream);
+          height: 100vh; min-height: 500px; position: relative; overflow: hidden; display: flex; align-items: center; background: #000000; color: #ffffff;
         }
         .yt-bg-wrap { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
         .hvideo {
@@ -260,10 +260,10 @@ export default function Shop() {
         .video-overlay p {
           max-width: 600px; font-size: clamp(15px, 1.3vw, 18px); font-weight: 400; line-height: 1.8; letter-spacing: 0.02em; opacity: 0.95; text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
-        #watch-sequence { position: relative; height: 300vh; background: #FFF; }
-        .watch-sticky { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #FFF; }
+        #watch-sequence { position: relative; height: 300vh; background: #000000; }
+        .watch-sticky { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #000000; }
         #watch-canvas { width: 100%; height: 100%; object-fit: cover; }
-        #rot { height: 100vh; position: relative; background: #fff; }
+        #rot { height: 100vh; position: relative; background: #000000; }
         .rst { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .rbs { position: absolute; inset: 0; z-index: 1; }
         .rbg-layer {
@@ -325,7 +325,7 @@ export default function Shop() {
         .rpag { position: absolute; bottom: 12vh; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; z-index: 10; }
         .rdot { width: 44px; height: 3px; background: rgba(28,46,74,0.15); cursor: pointer; transition: all .4s cubic-bezier(0.23, 1, 0.32, 1); border-radius: 2px; }
         .rdot.active { background: var(--navy); transform: scaleX(1.1); }
-        #dial { background: var(--fyl-white); padding: 100px 8vw; overflow: hidden; }
+        #dial { background: #000000; padding: 100px 8vw; overflow: hidden; color: #ffffff; }
         .dwrap { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
         .dimg-col { position: relative; }
         .dimgf { position: relative; filter: drop-shadow(0 30px 60px rgba(0,0,0,.3)); }
@@ -333,57 +333,57 @@ export default function Shop() {
         .dimgf img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 4px; }
         .dcap { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px 28px 32px; background: linear-gradient(to top, rgba(0,0,0,.8), transparent); border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
         .dcap span { font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: rgba(255,255,255,.9); font-weight: 500;}
-        .dtxt .hd { color: var(--navy); font-family: 'Playfair Display', serif; font-size: clamp(32px, 4.5vw, 56px); line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 24px; font-weight: 500; }
+        .dtxt .hd { color: #ffffff; font-family: 'Playfair Display', serif; font-size: clamp(32px, 4.5vw, 56px); line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 24px; font-weight: 500; }
         .dtxt .hd em { color: var(--fyl-gold); font-weight: 400; font-style: italic; }
-        .dtxt .bt { max-width: 480px; font-size: 16px; line-height: 1.8; color: #555555; letter-spacing: 0.01em; font-weight: 400; }
+        .dtxt .bt { max-width: 480px; font-size: 16px; line-height: 1.8; color: #cccccc; letter-spacing: 0.01em; font-weight: 400; }
         .dtxt .lbl { color: var(--fyl-gold); font-size: 12px; letter-spacing: 0.35em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600; display: block; }
         .dtxt .rule { background: var(--fyl-gold); width: 40px; height: 2px; margin-bottom: 24px; }
-        .dspecs { margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(0,0,0,.08); }
-        .dspec { padding: 24px 0 24px 24px; border-right: 1px solid rgba(0,0,0,.08); border-bottom: 1px solid rgba(0,0,0,.08); transition: background 0.4s; }
-        .dspec:hover { background: rgba(0,0,0,.02); }
+        .dspecs { margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(255,255,255,.08); }
+        .dspec { padding: 24px 0 24px 24px; border-right: 1px solid rgba(255,255,255,.08); border-bottom: 1px solid rgba(255,255,255,.08); transition: background 0.4s; }
+        .dspec:hover { background: rgba(255,255,255,.05); }
         .dspec:nth-child(even) { border-right: none; }
         .dspec:nth-last-child(-n+2) { border-bottom: none; }
-        .dsv { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 400; color: var(--navy); margin-bottom: 6px; line-height: 1; }
-        .dsl { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: #8A8A8A; font-weight: 600; }
-        #mv { background: var(--cream-2); padding: 100px 8vw; position: relative; overflow: hidden; }
-        .mvbg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1400&q=55') center/cover no-repeat; opacity: .04; filter: grayscale(1); }
+        .dsv { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 400; color: #ffffff; margin-bottom: 6px; line-height: 1; }
+        .dsl { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: #aaaaaa; font-weight: 600; }
+        #mv { background: #000000; padding: 100px 8vw; position: relative; overflow: hidden; color: #ffffff; }
+        .mvbg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1400&q=55') center/cover no-repeat; opacity: .15; filter: grayscale(1); }
         .mvhdr { text-align: center; margin-bottom: 60px; position: relative; z-index: 2; }
-        .mvhdr .hd { color: var(--navy); font-size: clamp(32px, 4vw, 48px); font-family: 'Playfair Display', serif; font-weight: 500;}
+        .mvhdr .hd { color: #ffffff; font-size: clamp(32px, 4vw, 48px); font-family: 'Playfair Display', serif; font-weight: 500;}
         .mvhdr .hd em { color: var(--fyl-gold); font-style: italic; font-weight: 400;}
         .mvhdr .lbl { color: var(--fyl-gold); display: flex; justify-content: center; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600;}
         .mvhdr .rule { background: var(--fyl-gold); margin: 0 auto 24px; width: 40px; height: 2px; }
-        .mvhdr .bt { margin: 0 auto; text-align: center; max-width: 600px; color: #555555; line-height: 1.8; font-size: 16px; }
+        .mvhdr .bt { margin: 0 auto; text-align: center; max-width: 600px; color: #cccccc; line-height: 1.8; font-size: 16px; }
         .mvgrid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; position: relative; z-index: 2; }
-        .mvcard { background: var(--fyl-white); border: 1px solid rgba(0,0,0,.05); padding: 40px 32px; transition: background .4s, border-color .4s, transform .4s, box-shadow .4s; }
-        .mvcard:hover { border-color: rgba(0,0,0,0.1); box-shadow: 0 16px 40px rgba(0,0,0,0.06); transform: translateY(-4px); z-index: 5; }
+        .mvcard { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 40px 32px; transition: background .4s, border-color .4s, transform .4s, box-shadow .4s; }
+        .mvcard:hover { border-color: rgba(255,255,255,0.2); box-shadow: 0 16px 40px rgba(0,0,0,0.4); transform: translateY(-4px); z-index: 5; background: rgba(255, 255, 255, 0.1); }
         .mvico { margin-bottom: 24px; }
         .mvico svg { width: 36px; height: 36px; stroke: var(--fyl-gold); fill: none; stroke-width: 1.5; }
-        .mvval { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: var(--navy); line-height: 1; margin-bottom: 8px; }
-        .mvval sup { font-size: 16px; vertical-align: super; color: #8A8A8A; }
-        .mvkey { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--navy); margin-bottom: 12px; font-weight: 600;}
-        .mvdsc { font-size: 14px; line-height: 1.7; color: #8A8A8A; letter-spacing: 0.01em; }
+        .mvval { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: #ffffff; line-height: 1; margin-bottom: 8px; }
+        .mvval sup { font-size: 16px; vertical-align: super; color: #aaaaaa; }
+        .mvkey { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: #ffffff; margin-bottom: 12px; font-weight: 600;}
+        .mvdsc { font-size: 14px; line-height: 1.7; color: #aaaaaa; letter-spacing: 0.01em; }
         .mvphotos { max-width: 1200px; margin: 60px auto 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; position: relative; z-index: 2; }
         .mvp { aspect-ratio: 3/4; overflow: hidden; position: relative; background: #000; }
         .mvp img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s cubic-bezier(.25,.46,.45,.94), opacity 0.8s; opacity: 0.7; }
         .mvp:hover img { transform: scale(1.08); opacity: 1; }
         .mvpl { position: absolute; bottom: 20px; left: 20px; font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: #FFF; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: none;}
-        #vr { background: var(--cream-2); padding: 100px 8vw; }
+        #vr { background: #000000; padding: 100px 8vw; color: #ffffff; }
         .vrhdr { text-align: center; margin-bottom: 60px; }
         .vrhdr .rule { margin: 0 auto 24px; width: 40px; height: 2px; background: var(--fyl-gold);}
         .vrhdr .lbl { color: var(--fyl-gold); display: flex; justify-content: center; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600;}
-        .vrhdr .hd { color: var(--navy); font-size: clamp(32px, 4vw, 48px); font-family: 'Playfair Display', serif; font-weight: 500;}
+        .vrhdr .hd { color: #ffffff; font-size: clamp(32px, 4vw, 48px); font-family: 'Playfair Display', serif; font-weight: 500;}
         .vrhdr .hd em { color: var(--fyl-gold); font-style: italic; font-weight: 400;}
         .vrgrid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
-        .vc, .vc.feat { position: relative; cursor: pointer; background: var(--fyl-white) !important; border: 1px solid rgba(0,0,0,0.05); transition: transform .4s cubic-bezier(.25,.46,.45,.94), box-shadow .4s; display: flex; flex-direction: column; }
-        .vc:hover { transform: translateY(-8px); box-shadow: 0 24px 48px rgba(28,37,53,.1); }
-        .vcimg { width: 100%; aspect-ratio: 4/3; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; padding: 24px; background: #F2F2EE;}
-        .vcimg img { width: 80%; height: 80%; object-fit: contain; transition: transform .7s ease; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));}
+        .vc, .vc.feat { position: relative; cursor: pointer; background: rgba(255, 255, 255, 0.05) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; transition: transform .4s cubic-bezier(.25,.46,.45,.94), box-shadow .4s, border-color .4s; display: flex; flex-direction: column; overflow: hidden; }
+        .vc:hover { transform: translateY(-8px); box-shadow: 0 24px 48px rgba(0,0,0,.4); border-color: rgba(255, 255, 255, 0.2); }
+        .vcimg { width: 100%; aspect-ratio: 4/3; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; padding: 24px; background: transparent;}
+        .vcimg img { width: 80%; height: 80%; object-fit: contain; transition: transform .7s ease; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.4));}
         .vc:hover .vcimg img { transform: scale(1.06); }
-        .vbdg { position: absolute; top: 16px; right: 16px; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--fyl-white); background: var(--navy); padding: 6px 14px; z-index: 3; font-weight: 600;}
+        .vbdg { position: absolute; top: 16px; right: 16px; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--fyl-white); background: var(--fyl-gold); padding: 6px 14px; z-index: 3; font-weight: 600; border-radius: 99px; color: #000; }
         .vbody { padding: 32px; background: transparent !important; flex: 1; display: flex; flex-direction: column; }
-        .vname { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 500; color: var(--navy) !important; margin-bottom: 8px; }
-        .vsub { font-size: 13px; color: #8A8A8A !important; letter-spacing: .02em; margin-bottom: 24px; line-height: 1.5; }
-        .vprice { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; color: var(--navy) !important; margin-bottom: 32px; margin-top: auto;}
+        .vname { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 500; color: #ffffff !important; margin-bottom: 8px; }
+        .vsub { font-size: 13px; color: #aaaaaa !important; letter-spacing: .02em; margin-bottom: 24px; line-height: 1.5; }
+        .vprice { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; color: #ffffff !important; margin-bottom: 32px; margin-top: auto;}
         .vbtn { 
           display: block; 
           width: 100%; 
@@ -476,7 +476,11 @@ export default function Shop() {
 
       <section id="hero">
         <div className="yt-bg-wrap">
-          <video className="hvideo" src={getFileUrl(videoSettings.shop_hero_video) || "/Watch-iframe-3.mp4"} autoPlay loop muted playsInline></video>
+          {videoSettings.shop_hero_video_is_iframe === 'true' ? (
+            <iframe className="hvideo" src={videoSettings.shop_hero_video} frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
+          ) : (
+            <video className="hvideo" src={getFileUrl(videoSettings.shop_hero_video) || "/Watch-iframe-3.mp4"} autoPlay loop muted playsInline></video>
+          )}
         </div>
         <div className="hov" style={{ background: 'linear-gradient(100deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.2) 40%, transparent 100%)' }}></div>
         <div className="video-overlay">
@@ -494,6 +498,7 @@ export default function Shop() {
         </div>
       </section>
 
+      {/*
       <section id="rot">
         <div className="rst">
           <div className="rbs">
@@ -538,10 +543,15 @@ export default function Shop() {
           </div>
         </div>
       </section>
+      */}
 
       <section id="dial-video" style={{ height: '120vh', position: 'relative', overflow: 'hidden', background: '#000' }}>
         <div className="yt-bg-wrap">
-          <video className="hvideo" src={getFileUrl(videoSettings.shop_deepsea_video) || "/Watch-iframe-2.mp4"} autoPlay loop muted playsInline></video>
+          {videoSettings.shop_deepsea_video_is_iframe === 'true' ? (
+            <iframe className="hvideo" src={videoSettings.shop_deepsea_video} frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
+          ) : (
+            <video className="hvideo" src={getFileUrl(videoSettings.shop_deepsea_video) || "/Watch-iframe-2.mp4"} autoPlay loop muted playsInline></video>
+          )}
         </div>
         <div className="hov" style={{ background: 'rgba(0,0,0,0.35)' }}></div>
         <div className="video-overlay">
@@ -554,33 +564,31 @@ export default function Shop() {
         <div className="dwrap">
           <div className="dimg-col rl">
             <div className="dimgf">
-              <img src="https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=900&q=85" alt="Fylex Dial" loading="lazy" />
-              <div className="dcap"><span>Fylex Master · Ref. FX-3200</span></div>
+              <img src={getFileUrl(videoSettings.shop_dial_image) || "https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=900&q=85"} alt="Fylex Dial" loading="lazy" />
+              <div className="dcap"><span>{videoSettings.shop_dial_caption || 'Fylex Master · Ref. FX-3200'}</span></div>
             </div>
           </div>
           <div className="dtxt">
-            <div className="lbl r0">The Hallmark of Prestige</div>
+            <div className="lbl r0">{videoSettings.shop_dial_label || 'The Hallmark of Prestige'}</div>
             <div className="rule r0"></div>
-            <h2 className="hd r0" style={{ marginTop: '24px' }}>Exquisite<br /><em>Mastery</em></h2>
-            <p className="shop-bt r0">Every element of the Fylex Master dial is
-              obsessively hand-finished in La Chaux-de-Fonds. Applied luminescent indices, guilloché sunburst texture and
-              meteorite-inspired lacquer create a timepiece commanding presence.</p>
+            <h2 className="hd r0" style={{ marginTop: '24px' }} dangerouslySetInnerHTML={{ __html: videoSettings.shop_dial_title || 'Exquisite<br /><em>Mastery</em>' }}></h2>
+            <p className="shop-bt r0">{videoSettings.shop_dial_desc || 'Every element of the Fylex Master dial is obsessively hand-finished in La Chaux-de-Fonds. Applied luminescent indices, guilloché sunburst texture and meteorite-inspired lacquer create a timepiece commanding presence.'}</p>
             <div className="dspecs r0">
               <div className="dspec">
-                <div className="dsv">±1<span style={{ fontSize: '16px', opacity: .45 }}>s</span></div>
-                <div className="dsl">Daily Accuracy</div>
+                <div className="dsv" dangerouslySetInnerHTML={{ __html: videoSettings.shop_dial_spec1_val || '±1<span style="font-size: 16px; opacity: .45">s</span>' }}></div>
+                <div className="dsl">{videoSettings.shop_dial_spec1_lbl || 'Daily Accuracy'}</div>
               </div>
               <div className="dspec">
-                <div className="dsv">72<span style={{ fontSize: '16px', opacity: .45 }}>h</span></div>
-                <div className="dsl">Power Reserve</div>
+                <div className="dsv" dangerouslySetInnerHTML={{ __html: videoSettings.shop_dial_spec2_val || '72<span style="font-size: 16px; opacity: .45">h</span>' }}></div>
+                <div className="dsl">{videoSettings.shop_dial_spec2_lbl || 'Power Reserve'}</div>
               </div>
               <div className="dspec">
-                <div className="dsv">31</div>
-                <div className="dsl">Jewels</div>
+                <div className="dsv" dangerouslySetInnerHTML={{ __html: videoSettings.shop_dial_spec3_val || '31' }}></div>
+                <div className="dsl">{videoSettings.shop_dial_spec3_lbl || 'Jewels'}</div>
               </div>
               <div className="dspec">
-                <div className="dsv">300<span style={{ fontSize: '16px', opacity: .45 }}>m</span></div>
-                <div className="dsl">Water Resistance</div>
+                <div className="dsv" dangerouslySetInnerHTML={{ __html: videoSettings.shop_dial_spec4_val || '300<span style="font-size: 16px; opacity: .45">m</span>' }}></div>
+                <div className="dsl">{videoSettings.shop_dial_spec4_lbl || 'Water Resistance'}</div>
               </div>
             </div>
           </div>
@@ -589,7 +597,11 @@ export default function Shop() {
 
       <section id="heritage-2-video" style={{ height: '120vh', position: 'relative', overflow: 'hidden', background: '#000' }}>
         <div className="yt-bg-wrap">
-          <video className="hvideo" src={getFileUrl(videoSettings.shop_precision_video) || "/Watch_Iframe_1.mp4"} autoPlay loop muted playsInline></video>
+          {videoSettings.shop_precision_video_is_iframe === 'true' ? (
+            <iframe className="hvideo" src={videoSettings.shop_precision_video} frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
+          ) : (
+            <video className="hvideo" src={getFileUrl(videoSettings.shop_precision_video) || "/Watch_Iframe_1.mp4"} autoPlay loop muted playsInline></video>
+          )}
         </div>
         <div className="hov" style={{ background: 'rgba(0,0,0,0.35)' }}></div>
         <div className="video-overlay">
@@ -600,10 +612,10 @@ export default function Shop() {
 
       <section id="mv">
         <div className="mvhdr r0">
-          <div className="lbl">Calibre FX-3200</div>
+          <div className="lbl">{videoSettings.shop_mv_label || 'Calibre FX-3200'}</div>
           <div className="rule"></div>
-          <h2 className="hd">The heart of<br /><em>precision</em></h2>
-          <p className="shop-bt" style={{ marginTop: '20px' }}>In-house movement, 14 years of R&D, manufactured and assembled entirely in Geneva. Superlative Chronometer certified to ±1 second per day.</p>
+          <h2 className="hd" dangerouslySetInnerHTML={{ __html: videoSettings.shop_mv_title || 'The heart of<br /><em>precision</em>' }}></h2>
+          <p className="shop-bt" style={{ marginTop: '20px' }}>{videoSettings.shop_mv_desc || 'In-house movement, 14 years of R&D, manufactured and assembled entirely in Geneva. Superlative Chronometer certified to ±1 second per day.'}</p>
         </div>
         <div className="mvbg"></div>
         <div className="mvgrid">
@@ -616,9 +628,9 @@ export default function Shop() {
               <line x1="30" y1="20" x2="36" y2="20" />
               <circle cx="20" cy="20" r="4" />
             </svg></div>
-            <div className="mvkey">Frequency</div>
-            <div className="mvval">28<sup>,800 vph</sup></div>
-            <div className="mvdsc">4 Hz oscillation for silky smooth seconds sweep. Beats in perfect time, every time.</div>
+            <div className="mvkey">{videoSettings.shop_mv_card1_key || 'Frequency'}</div>
+            <div className="mvval" dangerouslySetInnerHTML={{ __html: videoSettings.shop_mv_card1_val || '28<sup>,800 vph</sup>' }}></div>
+            <div className="mvdsc">{videoSettings.shop_mv_card1_desc || '4 Hz oscillation for silky smooth seconds sweep. Beats in perfect time, every time.'}</div>
           </div>
           <div className="mvcard r0">
             <div className="mvico"><svg viewBox="0 0 40 40">
@@ -626,9 +638,9 @@ export default function Shop() {
               <path d="M20 12 L28 20 L20 28 L12 20 Z" />
               <circle cx="20" cy="20" r="3" />
             </svg></div>
-            <div className="mvkey">Power Reserve</div>
-            <div className="mvval">72<sup>h</sup></div>
-            <div className="mvdsc">Dual mainspring barrel architecture provides three full days of operation.</div>
+            <div className="mvkey">{videoSettings.shop_mv_card2_key || 'Power Reserve'}</div>
+            <div className="mvval" dangerouslySetInnerHTML={{ __html: videoSettings.shop_mv_card2_val || '72<sup>h</sup>' }}></div>
+            <div className="mvdsc">{videoSettings.shop_mv_card2_desc || 'Dual mainspring barrel architecture provides three full days of operation.'}</div>
           </div>
           <div className="mvcard r0">
             <div className="mvico"><svg viewBox="0 0 40 40">
@@ -639,48 +651,20 @@ export default function Shop() {
               <line x1="5" y1="20" x2="12" y2="20" />
               <line x1="28" y1="20" x2="35" y2="20" />
             </svg></div>
-            <div className="mvkey">Certification</div>
-            <div className="mvval">COSC</div>
-            <div className="mvdsc">Superlative Chronometer certified to ±1 second per day across all conditions.</div>
+            <div className="mvkey">{videoSettings.shop_mv_card3_key || 'Certification'}</div>
+            <div className="mvval" dangerouslySetInnerHTML={{ __html: videoSettings.shop_mv_card3_val || 'COSC' }}></div>
+            <div className="mvdsc">{videoSettings.shop_mv_card3_desc || 'Superlative Chronometer certified to ±1 second per day across all conditions.'}</div>
           </div>
         </div>
         <div className="mvphotos">
-          <div className="mvp r0"><img src="https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=500&q=76"
-            alt="Balance wheel" loading="lazy" /><span className="mvpl">Balance Wheel</span></div>
-          <div className="mvp r0"><img src="https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=500&q=76"
-            alt="Escapement" loading="lazy" /><span className="mvpl">Escapement</span></div>
-          <div className="mvp r0"><img src="https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=500&q=76"
-            alt="Main Barrel" loading="lazy" /><span className="mvpl">Main Barrel</span></div>
-          <div className="mvp r0"><img src="https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=500&q=76" alt="Rotor"
-            loading="lazy" /><span className="mvpl">Self-winding Rotor</span></div>
-        </div>
-      </section>
-
-      <section id="vr">
-        <div className="vrhdr">
-          <div className="lbl r0">The Collection</div>
-          <div className="rule r0"></div>
-          <h2 className="hd r0">Choose your <em>legacy</em></h2>
-        </div>
-        <div className="vrgrid">
-          {displayProducts.map((p, idx) => (
-            <div key={p.id || idx} className={`vc ${idx === 1 ? 'feat' : ''} r0`}>
-              {idx === 1 && <div className="vbdg">Best Seller</div>}
-              <div className="vcimg">
-                <img 
-                  src={p.image || 'https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=700&q=84'} 
-                  alt={p.name} 
-                  loading="lazy" 
-                />
-              </div>
-              <div className="vbody">
-                <div className="vname">{p.name}</div>
-                <div className="vsub">{p.subtitle || p.shortDescription}</div>
-                <div className="vprice">{p.isConfigurable ? 'From ' : ''}{p.formattedPrice}</div>
-                <Link href={`/discover?watch=${p.id || p.slug}`} className="vbtn">Discover</Link>
-              </div>
-            </div>
-          ))}
+          <div className="mvp r0"><img src={getFileUrl(videoSettings.shop_mv_photo1_img) || "https://images.unsplash.com/photo-1594534475808-b18fc33b045e?w=500&q=76"}
+            alt="Balance wheel" loading="lazy" /><span className="mvpl">{videoSettings.shop_mv_photo1_lbl || 'Balance Wheel'}</span></div>
+          <div className="mvp r0"><img src={getFileUrl(videoSettings.shop_mv_photo2_img) || "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=500&q=76"}
+            alt="Escapement" loading="lazy" /><span className="mvpl">{videoSettings.shop_mv_photo2_lbl || 'Escapement'}</span></div>
+          <div className="mvp r0"><img src={getFileUrl(videoSettings.shop_mv_photo3_img) || "https://images.unsplash.com/photo-1539874754764-5a96559165b0?w=500&q=76"}
+            alt="Main Barrel" loading="lazy" /><span className="mvpl">{videoSettings.shop_mv_photo3_lbl || 'Main Barrel'}</span></div>
+          <div className="mvp r0"><img src={getFileUrl(videoSettings.shop_mv_photo4_img) || "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=500&q=76"} alt="Rotor"
+            loading="lazy" /><span className="mvpl">{videoSettings.shop_mv_photo4_lbl || 'Self-winding Rotor'}</span></div>
         </div>
       </section>
     </div>

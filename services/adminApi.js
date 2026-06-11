@@ -225,3 +225,22 @@ export const getCommunityImages = () => get('/cms/community-images/all');
 export const createCommunityImage = (data) => post('/cms/community-images', data);
 export const updateCommunityImage = (id, data) => put(`/cms/community-images/${id}`, data);
 export const deleteCommunityImage = (id) => del(`/cms/community-images/${id}`);
+
+// ─── FAQs ──────────────────────────────────────────────────────
+export const getFaqs = () => get('/faq');
+export const createFaq = (data) => post('/faq', data);
+export const updateFaq = (id, data) => put(`/faq/${id}`, data);
+export const deleteFaq = (id) => del(`/faq/${id}`);
+
+// ─── Product Care Steps ────────────────────────────────────────
+export const getProductCareStepsGrouped = () => get('/product-care/grouped');
+export const getProductCareSteps = (productId) => get(`/product-care/product/${productId}`);
+export const createProductCareStep = (data) => post('/product-care', data);
+export const updateProductCareStep = (id, data) => put(`/product-care/${id}`, data);
+export const deleteProductCareStep = (id) => del(`/product-care/${id}`);
+
+
+export const getPolicies = () => request('/policies');
+export const createPolicy = (data) => request('/policies', { method: 'POST', body: JSON.stringify(data) });
+export const updatePolicy = (id, data) => request(/policies/, { method: 'PUT', body: JSON.stringify(data) });
+export const deletePolicy = (id) => request(/policies/, { method: 'DELETE' });

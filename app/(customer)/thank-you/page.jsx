@@ -20,21 +20,17 @@ const ThankYouPage = () => {
 
       <div className={`thank-you-card ${visible ? 'fade-in' : ''}`}>
         <div className="icon-wrapper">
-          <div className="success-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
+          <img src="/logo.png" alt="Fylex" className="logo-icon" />
         </div>
 
         <h1 className="title">Thank You</h1>
         <p className="subtitle">Your order has been placed successfully</p>
-        
+
         <div className="divider"></div>
-        
+
         <p className="message">
-          We've received your request and are currently processing your luxury timepiece. 
-          A confirmation email has been sent to your inbox.
+          We've received your request and are currently processing your luxury timepiece.
+          A confirmation message has been sent to your whatsapp.
         </p>
 
         <div className="actions">
@@ -118,16 +114,11 @@ const ThankYouPage = () => {
           margin-bottom: 30px;
         }
 
-        .success-icon {
-          width: 80px;
-          height: 80px;
-          background: #1C2E4A;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          box-shadow: 0 10px 20px rgba(28, 46, 74, 0.2);
+        .logo-icon {
+          height: 60px;
+          width: auto;
+          object-fit: contain;
+          margin-bottom: 10px;
         }
 
         .title {

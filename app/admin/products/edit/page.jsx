@@ -363,11 +363,45 @@ const ProductEditPageContent = () => {
                                             <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
                                             <FormField label="Interface Text" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
                                             <FormField label="Surface Tint (Mist)" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
-                                            <div style={{ gridColumn: '1 / -1' }}>
-                                                <FormField label="CSS Background Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
+                                            <div className="md:col-span-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                            <label className="block text-sm font-bold text-gray-900 mb-3">Background Gradient (Linear)</label>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Color 1 (Top Left)</label>
+                                                    <input 
+                                                        type="color" 
+                                                        className="w-full h-10 rounded cursor-pointer border border-gray-300"
+                                                        onChange={(e) => {
+                                                            const c1 = e.target.value;
+                                                            const c2 = form.gradient?.match(/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g)?.[1] || '#ffffff';
+                                                            setForm(prev => ({ ...prev, gradient: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)` }));
+                                                        }}
+                                                        value={form.gradient?.match(/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g)?.[0] || '#f5f7fa'}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">Color 2 (Bottom Right)</label>
+                                                    <input 
+                                                        type="color" 
+                                                        className="w-full h-10 rounded cursor-pointer border border-gray-300"
+                                                        onChange={(e) => {
+                                                            const c1 = form.gradient?.match(/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g)?.[0] || '#f5f7fa';
+                                                            const c2 = e.target.value;
+                                                            setForm(prev => ({ ...prev, gradient: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)` }));
+                                                        }}
+                                                        value={form.gradient?.match(/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g)?.[1] || '#c3cfe2'}
+                                                    />
+                                                </div>
                                             </div>
+                                            <div className="mt-4">
+                                                <FormField label="Or write custom CSS Gradient" name="gradient" value={form.gradient} onChange={handleChange} placeholder="linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)" />
+                                            </div>
+                                            {form.gradient && (
+                                                <div className="mt-3 h-12 rounded-lg border border-gray-200 shadow-inner" style={{ background: form.gradient }}></div>
+                                            )}
                                         </div>
                                     </div>
+                                </div>
                                 )}
 
                                 <div className="admin-modal-footer mt-10">

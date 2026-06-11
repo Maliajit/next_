@@ -59,7 +59,8 @@ export default function MyPurchases() {
         .purchases-page {
           min-height: 100vh;
           padding: 160px 5% 80px;
-          background: #ffffff;
+          background: #000000;
+          color: #ffffff;
           font-family: 'Inter', sans-serif;
         }
         .purchases-container {
@@ -73,12 +74,12 @@ export default function MyPurchases() {
         .purchases-header h1 {
           font-size: 2rem;
           font-weight: 700;
-          color: #000;
+          color: #ffffff;
           margin-bottom: 10px;
           letter-spacing: -0.02em;
         }
         .purchases-header p {
-          color: #666;
+          color: #aaaaaa;
           font-size: 1.1rem;
         }
 
@@ -89,12 +90,16 @@ export default function MyPurchases() {
         }
 
         .purchase-card {
-          background: #f8f8f8;
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
           display: flex;
           flex-direction: column;
           position: relative;
           cursor: pointer;
-          transition: transform 0.3s ease;
+          transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
           overflow: hidden;
           text-decoration: none;
         }
@@ -132,7 +137,7 @@ export default function MyPurchases() {
         }
         .purchase-order-id {
           font-size: 0.75rem;
-          color: #888;
+          color: #aaaaaa;
           font-weight: 500;
         }
         .btn-support-container {
@@ -142,8 +147,8 @@ export default function MyPurchases() {
           padding-top: 15px;
         }
         .btn-support {
-          background: #1a1a1a;
-          color: #fff;
+          background: #ffffff;
+          color: #000000;
           border: none;
           border-radius: 999px;
           cursor: pointer;
@@ -156,62 +161,67 @@ export default function MyPurchases() {
           transition: all 0.3s ease;
         }
         .btn-support:hover {
-          background: #333;
+          background: #e0e0e0;
         }
 
         .purchase-date {
           font-size: 0.8rem;
           font-weight: 700;
-          color: #666;
+          color: #aaaaaa;
           text-transform: uppercase;
           letter-spacing: 0.1em;
         }
         .purchase-name {
           font-size: 1.8rem;
           font-weight: 700;
-          color: #000;
+          color: #ffffff;
           // margin: 0 0 8px;
           line-height: 1.2;
         }
         .v-accent {
           display: block;
-          color: #666;
+          color: #aaaaaa;
           font-size: 1.1rem;
           font-weight: 400;
          
         }
 
         .purchases-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 40vh;
           text-align: center;
-          padding: 100px 0;
+          padding: 40px 0;
         }
         .purchases-empty svg {
-          opacity: 0.1;
-          margin-bottom: 30px;
+          display: none;
         }
         .purchases-empty h2 {
-          font-size: 2.5rem;
+          font-size: 1.2rem;
           margin-bottom: 20px;
-          font-weight: 700;
-          color: #000;
+          font-weight: 500;
+          color: #ffffff;
         }
         .purchases-empty p {
-          color: #666;
-          margin-bottom: 40px;
+          display: none;
         }
         .empty-cta {
           display: inline-block;
-          padding: 15px 40px;
-          background: #000;
-          color: #fff;
+          padding: 10px 20px;
+          background: #ffffff;
+          color: #000000;
           text-decoration: none;
-          font-size: 1rem;
-          font-weight: 600;
+          font-size: 10px;
+          font-weight: 700;
           transition: background 0.3s;
           text-transform: uppercase;
+          border-radius: 999px;
+          letter-spacing: 0.1em;
         }
         .empty-cta:hover {
-          background: #333;
+          background: #e0e0e0;
         }
 
         @media (max-width: 1024px) {
@@ -258,14 +268,7 @@ export default function MyPurchases() {
 
         {allPurchasedUnits.length === 0 ? (
           <div className="purchases-empty">
-            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
             <h2>No watches purchased yet.</h2>
-            <p>Your masterpiece is waiting for its first second.</p>
             <Link href="/products" className="empty-cta">Browse Collection</Link>
           </div>
         ) : (

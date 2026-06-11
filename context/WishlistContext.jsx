@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchWishlist, toggleWishlistApi } from '../lib/api';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 import { resolveProductImage, getDisplayData } from '../lib/utils';
 import { eventBus, EVENTS } from '../lib/events';
 
@@ -10,6 +11,7 @@ const WishlistContext = createContext(null);
 export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const { user, guestId } = useAuth() || {};
+  const { success, info, error: toastError } = useToast() || {};
   const userId = user?.id || guestId;
 
   const loadWishlist = async () => {
@@ -58,17 +60,28 @@ export function WishlistProvider({ children }) {
   }, [userId]);
 
   const toggleWishlist = async (product) => {
-    if (!userId) return;
+    if (!userId) {
+      if (toastError) toastError("Please login to use wishlist");
+      return;
+    }
     const variantId = product.variantId || product.currentVariantId;
     if (!variantId) throw new Error("ENFORCEMENT: Cannot wishlist without variantId");
+
+    const wasInWishlist = isInWishlist(variantId);
 
     try {
       const result = await toggleWishlistApi(userId, product);
       if (result.success) {
           eventBus.emit(EVENTS.WISHLIST_UPDATED);
+          if (wasInWishlist) {
+            if (info) info("Removed from wishlist");
+          } else {
+            if (success) success("Added to wishlist");
+          }
       }
     } catch (err) {
       console.error('Wishlist toggle failed:', err);
+      if (toastError) toastError("Failed to update wishlist");
     }
   };
 

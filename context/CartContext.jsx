@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchCart, addToCartApi, removeFromCartApi, updateCartQtyApi } from '../lib/api';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 import { resolveProductImage, getDisplayData } from '../lib/utils';
 import { eventBus, EVENTS } from '../lib/events';
 
@@ -13,6 +14,7 @@ export function CartProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [processingItems, setProcessingItems] = useState(new Set()); // IDs of items currently being updated
   const { user, guestId } = useAuth() || {};
+  const { success, error: toastError, info } = useToast() || {};
   const userId = user?.id || guestId;
 
   const mapCartData = (data) => {
@@ -77,10 +79,12 @@ export function CartProvider({ children }) {
         if (result.success) {
             mapCartData(result.data);
             eventBus.emit(EVENTS.CART_UPDATED);
+            if (success) success('Added to cart successfully');
         }
         return result;
     } catch (err) {
         console.error('Add to cart failed:', err);
+        if (toastError) toastError('Failed to add to cart');
         return { success: false, error: err.message };
     } finally {
         setLoading(false);
@@ -95,9 +99,11 @@ export function CartProvider({ children }) {
         if (result.success) {
             mapCartData(result.data);
             eventBus.emit(EVENTS.CART_UPDATED);
+            if (info) info('Removed from cart');
         }
     } catch (err) {
         console.error('Remove from cart failed:', err);
+        if (toastError) toastError('Failed to remove item');
     } finally {
         setProcessingItems(prev => {
             const next = new Set(prev);

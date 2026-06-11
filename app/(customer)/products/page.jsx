@@ -959,7 +959,6 @@ const Products = () => {
 
                   <span className="p-price-tag">{col.price}</span>
                   <div className="p-inventory-status">
-                    <span>Limited to {col.totalStock} pieces</span>
                     <svg onClick={() => openInfoModal(col)} className="i-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" title="View previously configured combinations">
                       <circle cx="12" cy="12" r="10"></circle>
                       <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -991,7 +990,7 @@ const Products = () => {
       <div className={`info-modal-overlay ${activeModalData ? 'show' : ''}`} onClick={closeInfoModal}>
         <div className="info-modal-box" onClick={(e) => e.stopPropagation()}>
           <div className="info-modal-header">
-            <h3 className="info-modal-title">Sold Configurations :- {activeModalData?.sold}/{activeModalData?.totalStock}</h3>
+            <h3 className="info-modal-title">Sold Configurations</h3>
             <button className="info-modal-close" onClick={closeInfoModal}>✕</button>
           </div>
           <div className="info-modal-content" data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()} onTouchMove={(e) => e.stopPropagation()}>

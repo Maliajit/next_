@@ -333,7 +333,7 @@ const Header = () => {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     Sign In
                   </Link>
-                  <Link href="/signup" className="secondary" onClick={closeAll} style={{ fontSize: '0.95rem', opacity: 0.7, paddingLeft: '30px' }}>Create Account</Link>
+
                 </div>
               )}
               <Link href="/care-support" className="secondary" onClick={closeAll} style={{ fontSize: '0.9rem', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -358,7 +358,7 @@ const Header = () => {
 
         <div className="header-middle">
           <Link className="logo-v1" href="/" onClick={closeAll}>
-            <img src="/fylex_logo.png" alt="Fylex" />
+            <img src="/logo.png" alt="Fylex" />
           </Link>
         </div>
 
@@ -368,7 +368,6 @@ const Header = () => {
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78v0z" />
             </svg>
             {mounted && wishlistCount > 0 ? <div className="badge-v1">{wishlistCount}</div> : null}
-            <span>Wishlist</span>
           </Link>
           <Link href="/cart" className="header-right-item" onClick={closeAll} title="Cart">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -376,7 +375,6 @@ const Header = () => {
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
             {mounted && cartCount > 0 ? <div className="badge-v1">{cartCount}</div> : null}
-            <span>Cart</span>
           </Link>
         </div>
       </header>

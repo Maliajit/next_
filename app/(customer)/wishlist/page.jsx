@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useWishlist } from '@/context/WishlistContext';
@@ -10,11 +10,13 @@ export default function Wishlist() {
   const { addToCart } = useCart();
   const router = useRouter();
 
+  const [addedItems, setAddedItems] = useState({});
+
   const handleAddToCart = (e, item) => {
     e.stopPropagation();
     const variantId = item.variantId || (item.variants?.[0]?.id) || item.id;
     addToCart(variantId.toString(), 1, item);
-    toggleWishlist(item);
+    setAddedItems(prev => ({ ...prev, [item.id]: true }));
   };
 
   return (
@@ -23,7 +25,8 @@ export default function Wishlist() {
         .wishlist-page {
           min-height: 100vh;
           padding: 160px 5% 80px;
-          background: #ffffff;
+          background: #000000;
+          color: #ffffff;
           font-family: 'Inter', sans-serif;
         }
         .wishlist-container {
@@ -37,7 +40,7 @@ export default function Wishlist() {
         .wishlist-header h1 {
           font-size: 2rem;
           font-weight: 700;
-          color: #000;
+          color: #ffffff;
           margin-bottom: 10px;
           letter-spacing: -0.02em;
         }
@@ -53,12 +56,16 @@ export default function Wishlist() {
         }
 
         .wishlist-item {
-          background: #f8f8f8;
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
           display: flex;
           flex-direction: column;
           position: relative;
           cursor: pointer;
-          transition: transform 0.3s ease;
+          transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
           overflow: hidden;
         }
         .wishlist-item:hover {
@@ -93,7 +100,7 @@ export default function Wishlist() {
         .wishlist-item-info h3 {
           font-size: 1.8rem;
           font-weight: 700;
-          color: #000;
+          color: #ffffff;
           // margin: 0 0 8px;
           line-height: 1.2;
         }
@@ -105,7 +112,7 @@ export default function Wishlist() {
         }
         .wishlist-item-info .price {
           font-size: 1.2rem;
-          color: #000;
+          color: #ffffff;
           font-weight: 600;
         }
 
@@ -121,7 +128,7 @@ export default function Wishlist() {
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          color: #000;
+          color: #ffffff;
           transition: opacity 0.2s;
           z-index: 10;
         }
@@ -134,9 +141,9 @@ export default function Wishlist() {
     justify-content: center;
         }
         .btn-cart {
-          background: #1a1a1a;
-          color: #fff;
-          border: 1px solid #1a1a1a;
+          background: #ffffff;
+          color: #000000;
+          border: 1px solid #ffffff;
           border-radius: 999px;
           cursor: pointer;
           font-family: 'Inter', sans-serif;
@@ -154,34 +161,52 @@ export default function Wishlist() {
           margin-top: auto;
         }
         .btn-cart:hover {
-          background: rgba(26, 26, 26, 0.8);
+          background: rgba(255, 255, 255, 0.8);
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
+        .btn-cart.added {
+          background: #ffffff !important;
+          color: #000000 !important;
+          animation: popBtn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          pointer-events: none;
+        }
+        @keyframes popBtn {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
 
         .wishlist-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 40vh;
           text-align: center;
-          padding: 100px 0;
+          padding: 40px 0;
         }
         .wishlist-empty h2 {
-          font-size: 2.5rem;
+          font-size: 1.2rem;
           margin-bottom: 20px;
-          font-weight: 700;
+          font-weight: 500;
+          color: #ffffff;
         }
         .wishlist-empty-cta {
           display: inline-block;
-          padding: 8px 16px;
-          background: #000;
-          color: #fff;
+          padding: 10px 20px;
+          background: #ffffff;
+          color: #000000;
           text-decoration: none;
-          font-size: 1rem;
-          font-weight: 600;
+          font-size: 10px;
+          font-weight: 700;
           transition: background 0.3s;
           text-transform: uppercase;
           border-radius: 999px;
+          letter-spacing: 0.1em;
         }
         .wishlist-empty-cta:hover {
-          background: #333;
+          background: #e0e0e0;
         }
 
         @media (max-width: 1024px) {
@@ -228,13 +253,11 @@ export default function Wishlist() {
       <div className="wishlist-container">
         <div className="wishlist-header">
           <h1>Wishlist</h1>
-          <p>Your curated selection of exceptional timepieces.</p>
         </div>
 
         {wishlist.length === 0 ? (
           <div className="wishlist-empty">
-            <h2>Your collection is empty</h2>
-            <p style={{ marginBottom: '40px', color: '#666' }}>Discover our latest collections and find your next masterpiece.</p>
+            <h2>No Watches Purchased Yet</h2>
             <Link href="/products" className="wishlist-empty-cta">Shop Collection</Link>
           </div>
         ) : (
@@ -273,9 +296,9 @@ export default function Wishlist() {
                   <div className="btn-cart-container">
                     <button 
                       onClick={(e) => handleAddToCart(e, item)} 
-                      className="btn-cart"
+                      className={`btn-cart ${addedItems[item.id] ? 'added' : ''}`}
                     >
-                      Move to cart
+                      {addedItems[item.id] ? 'Added ✓' : 'Move to cart'}
                     </button>
                   </div>
                 </div>

@@ -90,6 +90,7 @@ const navItems = [
       { title: 'Sliders', path: '/admin/crm/banners' },
       { title: 'Home Page', path: '/admin/crm/home-sections' },
       { title: 'Video Settings', path: '/admin/settings/videos' },
+      { title: 'Shop Page Settings', path: '/admin/settings/shop' },
     ],
   },
   {
@@ -109,6 +110,16 @@ const navItems = [
     title: 'Community',
     icon: 'fas fa-camera-retro',
     path: '/admin/community',
+  },
+  {
+    key: 'care',
+    title: 'Care & Support',
+    icon: 'fas fa-life-ring',
+    path: '/admin/care',
+    submenu: [
+      { title: 'FAQs', path: '/admin/faqs' },
+      { title: 'Watch Care Steps', path: '/admin/care-steps' },
+    ],
   },
   {
     key: 'shipping',

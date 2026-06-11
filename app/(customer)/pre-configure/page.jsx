@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination } from 'swiper/modules';
+import { Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import Header from '@/components/Header';
@@ -18,15 +18,7 @@ const PreConfigure = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [categories, setCategories] = useState(['All']);
 
-  useEffect(() => {
-    if (swiperInstance && swiperInstance.autoplay) {
-      if (expandedIds.size > 0) {
-        swiperInstance.autoplay.stop();
-      } else {
-        swiperInstance.autoplay.start();
-      }
-    }
-  }, [expandedIds, swiperInstance]);
+
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -497,10 +489,9 @@ const PreConfigure = () => {
         <div className="swiper-container-main">
           <Swiper
             onSwiper={setSwiperInstance}
-            modules={[Autoplay, Pagination]}
+            modules={[Pagination]}
             spaceBetween={0}
             slidesPerView={1}
-            autoplay={{ delay: 4000, disableOnInteraction: false }}
             allowTouchMove={expandedIds.size === 0}
             pagination={{ clickable: true }}
             loop={true}

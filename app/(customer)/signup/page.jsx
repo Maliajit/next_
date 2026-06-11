@@ -1,55 +1,17 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Swal from 'sweetalert2';
 
-const ORBS = [
-  { w: 650, h: 650, top: '-180px', left: '-180px', c: 'rgba(74,111,165,0.20)', dur: 13 },
-  { w: 500, h: 500, top: '35%', right: '-140px', c: 'rgba(118,75,162,0.15)', dur: 17 },
-  { w: 420, h: 420, bottom: '-80px', left: '25%', c: 'rgba(28,46,74,0.11)', dur: 10 },
-  { w: 300, h: 300, top: '55%', left: '8%', c: 'rgba(67,160,215,0.09)', dur: 15 },
-];
-
-const STEPS = ['Account', 'Verify'];
-
-function StepIndicator({ current }) {
-  return (
-    <div className="sp-step-row">
-      {STEPS.map((s, i) => (
-        <React.Fragment key={s}>
-          <div className="sp-step-item">
-            <div
-              className={`sp-step-dot ${i < current ? 'sp-step-done' : i === current ? 'sp-step-active' : ''}`}
-            >
-              {i < current ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                  <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : (
-                <span>{i + 1}</span>
-              )}
-            </div>
-            <span className={`sp-step-label ${i === current ? 'sp-step-label-active' : ''}`}>{s}</span>
-          </div>
-          {i < STEPS.length - 1 && (
-            <div className={`sp-step-connector ${i < current ? 'sp-connector-done' : ''}`} />
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-}
-
-function InputField({ label, type = 'text', id, value, onChange, placeholder, icon, hint, prefix, maxLength }) {
+function InputField({ label, type = 'text', id, value, onChange, placeholder, hint, prefix, maxLength, disabled }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div className="sp-field-wrapper">
-      <label className="sp-field-label" htmlFor={id}>{label}</label>
-      <div className={`sp-field-box ${focused ? 'sp-field-focused' : ''} ${value ? 'sp-field-filled' : ''}`}>
-        {icon && <span className="sp-field-icon">{icon}</span>}
-        {prefix && <span className="sp-field-prefix" style={{fontWeight: 600, color: '#1C2E4A', marginRight: '4px'}}>{prefix}</span>}
+    <div className="auth-field-group">
+      <label className="auth-label" htmlFor={id}>{label}</label>
+      <div className={`auth-input-row ${focused ? 'auth-input-focused' : ''} ${disabled ? 'auth-input-disabled' : ''}`}>
+        {prefix && <span className="auth-country-code">{prefix} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg></span>}
         <input
           id={id}
           type={type}
@@ -58,21 +20,46 @@ function InputField({ label, type = 'text', id, value, onChange, placeholder, ic
           placeholder={placeholder}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="sp-input"
+          className="auth-input"
           autoComplete="off"
           maxLength={maxLength}
+          disabled={disabled}
         />
       </div>
-      {hint && <span className="sp-field-hint">{hint}</span>}
+      {hint && <span className="auth-field-hint">{hint}</span>}
     </div>
   );
 }
 
-function StepAccount({ data, setData }) {
+export default function Signup() {
+  const searchParams = useSearchParams();
+  const mobileFromLogin = searchParams.get('mobile') || '';
+
+  const [data, setData] = useState({
+    name: '', email: '',
+    mobile: mobileFromLogin,
+    otp: '', address: '', pincode: '', area: ''
+  });
+  const [loaded, setLoaded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+  const { signup } = useAuth();
+  const navigate = useRouter();
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoaded(true), 100);
+    return () => clearTimeout(t);
+  }, []);
+
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handlePincodeChange = async (e) => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 6);
     setData(p => ({ ...p, pincode: val }));
-    
+
     if (val.length === 6) {
       try {
         const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
@@ -87,7 +74,9 @@ function StepAccount({ data, setData }) {
             icon: 'error',
             title: 'Invalid Pincode',
             text: 'Please enter valid pincode',
-            confirmButtonColor: '#1C2E4A'
+            confirmButtonColor: '#1a3a2a',
+            background: '#0d1b12',
+            color: '#ffffff',
           });
         }
       } catch (err) {
@@ -98,671 +87,479 @@ function StepAccount({ data, setData }) {
     }
   };
 
-  return (
-    <div className="sp-step-content">
-      <InputField
-        label="Full Name"
-        id="sp-name"
-        value={data.name}
-        onChange={e => setData(p => ({ ...p, name: e.target.value }))}
-        placeholder="John Marlowe"
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
-          </svg>
-        }
-      />
-      <InputField
-        label="Mobile Number"
-        type="tel"
-        id="sp-mobile"
-        value={data.mobile}
-        onChange={e => {
-          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-          setData(p => ({ ...p, mobile: val }));
-        }}
-        placeholder="Enter 10-digit number"
-        prefix="+91"
-        maxLength={10}
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-          </svg>
-        }
-      />
-      <InputField
-        label="Email Address"
-        type="email"
-        id="sp-email"
-        value={data.email}
-        onChange={e => setData(p => ({ ...p, email: e.target.value }))}
-        placeholder="you@example.com"
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <rect x="2" y="4" width="20" height="16" rx="3" /><path d="m2 7 10 7 10-7" strokeLinecap="round" />
-          </svg>
-        }
-      />
-      <InputField
-        label="Pincode"
-        id="sp-pincode"
-        value={data.pincode}
-        onChange={handlePincodeChange}
-        placeholder="Enter 6-digit pincode"
-        maxLength={6}
-        hint={data.area ? <span style={{ color: '#1C2E4A', fontWeight: 600 }}>Area: {data.area}</span> : null}
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" />
-          </svg>
-        }
-      />
-      <InputField
-        label="Full Address"
-        id="sp-address"
-        value={data.address}
-        onChange={e => setData(p => ({ ...p, address: e.target.value }))}
-        placeholder="123 Luxury Lane, City"
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-          </svg>
-        }
-      />
-      <label className="sp-terms-label" htmlFor="sp-terms-check">
-        <input type="checkbox" className="sp-terms-check" id="sp-terms-check" />
-        <span className="sp-terms-custom" />
-        <span>
-          I agree to Fylexx&apos;s{' '}
-          <a href="#" className="sp-terms-link">Terms of Service</a>{' '}
-          and{' '}
-          <a href="#" className="sp-terms-link">Privacy Policy</a>
-        </span>
-      </label>
-    </div>
-  );
-}
-
-function StepVerify({ data, setData }) {
-  return (
-    <div className="sp-step-content">
-      <div className="sp-verify-header">
-        <h3 className="sp-verify-title">Verify Mobile Number</h3>
-        <p className="sp-verify-sub">We've sent a 4-digit code to <strong>{data.mobile}</strong></p>
-      </div>
-      <InputField
-        label="Verification Code"
-        id="sp-otp"
-        value={data.otp}
-        onChange={e => setData(p => ({ ...p, otp: e.target.value }))}
-        placeholder="••••"
-        icon={
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-        }
-        hint="Default OTP is 1234 for testing"
-      />
-    </div>
-  );
-}
-
-
-
-export default function Signup() {
-  const [step, setStep] = useState(0);
-  const [data, setData] = useState({
-    name: '', email: '', password: '',
-    mobile: '', otp: '', address: '', pincode: '', area: ''
-  });
-  const [loaded, setLoaded] = useState(false);
-  const [contentKey, setContentKey] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [done, setDone] = useState(false);
-  const { signup } = useAuth();
-  const navigate = useRouter();
-
-  useEffect(() => {
-    setError(''); // Clear error on step change
-  }, [step]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 80);
-    return () => clearTimeout(t);
-  }, []);
-
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const next = async () => {
+  const handleSubmit = async () => {
     setError('');
-    if (step === 0) {
-      if (!data.name.trim()) return setError('Please enter your full name');
-      if (!data.mobile.trim() || !/^\d{10}$/.test(data.mobile.trim())) return setError('Please enter a valid 10-digit mobile number');
-      if (!data.email.trim()) return setError('Please enter your email address');
-      if (!validateEmail(data.email)) return setError('Please enter a valid email address');
-      
-      const termsCheck = document.getElementById('sp-terms-check');
-      if (termsCheck && !termsCheck.checked) {
-        return setError('You must agree to the Terms and Conditions');
-      }
 
-      setStep(1);
-      setContentKey(k => k + 1);
-      return;
+    if (!data.name.trim()) return setError('Please enter your full name');
+    if (!data.mobile.trim() || !/^\d{10}$/.test(data.mobile.trim())) return setError('Please enter a valid 10-digit mobile number');
+    if (!data.email.trim()) return setError('Please enter your email address');
+    if (!validateEmail(data.email)) return setError('Please enter a valid email address');
+
+    const termsCheck = document.getElementById('sp-terms-check');
+    if (termsCheck && !termsCheck.checked) {
+      return setError('You must agree to the Terms and Conditions');
     }
 
-    if (step === 1) {
-      if (!data.otp || data.otp.length !== 4) return setError('Please enter the 4-digit verification code');
-      if (data.otp !== '1234') return setError('Invalid verification code');
-
-      setSubmitting(true);
-      try {
-        await signup({
-          name: data.name,
-          email: data.email,
-          mobile: data.mobile,
-          address: `${data.address}${data.area ? `, ${data.area}` : ''}${data.pincode ? ` - ${data.pincode}` : ''}`,
-          otp: data.otp,
-        });
-        setDone(true);
-        setTimeout(() => navigate.push('/'), 2000);
-      } catch (err) {
-        setError(err.message || 'Signup failed');
-      } finally {
-        setSubmitting(false);
-      }
+    setSubmitting(true);
+    try {
+      await signup({
+        name: data.name,
+        email: data.email,
+        mobile: data.mobile,
+        address: `${data.address}${data.area ? `, ${data.area}` : ''}${data.pincode ? ` - ${data.pincode}` : ''}`,
+        otp: '1234', // Default OTP since already verified in login flow
+      });
+      setDone(true);
+      setTimeout(() => navigate.push('/'), 2000);
+    } catch (err) {
+      setError(err.message || 'Signup failed');
+    } finally {
+      setSubmitting(false);
     }
   };
-
-  const back = () => {
-    if (step > 0) { setStep(s => s - 1); setContentKey(k => k + 1); }
-  };
-
-  const btnLabel = step === 0 ? 'Signup' : 'Complete Verification';
 
   return (
-    <div className="sp-page">
-      {/* Ambient orbs */}
-      {ORBS.map((o, i) => (
-        <div
-          key={i}
-          className="sp-orb"
-          style={{
-            width: o.w, height: o.h,
-            top: o.top, left: o.left, right: o.right, bottom: o.bottom,
-            background: `radial-gradient(circle, ${o.c} 0%, transparent 65%)`,
-            animationDuration: `${o.dur}s`,
-            animationDelay: `${i * 1.5}s`,
-          }}
-        />
-      ))}
+    <div className="auth-page">
 
-      <div className="sp-outer">
-        <div
-          className="sp-container"
-          style={{
-            opacity: loaded ? 1 : 0,
-            transform: loaded ? 'translateY(0)' : 'translateY(24px)',
-            transition: 'opacity 0.7s ease, transform 0.7s ease',
-          }}
-        >
-          {/* Header */}
-          <div className="sp-header">
-            <div className="sp-logo">
-              <svg viewBox="0 0 40 40" width="30" height="30">
-                <circle cx="20" cy="20" r="18" stroke="#1C2E4A" strokeWidth="1.4" fill="none" />
-                <circle cx="20" cy="20" r="10" stroke="#4a6fa5" strokeWidth="1.1" fill="none" />
-                <circle cx="20" cy="20" r="4" fill="#1C2E4A" />
-                <line x1="20" y1="2" x2="20" y2="7" stroke="#1C2E4A" strokeWidth="1.4" strokeLinecap="round" />
-                <line x1="20" y1="33" x2="20" y2="38" stroke="#1C2E4A" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-              <span className="sp-logo-text">FYLEXX</span>
-            </div>
-            <div className="sp-header-copy">
-              <h1 className="sp-main-title">Create Account</h1>
-              <p className="sp-main-sub">Join the Fylexx family — precision, craft & style</p>
-            </div>
-          </div>
 
-          {/* Step indicator */}
-          <StepIndicator current={step} />
+      {/* ─── Main Content ─── */}
+      <main className="auth-main">
+        {/* Image Panel */}
+        <div className={`auth-image-panel ${loaded ? 'auth-loaded' : ''}`}>
+          <img
+            src="/assets/auth-hero.png"
+            alt="Luxury timepiece"
+            className="auth-hero-img"
+          />
+          <div className="auth-image-overlay" />
+        </div>
 
-          {/* Card */}
-          <div className="sp-card">
+        {/* Form Panel */}
+        <div className={`auth-form-panel auth-form-panel-signup ${loaded ? 'auth-loaded' : ''}`}>
+          <div className="auth-form-inner auth-form-inner-signup">
             {done ? (
-              <div className="sp-success">
-                <div className="sp-success-icon">
-                  <svg width="48" height="48" viewBox="0 0 48 48">
-                    <circle cx="24" cy="24" r="22" fill="none" stroke="url(#sGrad)" strokeWidth="2">
-                      <animate attributeName="stroke-dasharray" from="0 138" to="138 138" dur="0.8s" fill="freeze" />
+              <div className="auth-success">
+                <div className="auth-success-icon">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="24" fill="none" stroke="#1a3a2a" strokeWidth="2">
+                      <animate attributeName="stroke-dasharray" from="0 151" to="151 151" dur="0.8s" fill="freeze" />
                     </circle>
-                    <defs>
-                      <linearGradient id="sGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#4a6fa5" />
-                        <stop offset="100%" stopColor="#764ba2" />
-                      </linearGradient>
-                    </defs>
-                    <path d="M14 25l7 7 13-14" stroke="#4a6fa5" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 27l7 7 13-14" stroke="#5ec49e" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
                       <animate attributeName="stroke-dasharray" from="0 60" to="60 60" dur="0.5s" begin="0.6s" fill="freeze" />
                     </path>
                   </svg>
                 </div>
-                <h3 className="sp-success-title">Account Created!</h3>
-                <p className="sp-success-sub">Welcome to Fylexx, {data.name.split(' ')[0] || 'Friend'}. Your journey begins now.</p>
-                <Link href="/" className="sp-success-btn">Continue to Store</Link>
+                <h3 className="auth-success-title">Account Created!</h3>
+                <p className="auth-success-sub">Welcome to Fylex, {data.name.split(' ')[0] || 'Friend'}. Your journey begins now.</p>
+                <Link href="/" className="auth-submit-btn" style={{ maxWidth: '260px', textDecoration: 'none', marginTop: '8px' }}>Continue to Store</Link>
               </div>
             ) : (
               <>
-                <div
-                  key={contentKey}
-                  style={{ animation: 'spSlideIn 0.45s ease both' }}
-                >
-                  {step === 0 && <StepAccount data={data} setData={setData} />}
-                  {step === 1 && <StepVerify data={data} setData={setData} />}
+                <h1 className="auth-title">Create your Fylex</h1>
+                <p className="auth-subtitle">
+                  Complete your profile to get started with Fylex.
+                </p>
+
+                <div className="auth-step-content" style={{ animation: 'authSlideIn 0.45s ease both' }}>
+                  <InputField
+                    label="Full Name"
+                    id="sp-name"
+                    value={data.name}
+                    onChange={e => setData(p => ({ ...p, name: e.target.value }))}
+                    placeholder="John Marlowe"
+                  />
+                  <InputField
+                    label="Mobile Number"
+                    type="tel"
+                    id="sp-mobile"
+                    value={data.mobile}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setData(p => ({ ...p, mobile: val }));
+                    }}
+                    placeholder="Enter 10-digit number"
+                    prefix="+91"
+                    maxLength={10}
+                    disabled={!!mobileFromLogin}
+                  />
+                  <InputField
+                    label="Email Address"
+                    type="email"
+                    id="sp-email"
+                    value={data.email}
+                    onChange={e => setData(p => ({ ...p, email: e.target.value }))}
+                    placeholder="you@example.com"
+                  />
+                  <InputField
+                    label="Pincode"
+                    id="sp-pincode"
+                    value={data.pincode}
+                    onChange={handlePincodeChange}
+                    placeholder="Enter 6-digit pincode"
+                    maxLength={6}
+                    hint={data.area ? <span style={{ color: '#5ec49e', fontWeight: 500 }}>Area: {data.area}</span> : null}
+                  />
+                  <InputField
+                    label="Full Address"
+                    id="sp-address"
+                    value={data.address}
+                    onChange={e => setData(p => ({ ...p, address: e.target.value }))}
+                    placeholder="123 Luxury Lane, City"
+                  />
+                  <label className="auth-terms-label" htmlFor="sp-terms-check">
+                    <input type="checkbox" className="auth-terms-check" id="sp-terms-check" />
+                    <span className="auth-terms-custom" />
+                    <span>
+                      I agree to Fylex&apos;s{' '}
+                      <a href="#" className="auth-terms-link">Terms of Service</a>
+                      {' '}and{' '}
+                      <a href="#" className="auth-terms-link">Privacy Policy</a>
+                    </span>
+                  </label>
                 </div>
 
                 {error && (
-                  <div className="sp-error-box">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    <span>{error}</span>
+                  <div className="auth-error" style={{ marginTop: '20px' }}>
+                    {error}
                   </div>
                 )}
 
-                <div className="sp-btn-row">
-                  {step > 0 && (
-                    <button className="sp-back-btn" onClick={back}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      Back
-                    </button>
-                  )}
+                <div className="auth-btn-row">
                   <button
-                    className={`sp-next-btn ${submitting ? 'sp-next-loading' : ''}`}
-                    onClick={next}
+                    className={`auth-submit-btn ${submitting ? 'auth-submitting' : ''}`}
+                    onClick={handleSubmit}
                     disabled={submitting}
-                    style={{ marginLeft: step === 0 ? 'auto' : 0 }}
                   >
-                    {submitting ? (
-                      <span className="sp-spinner" />
-                    ) : (
-                      <>
-                        <span>{btnLabel}</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </>
-                    )}
+                    {submitting ? <span className="auth-spinner" /> : 'Create Account'}
                   </button>
                 </div>
               </>
             )}
           </div>
-
-          <p className="sp-login-row">
-            Already have an account?{' '}
-            <Link href="/login" className="sp-login-link">Sign In</Link>
-          </p>
         </div>
-      </div>
+      </main>
 
       <style>{`
-        .sp-page {
+        /* ══════════════════════════════════════
+           AUTH PAGE — DARK LUXURY THEME
+        ══════════════════════════════════════ */
+
+        .auth-page {
           min-height: 100vh;
-          position: relative;
-          overflow: hidden;
-          background: linear-gradient(135deg, #e3e8f0 0%, #f4f7f9 50%, #e9edf4 100%);
-          font-family: 'Montserrat', sans-serif;
-          padding-top: var(--header-h, 70px);
+          background: #000000;
+          font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+          color: #ffffff;
+          display: flex;
+          flex-direction: column;
         }
 
-        .sp-orb {
-          position: fixed; border-radius: 50%;
-          filter: blur(90px); pointer-events: none; z-index: 0;
-          animation: orbFloat ease-in-out infinite alternate;
-        }
-        @keyframes orbFloat {
-          from { transform: translate(0,0) scale(1); }
-          to { transform: translate(30px,40px) scale(1.05); }
-        }
-
-        .sp-outer {
-          position: relative; z-index: 1;
-          min-height: 100vh;
-          display: flex; align-items: center; justify-content: center;
-          padding: 40px 20px 60px;
-        }
-
-        .sp-container {
-          width: 100%; max-width: 560px;
-        }
-
-        /* Header */
-        .sp-header {
-          text-align: center;
-          margin-bottom: 32px;
-        }
-        .sp-logo {
-          display: inline-flex; align-items: center; gap: 10px;
-          background: rgba(255,255,255,0.65);
+        /* ─── Header ─── */
+        .auth-header {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 28px;
+          background: linear-gradient(180deg, rgba(12,26,16,0.95) 0%, rgba(12,26,16,0.6) 100%);
           backdrop-filter: blur(12px);
-          border: 1px solid rgba(28,46,74,0.1);
-          border-radius: 12px;
-          padding: 8px 16px;
-          margin-bottom: 22px;
+          -webkit-backdrop-filter: blur(12px);
         }
-        .sp-logo-text {
-          font-size: 12px; font-weight: 700;
-          letter-spacing: 0.3em; color: #1C2E4A;
-          text-transform: uppercase;
+        .auth-header-menu {
+          background: none; border: none;
+          color: #ffffff; cursor: pointer;
+          padding: 4px; display: flex; align-items: center;
+          transition: opacity 0.2s;
         }
-        .sp-main-title {
-          font-family: 'Playfair Display', serif;
-          font-size: clamp(32px, 5vw, 50px);
-          font-weight: 400; line-height: 1.1;
-          background: linear-gradient(120deg, #1C2E4A 0%, #4a6fa5 55%, #764ba2 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          margin-bottom: 8px;
+        .auth-header-menu:hover { opacity: 0.7; }
+        .auth-header-logo {
+          font-size: 16px; font-weight: 400;
+          letter-spacing: 0.35em; color: #ffffff;
+          text-decoration: none; text-transform: uppercase;
+          position: absolute; left: 50%; transform: translateX(-50%);
         }
-        .sp-main-sub {
-          font-size: 13px; color: #7a8aa0;
-          letter-spacing: 0.04em;
+        .auth-header-icons {
+          display: flex; align-items: center; gap: 18px;
         }
-
-        /* Step indicator */
-        .sp-step-row {
+        .auth-header-icons a {
+          color: #ffffff; text-decoration: none;
           display: flex; align-items: center;
-          justify-content: center;
-          margin-bottom: 28px;
-          gap: 0;
+          transition: opacity 0.2s;
         }
-        .sp-step-item {
-          display: flex; flex-direction: column; align-items: center;
-          gap: 6px;
+        .auth-header-icons a:hover { opacity: 0.7; }
+
+        /* ─── Main Layout ─── */
+        .auth-main {
+          flex: 1;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          min-height: 100vh;
         }
-        .sp-step-dot {
-          width: 34px; height: 34px; border-radius: 50%;
-          border: 2px solid rgba(99,130,201,0.3);
-          background: rgba(255,255,255,0.7);
+
+        /* ─── Image Panel ─── */
+        .auth-image-panel {
+          position: relative; overflow: hidden;
+          opacity: 0; transform: scale(1.02);
+          transition: opacity 0.9s ease, transform 0.9s ease;
+        }
+        .auth-image-panel.auth-loaded {
+          opacity: 1; transform: scale(1);
+        }
+        .auth-hero-img {
+          width: 100%; height: 100%;
+          object-fit: cover; display: block;
+        }
+        .auth-image-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to right, transparent 60%, #000000 100%);
+          pointer-events: none;
+        }
+
+        /* ─── Form Panel ─── */
+        .auth-form-panel {
           display: flex; align-items: center; justify-content: center;
-          font-size: 12px; font-weight: 600; color: #9aaabe;
-          transition: all 0.4s ease;
-          backdrop-filter: blur(6px);
+          padding: 100px 60px 60px;
+          opacity: 0; transform: translateY(20px);
+          transition: opacity 0.7s ease 0.2s, transform 0.7s ease 0.2s;
         }
-        .sp-step-active {
-          background: linear-gradient(135deg, #4a6fa5, #764ba2);
-          border-color: transparent; color: white;
-          box-shadow: 0 4px 16px rgba(74,111,165,0.4);
-          transform: scale(1.08);
+        .auth-form-panel.auth-loaded {
+          opacity: 1; transform: translateY(0);
         }
-        .sp-step-done {
-          background: linear-gradient(135deg, #3aaf85, #4a6fa5);
-          border-color: transparent; color: white;
+        .auth-form-panel-signup {
+          align-items: flex-start;
+          padding-top: 80px;
+          overflow-y: auto;
         }
-        .sp-step-label {
-          font-size: 10px; letter-spacing: 0.1em;
-          text-transform: uppercase; color: #9aaabe;
-          font-weight: 500;
-          transition: color 0.3s;
+        .auth-form-inner {
+          width: 100%; max-width: 440px;
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          padding: 40px;
         }
-        .sp-step-label-active { color: #4a6fa5; font-weight: 600; }
-        .sp-step-connector {
-          width: 50px; height: 2px;
-          background: rgba(99,130,201,0.2);
-          margin: 0 6px; margin-bottom: 20px;
-          border-radius: 2px;
-          transition: background 0.4s;
-          flex-shrink: 0;
-        }
-        .sp-connector-done {
-          background: linear-gradient(90deg, #3aaf85, #4a6fa5);
+        .auth-form-inner-signup {
+          max-width: 460px;
         }
 
-        /* Card */
-        .sp-card {
-          background: rgba(255,255,255,0.75);
-          backdrop-filter: blur(22px);
-          border: 1px solid rgba(99,130,201,0.16);
-          border-radius: 28px;
-          padding: 40px 36px 36px;
-          box-shadow: 0 16px 60px rgba(28,46,74,0.1), 0 2px 10px rgba(118,75,162,0.06);
-          margin-bottom: 20px;
-          overflow: hidden;
+        /* ─── Typography ─── */
+        .auth-title {
+          font-family: 'Playfair Display', 'Georgia', serif;
+          font-size: 28px; font-weight: 700;
+          color: #ffffff;
+          letter-spacing: 0.01em; line-height: 1.2;
+          margin-bottom: 14px;
+        }
+        .auth-subtitle {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.55);
+          line-height: 1.7;
+          margin-bottom: 32px;
+          max-width: 340px;
         }
 
-        @keyframes spSlideIn {
-          from { opacity: 0; transform: translateX(18px); }
+        /* ─── Step Content ─── */
+        .auth-step-content {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        @keyframes authSlideIn {
+          from { opacity: 0; transform: translateX(16px); }
           to { opacity: 1; transform: translateX(0); }
         }
 
-        /* Step content */
-        .sp-step-content { display: flex; flex-direction: column; gap: 20px; }
+        /* ─── Form Fields ─── */
+        .auth-field-group {
+          display: flex; flex-direction: column; gap: 10px;
+        }
+        .auth-label {
+          font-size: 13px; font-weight: 400;
+          color: rgba(255, 255, 255, 0.65);
+          letter-spacing: 0.02em;
+        }
+        .auth-input-row {
+          display: flex; align-items: center;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+          padding-bottom: 12px;
+          transition: border-color 0.3s ease;
+        }
+        .auth-input-row.auth-input-focused {
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+        .auth-input-row.auth-input-disabled {
+          opacity: 0.5;
+        }
+        .auth-country-code {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.5);
+          display: flex; align-items: center; gap: 4px;
+          margin-right: 12px; flex-shrink: 0; user-select: none;
+        }
+        .auth-country-code svg { opacity: 0.5; }
+        .auth-input {
+          flex: 1; background: transparent;
+          border: none; outline: none;
+          font-size: 14px; color: #ffffff;
+          font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+          letter-spacing: 0.02em;
+        }
+        .auth-input::placeholder {
+          color: rgba(255, 255, 255, 0.22);
+        }
+        .auth-input:disabled {
+          color: rgba(255, 255, 255, 0.5);
+          cursor: not-allowed;
+        }
+        .auth-field-hint {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.35);
+        }
 
-        .sp-verify-header { text-align: center; margin-bottom: 10px; }
-        .sp-verify-title { font-family: 'Playfair Display', serif; font-size: 20px; color: #1C2E4A; margin-bottom: 6px; }
-        .sp-verify-sub { font-size: 13px; color: #7a8aa0; }
-
-        /* Avatar */
-        .sp-avatar-section {
-          display: flex; flex-direction: column; align-items: center; gap: 10px;
-          margin-bottom: 4px;
-        }
-        .sp-avatar-ring {
-          width: 80px; height: 80px; border-radius: 50%;
-          background: linear-gradient(135deg, rgba(74,111,165,0.12), rgba(118,75,162,0.12));
-          border: 2px dashed rgba(74,111,165,0.3);
-          display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: transform 0.3s, border-color 0.3s;
-        }
-        .sp-avatar-ring:hover { transform: scale(1.05); border-color: rgba(74,111,165,0.5); }
-        .sp-avatar-placeholder { display: flex; align-items: center; justify-content: center; }
-        .sp-avatar-label {
-          font-size: 12px; color: #7a8aa0;
-        }
-        .sp-avatar-label span { color: #adb5c8; }
-
-        /* Style grid */
-        .sp-style-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
-        .sp-style-pill {
-          padding: 9px 18px;
-          border-radius: 30px;
-          border: 1.5px solid rgba(99,130,201,0.25);
-          background: rgba(240,244,252,0.7);
-          font-size: 12px; font-weight: 500;
-          color: #5a6a80; cursor: pointer;
-          transition: all 0.25s ease;
-          font-family: 'Montserrat', sans-serif;
-        }
-        .sp-style-pill:hover {
-          border-color: #4a6fa5; background: rgba(74,111,165,0.08);
-          color: #4a6fa5;
-        }
-        .sp-style-selected {
-          background: linear-gradient(120deg, #4a6fa5, #764ba2);
-          border-color: transparent; color: white;
-          box-shadow: 0 4px 14px rgba(74,111,165,0.3);
-        }
-
-        /* Fields */
-        .sp-field-wrapper { display: flex; flex-direction: column; gap: 7px; }
-        .sp-field-label {
-          font-size: 11px; font-weight: 600;
-          letter-spacing: 0.08em; color: #4a5a70;
-          text-transform: uppercase;
-        }
-        .sp-field-box {
-          display: flex; align-items: center; gap: 10px;
-          background: rgba(240,244,252,0.7);
-          border: 1.5px solid rgba(99,130,201,0.2);
-          border-radius: 12px; padding: 13px 16px;
-          transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
-        }
-        .sp-field-focused {
-          border-color: #4a6fa5; background: rgba(255,255,255,0.9);
-          box-shadow: 0 0 0 3px rgba(74,111,165,0.12);
-        }
-        .sp-field-icon { color: #8a9ab8; flex-shrink: 0; display: flex; }
-        .sp-input {
-          flex: 1; border: none; background: transparent;
-          font-size: 14px; color: #1C2E4A;
-          font-family: 'Montserrat', sans-serif; outline: none;
-        }
-        .sp-input::placeholder { color: #b0bdd0; }
-        .sp-field-hint { font-size: 11px; color: #9aaabe; }
-
-        /* Terms */
-        .sp-terms-label {
+        /* ─── Terms ─── */
+        .auth-terms-label {
           display: flex; align-items: flex-start; gap: 10px;
-          font-size: 12px; color: #5a6a80; cursor: pointer;
-          text-align: left; width: 100%; margin-top: 10px;
-          user-select: none;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.5);
+          cursor: pointer; user-select: none; margin-top: 8px;
         }
-        .sp-terms-check { display: none; }
-        .sp-terms-custom {
-          width: 17px; height: 17px; min-width: 17px; border-radius: 5px;
-          border: 1.5px solid rgba(99,130,201,0.4);
-          background: rgba(255,255,255,0.8);
+        .auth-terms-check { display: none; }
+        .auth-terms-custom {
+          width: 16px; height: 16px; min-width: 16px;
+          border-radius: 4px;
+          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.04);
           display: inline-block; margin-top: 1px;
           transition: all 0.2s;
         }
-        .sp-terms-check:checked + .sp-terms-custom {
-          background: linear-gradient(135deg, #4a6fa5, #764ba2);
-          border-color: transparent;
+        .auth-terms-check:checked + .auth-terms-custom {
+          background: #1a3a2a;
+          border-color: rgba(94, 196, 158, 0.4);
         }
-        .sp-terms-link { color: #4a6fa5; text-decoration: none; }
-        .sp-terms-link:hover { text-decoration: underline; }
+        .auth-terms-link {
+          color: rgba(255, 255, 255, 0.7);
+          text-decoration: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .auth-terms-link:hover { color: #ffffff; }
 
-        /* Error box */
-        .sp-error-box {
-          margin-top: 20px;
-          padding: 12px 16px;
-          background: rgba(220, 38, 38, 0.06);
-          border: 1px solid rgba(220, 38, 38, 0.15);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: #dc2626;
+        /* ─── Error ─── */
+        .auth-error {
+          padding: 10px 14px;
+          background: rgba(220, 50, 50, 0.1);
+          border: 1px solid rgba(220, 50, 50, 0.25);
+          border-radius: 8px;
+          color: #ff9999;
           font-size: 13px;
-          font-weight: 500;
-          animation: spShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+          animation: authFadeIn 0.3s ease;
         }
-        @keyframes spShake {
-          10%, 90% { transform: translate3d(-1px, 0, 0); }
-          20%, 80% { transform: translate3d(2px, 0, 0); }
-          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-          40%, 60% { transform: translate3d(4px, 0, 0); }
+        @keyframes authFadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Buttons */
-        .sp-btn-row {
+        /* ─── Buttons ─── */
+        .auth-btn-row {
           display: flex; align-items: center; gap: 12px;
           margin-top: 28px;
         }
-        .sp-back-btn {
-          display: flex; align-items: center; gap: 6px;
-          padding: 8px 16px; border-radius: 999px;
-          border: 1px solid rgba(99,130,201,0.25);
-          background: rgba(240,244,252,0.7);
-          font-size: 10px; font-weight: 700; color: #5a6a80;
-          cursor: pointer; font-family: 'Montserrat', sans-serif;
+        .auth-submit-btn {
+          width: 100%; padding: 16px 24px;
+          background: #1a3a2a; color: #ffffff;
+          border: none; border-radius: 999px;
+          font-size: 14px; font-weight: 500;
+          letter-spacing: 0.04em;
+          cursor: pointer; font-family: 'Inter', sans-serif;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
+          display: flex; align-items: center; justify-content: center;
+          min-height: 52px; position: relative; overflow: hidden;
         }
-        .sp-back-btn:hover {
-          border-color: #4a6fa5; color: #4a6fa5;
-          background: rgba(74,111,165,0.08);
+        .auth-submit-btn:hover {
+          background: #234d38;
           transform: translateY(-1px);
+          box-shadow: 0 8px 30px rgba(26, 58, 42, 0.5);
         }
-        .sp-next-btn {
-          flex: 1;
-          display: flex; align-items: center; justify-content: center; gap: 8px;
-          padding: 8px 16px; border-radius: 999px;
-          background: #ffffff;
-          color: #000000; border: 1px solid #ffffff;
-          font-size: 10px; letter-spacing: 0.15em;
-          text-transform: uppercase; font-weight: 700;
-          cursor: pointer; font-family: 'Montserrat', sans-serif;
-          position: relative; overflow: hidden;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .auth-submit-btn:active { transform: translateY(0); }
+        .auth-submit-btn:disabled {
+          opacity: 0.6; cursor: not-allowed; transform: none;
         }
-        .sp-next-btn:hover, .sp-next-btn:active {
-          background: #000000 !important;
-          color: #ffffff !important;
-          border-color: #000000;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-        .sp-next-btn > * { position: relative; z-index: 1; }
-        .sp-next-btn:disabled { opacity: 0.75; cursor: not-allowed; }
-        .sp-spinner {
+
+        /* ─── Spinner ─── */
+        .auth-spinner {
           width: 18px; height: 18px; border-radius: 50%;
-          border: 2.5px solid rgba(255,255,255,0.35);
-          border-top-color: white;
-          animation: spin 0.7s linear infinite;
+          border: 2px solid rgba(255,255,255,0.2);
+          border-top-color: #ffffff;
+          animation: authSpin 0.7s linear infinite;
           display: inline-block;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes authSpin { to { transform: rotate(360deg); } }
 
-        .sp-login-row {
-          text-align: center; font-size: 13px; color: #7a8aa0;
-          margin-top: 10px;
+        /* ─── Success ─── */
+        .auth-success {
+          display: flex; flex-direction: column;
+          align-items: center; text-align: center;
+          gap: 16px; padding: 60px 0;
         }
-        .sp-login-link {
-          color: #4a6fa5; font-weight: 600;
-          text-decoration: none; transition: color 0.2s;
+        .auth-success-icon {
+          animation: authPopIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
         }
-        .sp-login-link:hover { color: #1C2E4A; }
-
-        /* Success */
-        .sp-success {
-          display: flex; flex-direction: column; align-items: center;
-          text-align: center; gap: 16px; padding: 20px 0;
-        }
-        .sp-success-icon {
-          animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-        }
-        @keyframes popIn {
+        @keyframes authPopIn {
           from { transform: scale(0.5); opacity: 0; }
           to { transform: scale(1); opacity: 1; }
         }
-        .sp-success-title {
+        .auth-success-title {
           font-family: 'Playfair Display', serif;
-          font-size: 28px; color: #1C2E4A;
-          background: linear-gradient(120deg, #1C2E4A, #4a6fa5);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          font-size: 26px; color: #ffffff;
         }
-        .sp-success-sub { font-size: 14px; color: #7a8aa0; max-width: 300px; }
-        .sp-success-btn {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 8px 16px; border-radius: 999px;
-          background: #1a1a1a;
-          color: white; text-decoration: none;
-          font-size: 10px; letter-spacing: 0.15em;
-          text-transform: uppercase; font-weight: 700;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          border: 1px solid #1a1a1a;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .auth-success-sub {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.5);
+          max-width: 280px;
         }
-        .sp-success-btn:hover, .sp-success-btn:active {
-          background: rgba(255, 255, 255, 0.1) !important;
-          color: #000000 !important;
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border-color: rgba(255, 255, 255, 0.2);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+
+        /* ══════════════════════════════════════
+           RESPONSIVE — MOBILE
+        ══════════════════════════════════════ */
+
+        @media (max-width: 900px) {
+          .auth-main {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr;
+          }
+          .auth-image-panel {
+            height: 38vh; min-height: 240px; max-height: 360px;
+          }
+          .auth-image-overlay {
+            background: linear-gradient(to bottom, transparent 40%, #0c1a10 100%);
+          }
+          .auth-form-panel {
+            padding: 24px 24px 48px;
+            align-items: flex-start;
+          }
+          .auth-form-panel-signup { padding-top: 24px; }
+          .auth-form-inner,
+          .auth-form-inner-signup { max-width: 100%; }
+          .auth-title {
+            font-size: 24px; text-align: center;
+          }
+          .auth-subtitle {
+            text-align: center; max-width: 100%;
+            margin-left: auto; margin-right: auto;
+          }
+          .auth-header-icon-hide-mobile { display: none; }
+        }
+
+        @media (max-width: 480px) {
+          .auth-header { padding: 14px 20px; }
+          .auth-header-logo { font-size: 14px; }
+          .auth-image-panel {
+            height: 32vh; min-height: 200px;
+          }
+          .auth-form-panel { padding: 20px 20px 40px; }
+          .auth-title { font-size: 22px; }
         }
       `}</style>
     </div>
