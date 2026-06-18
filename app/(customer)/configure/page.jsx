@@ -315,8 +315,8 @@ function ConfigureContent() {
   return (
     <div className="customize-root">
       <style>{`
-        .customize-root { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #111; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
-        #configurator { flex: 1; width: 100%; background: ${product.heroBgImage ? `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${getFileUrl(product.heroBgImage)}) center/cover no-repeat` : 'radial-gradient(circle at center, #FFFFFF 0%, #ebedf0 100%)'}; position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 5; }
+        .customize-root { font-family: 'Inter', sans-serif; background: #f0f2f5; color: ${product.textColor}; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+        #configurator { flex: 1; width: 100%; background: ${product.bgColor || product.gradient || 'radial-gradient(circle at center, #FFFFFF 0%, #ebedf0 100%)'}; position: relative; overflow: hidden; display: flex; flex-direction: column; z-index: 5; }
         .top-actions { position: fixed; top: 100px; right: 30px; display: flex; align-items: center; gap: 15px; z-index: 999; }
         .top-left-actions { position: fixed; top: 100px; left: 30px; display: flex; align-items: center; gap: 15px; z-index: 999; }
         .close-btn { display: flex; align-items: center; justify-content: center; color: #111; cursor: pointer; }
@@ -326,10 +326,18 @@ function ConfigureContent() {
         .thumb { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.1); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .thumb.active { border-color: #1a1a1a; transform: scale(1.1); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .thumb img { width: 100%; height: 100%; object-fit: cover; }
-@media (max-width: 768px) {
-  .thumbnails { right: 15px; gap: 10px; }
-  .thumb { width: 42px; height: 42px; }
-}
+        @media (max-width: 768px) {
+          .thumbnails { right: 15px; gap: 10px; }
+          .thumb { width: 42px; height: 42px; }
+          .top-actions { top: 25px; right: 20px; }
+          .top-left-actions { top: 25px; left: 20px; }
+          .c-main { padding-bottom: 240px; }
+          .watch-preview { height: 50vh; }
+          .c-selection-controls { padding: 20px 15px; }
+          .options-row { gap: 20px; font-size: 14px; }
+          .c-summary-footer { padding: 20px; flex-direction: column; align-items: flex-start; gap: 15px; }
+          .f-add-cart-btn { align-self: flex-end; margin-top: -30px; }
+        }
         .c-bottom-panel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 30; background: transparent; }
         .c-selection-controls { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
         .step-title { font-size: 1.125rem; font-weight: 600; }

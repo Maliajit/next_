@@ -299,6 +299,9 @@ function DiscoverContent() {
   }
 
   const hasConfig = Object.keys(selections).length > 0;
+  if (!hasConfig) {
+    product.heroBgImage = null;
+  }
   const materialParam = searchParams.get('material');
   const bezelParam = searchParams.get('bezel');
   const dialParam = searchParams.get('dial');
@@ -406,7 +409,7 @@ function DiscoverContent() {
           font-weight: 700;
           letter-spacing: 0.25em;
           text-transform: uppercase;
-          color: #c4a35a;
+          color: ${product.accentColor};
           margin-bottom: 15px;
           display: block;
         }
@@ -414,12 +417,12 @@ function DiscoverContent() {
           font-family: 'Playfair Display', serif;
           font-size: 1.8rem;
           margin-bottom: 20px;
-          color: #1a1a1a;
+          color: ${product.textColor};
         }
         .cfg-choice-desc {
           font-size: 0.95rem;
           line-height: 1.7;
-          color: #666;
+          color: ${product.textColor};
           max-width: 280px;
           margin: 0 auto;
         }
@@ -624,9 +627,15 @@ function DiscoverContent() {
           font-family: 'Inter', sans-serif;
           font-size: clamp(1.8rem, 3.5vw, 2.4rem);
           font-weight: 700;
-          color: #1a1a1a;
+          color: ${product.textColor};
           // margin-bottom: 12px;
           letter-spacing: -0.02em;
+        }
+        .cfg-hero-subtitle {
+          font-size: 1.1rem;
+          color: ${product.textColor};
+          max-width: 400px;
+          line-height: 1.6;
         }
         .cfg-details-specs {
           font-size: 1.1rem;
@@ -639,6 +648,11 @@ function DiscoverContent() {
           color: #666;
           // margin-bottom: 15px;
           font-weight: 300;
+        }
+        .cfg-hero-price {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: ${product.textColor};
         }
         .cfg-details-price {
           font-size: 1.25rem;
@@ -793,6 +807,39 @@ function DiscoverContent() {
           }
           .cfg-pagination-bar.active {
             height: 60px;
+          }
+          .cfg-hero {
+            padding: 120px 0 60px;
+          }
+          .cfg-hero-product-img {
+            max-height: 50vh;
+          }
+          .cfg-details-box {
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+          }
+          .cfg-details-title {
+            font-size: 2.2rem;
+          }
+          .cfg-hero-subtitle {
+            font-size: 1rem;
+          }
+          .top-actions {
+            top: 30px;
+            right: 20px;
+          }
+          .cfg-top-right-cta {
+            top: 25px;
+            right: 80px;
+          }
+          .cfg-variations-btn {
+            bottom: auto;
+            top: 120px;
+            right: 15px;
           }
         }
 
@@ -1128,13 +1175,13 @@ function DiscoverContent() {
           margin: 0;
         }
         .cfg-heritage-eyebrow {
-          font-size: 0.8rem;
-          font-weight: 600;
+          font-size: 0.85rem;
+          font-weight: 700;
           letter-spacing: 0.3em;
           text-transform: uppercase;
           color: ${product.accentColor};
-          margin-bottom: 24px;
           display: block;
+          margin-bottom: 20px;
         }
         .cfg-heritage-heading {
           font-family: 'Playfair Display', serif;
@@ -1193,6 +1240,15 @@ function DiscoverContent() {
           justify-content: space-between;
           align-items: center;
           background: #fafaf9;
+        }
+        .cfg-hero-title {
+          font-family: 'Playfair Display', serif;
+          font-size: 4.5rem;
+          font-weight: 400;
+          line-height: 1.1;
+          color: ${product.textColor};
+          margin: 0;
+          position: relative;
         }
         .cfg-modal-title {
           font-family: 'Playfair Display', serif;
@@ -1712,7 +1768,7 @@ function DiscoverContent() {
 
         {!hasConfig ? (
           <section id="description" className="cfg-desc-section" style={{
-            background: product.gradient || `
+            background: product.bgColor || product.gradient || `
               radial-gradient(circle at 10% 10%, rgba(${product.accentRgb}, 0.15) 0%, transparent 40%),
               radial-gradient(circle at 90% 90%, rgba(${product.accentRgb}, 0.1) 0%, transparent 40%),
               linear-gradient(135deg, #000000 0%, #050505 50%, #000000 100%)
@@ -1732,15 +1788,15 @@ function DiscoverContent() {
           </section>
         ) : (
           <section id="description" className="cfg-desc-section" style={{
-            background: product.gradient || 'radial-gradient(circle at 10% 10%, rgba(255, 45, 117, 0.08) 0%, transparent 40%), linear-gradient(135deg, #ffffff 0%, #fff0f5 100%)'
+            background: product.bgColor || product.gradient || 'radial-gradient(circle at 10% 10%, rgba(255, 45, 117, 0.08) 0%, transparent 40%), linear-gradient(135deg, #ffffff 0%, #fff0f5 100%)'
           }}>
             <div className="cfg-mist-layer" style={{
               background: `radial-gradient(circle at 70% 40%, rgba(${product.mistRgb}, 0.15) 0%, transparent 70%)`
             }}></div>
             <div className="cfg-desc-content" style={{ position: 'relative', zIndex: 2 }}>
-              <span className="cfg-desc-eyebrow" style={{ color: '#c4a35a' }}>Your Masterpiece</span>
-              <h2 className="cfg-desc-heading" style={{ color: '#1a1a1a' }}>The Result of Your Craft</h2>
-              <p className="cfg-desc-text" style={{ color: '#444' }}>
+              <span className="cfg-desc-eyebrow" style={{ color: product.accentColor }}>Your Masterpiece</span>
+              <h2 className="cfg-desc-heading" style={{ color: product.textColor }}>The Result of Your Craft</h2>
+              <p className="cfg-desc-text" style={{ color: product.textColor }}>
                 {product.longDesc}
               </p>
             </div>

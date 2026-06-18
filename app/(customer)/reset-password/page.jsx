@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { forgotPasswordApi } from '@/lib/api';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { resetPasswordApi } from '@/lib/api';
 
 function InputField({ label, type, id, value, onChange, placeholder }) {
   const [focused, setFocused] = useState(false);
@@ -20,74 +20,121 @@ function InputField({ label, type, id, value, onChange, placeholder }) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className="fp-input"
-          autoComplete="email"
+          autoComplete={type === 'password' ? 'new-password' : 'email'}
         />
       </div>
     </div>
   );
 }
 
-export default function ForgotPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const searchParams = useSearchParams();
+  
+  const token = searchParams.get('token');
+  const email = searchParams.get('email');
+
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    if (!token || !email) {
+      setError('Invalid or missing password reset token.');
+    }
+  }, [token, email]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    if (!email) {
-      setError('Please enter your email.');
+    if (!token || !email) {
+      setError('Invalid or missing password reset token.');
+      return;
+    }
+
+    if (!password || !confirmPassword) {
+      setError('Please enter your new password and confirmation.');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       return;
     }
 
     setSubmitting(true);
     try {
-      console.log('[auth-ui] forgot password submit', { email });
-      const result = await forgotPasswordApi({ email: email.trim() });
-      console.log('[auth-ui] forgot password response', result);
+      console.log('[auth-ui] reset password submit', { email, passwordLength: password.length });
+      const result = await resetPasswordApi({ email: email.trim(), password, token });
+      console.log('[auth-ui] reset password response', result);
 
       if (!result?.success) {
         throw new Error(result?.error || 'Something went wrong');
       }
 
-      setSuccess('If the email exists, a password reset link has been sent. Please check your inbox.');
+      setSuccess('Password updated successfully. Redirecting to login.');
+      console.log('[auth-ui] navigation trigger', { target: '/login', reason: 'password reset success' });
+      setTimeout(() => router.push('/login'), 1200);
     } catch (err) {
-      setError(err?.message || 'Unable to process your request right now.');
+      setError(err?.message || 'Unable to update password right now.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
+    <>
+      <form onSubmit={handleSubmit} className="fp-form" noValidate>
+        <InputField
+          label="New Password"
+          type="password"
+          id="fp-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Minimum 8 characters"
+        />
+        <InputField
+          label="Confirm Password"
+          type="password"
+          id="fp-confirm-password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Re-enter your new password"
+        />
+
+        {error && <div className="fp-error-box">{error}</div>}
+        {success && <div className="fp-success-box">{success}</div>}
+
+        <button type="submit" className="fp-submit-btn" disabled={submitting || !token || !email}>
+          {submitting ? <span className="fp-spinner" /> : <span>Update Password</span>}
+        </button>
+      </form>
+    </>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
     <div className="fp-page">
       <div className="fp-card">
         <div className="fp-header">
           <p className="fp-eyebrow">Password Reset</p>
-          <h1 className="fp-title">Forgot Password</h1>
-          <p className="fp-subtitle">Enter your email and we'll send you a reset link.</p>
+          <h1 className="fp-title">Set a New Password</h1>
+          <p className="fp-subtitle">Enter the new password you want to use.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="fp-form" noValidate>
-          <InputField
-            label="Email Address"
-            type="email"
-            id="fp-email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-          />
-
-          {error && <div className="fp-error-box">{error}</div>}
-          {success && <div className="fp-success-box">{success}</div>}
-
-          <button type="submit" className="fp-submit-btn" disabled={submitting}>
-            {submitting ? <span className="fp-spinner" /> : <span>Send Reset Link</span>}
-          </button>
-        </form>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ResetPasswordForm />
+        </Suspense>
 
         <p className="fp-footer">
           Back to <Link href="/login" className="fp-footer-link">Sign In</Link>

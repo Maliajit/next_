@@ -20,6 +20,8 @@ const MediaList = () => {
     const [deleteModal, setDeleteModal] = useState(false);
     const [fileToDelete, setFileToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [inputSizeMB, setInputSizeMB] = useState(3);
+    const [activeMaxImageSizeMB, setActiveMaxImageSizeMB] = useState(3);
     
     const itemsPerPage = 10;
     const fileInputRef = useRef(null);
@@ -49,6 +51,15 @@ const MediaList = () => {
     const handleUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        if (file.type.startsWith('image/')) {
+            const maxSizeInBytes = (activeMaxImageSizeMB || 3) * 1024 * 1024;
+            if (file.size > maxSizeInBytes) {
+                toast?.error?.(`Image size must be less than ${activeMaxImageSizeMB || 3}MB`);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                return;
+            }
+        }
 
         const formData = new FormData();
         formData.append('file', file);
@@ -113,7 +124,27 @@ const MediaList = () => {
                     <h2 style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.02em' }}>Media Library</h2>
                     <p style={{ color: '#64748b', fontSize: 14 }}>Manage, optimize, and organize your storefront assets.</p>
                 </div>
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                       <label style={{ fontSize: '14px', color: '#64748b' }}>Max Size (MB):</label>
+                       <input 
+                           type="number" 
+                           min="1"
+                           value={inputSizeMB}
+                           onChange={(e) => setInputSizeMB(Number(e.target.value))}
+                           style={{ width: '70px', padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none' }}
+                       />
+                       <button 
+                           className="btn-secondary" 
+                           onClick={() => {
+                               setActiveMaxImageSizeMB(inputSizeMB);
+                               toast?.success?.(`Max image size set to ${inputSizeMB}MB`);
+                           }}
+                           style={{ padding: '8px 12px', fontSize: '13px' }}
+                       >
+                           Set Size
+                       </button>
+                   </div>
                    <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleUpload} />
                    <button className="btn-primary" style={{ padding: '12px 24px' }} onClick={() => fileInputRef.current.click()} disabled={uploading}>
                        {uploading ? <i className="fas fa-spinner fa-spin mr-2"></i> : <i className="fas fa-plus-circle mr-2"></i>}

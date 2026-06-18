@@ -43,9 +43,19 @@ const OrderDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newStatus, setNewStatus] = useState('');
+  const [overrideReason, setOverrideReason] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [newPaymentStatus, setNewPaymentStatus] = useState('');
   const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
+  
+  const [carrier, setCarrier] = useState('');
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [trackingUrl, setTrackingUrl] = useState('');
+  const [updatingTracking, setUpdatingTracking] = useState(false);
+  
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundReason, setRefundReason] = useState('');
+  const [processingRefund, setProcessingRefund] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
@@ -57,6 +67,9 @@ const OrderDetailPage = () => {
       setOrder(o);
       setNewStatus(o?.status || '');
       setNewPaymentStatus(o?.paymentStatus || '');
+      setCarrier(o?.shipments?.[0]?.carrier || '');
+      setTrackingNumber(o?.shipments?.[0]?.trackingNumber || '');
+      setTrackingUrl(o?.shipments?.[0]?.trackingUrl || '');
     }
     setLoading(false);
   }, [orderId]);
@@ -66,12 +79,14 @@ const OrderDetailPage = () => {
   const handleStatusUpdate = async () => {
     if (!newStatus || newStatus === order?.status) return;
     setUpdatingStatus(true);
-    const { error: err } = await orderService.updateOrderStatus(orderId, newStatus);
+    const { error: err } = await orderService.updateOrderStatus(orderId, newStatus, overrideReason);
     setUpdatingStatus(false);
     if (err) { toast?.error?.(err); }
     else {
       toast?.success?.('Order status updated!');
       setOrder(prev => ({ ...prev, status: newStatus }));
+      setOverrideReason('');
+      fetchOrder(); // refresh audit logs
     }
   };
 
@@ -84,6 +99,33 @@ const OrderDetailPage = () => {
     else {
       toast?.success?.('Payment status updated!');
       setOrder(prev => ({ ...prev, paymentStatus: newPaymentStatus }));
+      fetchOrder();
+    }
+  };
+
+  const handleTrackingUpdate = async () => {
+    if (!carrier && !trackingNumber) return;
+    setUpdatingTracking(true);
+    const { error: err } = await orderService.updateOrderTracking(orderId, { carrier, trackingNumber, trackingUrl });
+    setUpdatingTracking(false);
+    if (err) { toast?.error?.(err); }
+    else {
+      toast?.success?.('Tracking information saved!');
+      fetchOrder();
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!refundAmount || isNaN(refundAmount) || Number(refundAmount) <= 0) return toast?.error?.('Invalid refund amount');
+    setProcessingRefund(true);
+    const { error: err } = await orderService.processOrderRefund(orderId, { amount: Number(refundAmount), reason: refundReason });
+    setProcessingRefund(false);
+    if (err) { toast?.error?.(err); }
+    else {
+      toast?.success?.('Refund processed!');
+      setRefundAmount('');
+      setRefundReason('');
+      fetchOrder();
     }
   };
 
@@ -99,10 +141,20 @@ const OrderDetailPage = () => {
   return (
     <div className="animate-fade-in">
       <PageHeader title={`Order ${order.orderNumber || order.id}`} subtitle={`Placed on ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}`}>
-        <Link href="/admin/orders" className="btn-secondary">
-          <i className="fas fa-arrow-left" style={{ fontSize: 12 }}></i>
-          Back to Orders
-        </Link>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            className="btn-secondary" 
+            onClick={() => orderService.downloadInvoice(orderId, false)}
+            title="View Invoice"
+          >
+            <i className="fas fa-file-invoice" style={{ fontSize: 12 }}></i>
+            Invoice
+          </button>
+          <Link href="/admin/orders" className="btn-secondary">
+            <i className="fas fa-arrow-left" style={{ fontSize: 12 }}></i>
+            Back to Orders
+          </Link>
+        </div>
       </PageHeader>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
@@ -217,6 +269,13 @@ const OrderDetailPage = () => {
                     <option key={s} value={s} style={{ textTransform: 'capitalize' }}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                   ))}
                 </select>
+                <input
+                  type="text"
+                  placeholder="Override Reason (Optional)"
+                  value={overrideReason}
+                  onChange={e => setOverrideReason(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--admin-border)', borderRadius: 10, fontSize: 13, outline: 'none', marginBottom: 10 }}
+                />
                 <button
                   onClick={handleStatusUpdate}
                   className="btn-primary"
@@ -267,6 +326,70 @@ const OrderDetailPage = () => {
                   {updatingPaymentStatus ? <><i className="fas fa-spinner fa-spin"></i> Updating...</> : 'Update Payment'}
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Shipping & Tracking */}
+          <div className="admin-card" style={{ borderRadius: 16 }}>
+            <div className="admin-card-header"><h3>Shipping & Tracking</h3></div>
+            <div className="admin-card-body">
+              {order.shipments && order.shipments.length > 0 && (
+                <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px dashed var(--admin-border-light)' }}>
+                  {order.shipments.map(s => (
+                    <div key={s.id} style={{ fontSize: 13, marginBottom: 8 }}>
+                      <strong>{s.carrier || 'Carrier'}</strong>: {s.trackingNumber || 'N/A'}
+                      {s.trackingUrl && <div style={{ marginTop: 4 }}><a href={s.trackingUrl} target="_blank" rel="noreferrer" style={{ color: '#0ea5e9', fontSize: 12, fontWeight: 600 }}><i className="fas fa-external-link-alt" style={{ marginRight: 4 }}></i>Track Package</a></div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input type="text" placeholder="Carrier (e.g. BlueDart)" value={carrier} onChange={e => setCarrier(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--admin-border)', borderRadius: 10, fontSize: 13, outline: 'none', marginBottom: 10 }} />
+              <input type="text" placeholder="Tracking Number" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--admin-border)', borderRadius: 10, fontSize: 13, outline: 'none', marginBottom: 10 }} />
+              <input type="text" placeholder="Tracking URL (Optional)" value={trackingUrl} onChange={e => setTrackingUrl(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--admin-border)', borderRadius: 10, fontSize: 13, outline: 'none', marginBottom: 10 }} />
+              <button onClick={handleTrackingUpdate} className="btn-secondary" disabled={updatingTracking} style={{ width: '100%', justifyContent: 'center' }}>
+                {updatingTracking ? 'Saving...' : 'Save Tracking'}
+              </button>
+            </div>
+          </div>
+
+          {/* Refunds & Adjustments */}
+          <div className="admin-card" style={{ borderRadius: 16 }}>
+            <div className="admin-card-header"><h3>Refunds & Adjustments</h3></div>
+            <div className="admin-card-body">
+              {order.returns && order.returns.length > 0 && (
+                <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px dashed var(--admin-border-light)' }}>
+                  {order.returns.map(r => (
+                    <div key={r.id} style={{ fontSize: 13, marginBottom: 8 }}>
+                      <span style={{ color: '#ef4444', fontWeight: 700 }}>-₹{r.refundAmount}</span> ({r.reason || 'No reason'})
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input type="number" placeholder="Refund Amount (₹)" value={refundAmount} onChange={e => setRefundAmount(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--admin-border)', borderRadius: 10, fontSize: 13, outline: 'none', marginBottom: 10 }} />
+              <input type="text" placeholder="Reason (e.g. Damaged item)" value={refundReason} onChange={e => setRefundReason(e.target.value)} style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--admin-border)', borderRadius: 10, fontSize: 13, outline: 'none', marginBottom: 10 }} />
+              <button onClick={handleRefund} className="btn-primary" disabled={processingRefund || order.paymentStatus !== 'paid'} style={{ width: '100%', justifyContent: 'center', background: '#ef4444', borderColor: '#ef4444' }}>
+                {processingRefund ? 'Processing...' : 'Issue Refund'}
+              </button>
+            </div>
+          </div>
+
+          {/* Audit Log */}
+          <div className="admin-card" style={{ borderRadius: 16 }}>
+            <div className="admin-card-header"><h3>Audit Log</h3></div>
+            <div className="admin-card-body" style={{ maxHeight: 250, overflowY: 'auto' }}>
+              {order.statusHistory && order.statusHistory.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {order.statusHistory.map(h => (
+                    <div key={h.id} style={{ fontSize: 12, borderLeft: '2px solid var(--admin-border)', paddingLeft: 10 }}>
+                      <div style={{ fontWeight: 700, color: 'var(--admin-text)' }}>{h.status?.toUpperCase() || 'UPDATE'}</div>
+                      <div style={{ color: 'var(--admin-text-muted)', fontSize: 11 }}>{new Date(h.createdAt).toLocaleString()}</div>
+                      {h.notes && <div style={{ marginTop: 4, color: 'var(--admin-text-secondary)', fontStyle: 'italic' }}>"{h.notes}"</div>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ fontSize: 12, color: 'var(--admin-text-muted)' }}>No logs available</p>
+              )}
             </div>
           </div>
 

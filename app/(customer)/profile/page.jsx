@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { fetchProfileDashboardApi, updateMyProfileApi } from '@/lib/api';
 import { getFileUrl } from '@/lib/utils';
+import { orderService } from '@/services';
 import './profile.css';
 
 const emptyDashboard = {
@@ -20,7 +21,7 @@ const statusStyles = {
   PENDING:    'status-processing',
   CONFIRMED:  'status-processing',
   PROCESSING: 'status-processing',
-  SHIPPED:    'status-processing',
+  SHIPPED:    'status-shipped',
   DELIVERED:  'status-delivered',
   CANCELLED:  'status-cancelled',
   FAILED:     'status-cancelled',
@@ -188,11 +189,11 @@ const Profile = () => {
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)' }}>#{order.orderNumber || order.id}</span>
                       <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--navy)', marginTop: '2px' }}>{order.preview?.title || 'Bespoke Timepiece'}</h4>
                       <div className="md:hidden" style={{ marginTop: '8px' }}>
-                        <span className={`item-status-pill ${statusStyles[order.status] || 'status-processing'}`}>{order.status}</span>
+                        <span className={`item-status-pill ${statusStyles[order.status?.toUpperCase()] || 'status-processing'}`}>{order.status}</span>
                       </div>
                     </div>
                     <div className="hidden md:block">
-                      <span className={`item-status-pill ${statusStyles[order.status] || 'status-processing'}`}>{order.status}</span>
+                      <span className={`item-status-pill ${statusStyles[order.status?.toUpperCase()] || 'status-processing'}`}>{order.status}</span>
                     </div>
                   </div>
                 )) : <div className="empty-state">No recent acquisitions.</div>}
@@ -203,7 +204,15 @@ const Profile = () => {
           {/* ── ORDERS ── */}
           {activeTab === 'orders' && (
             <div className="tab-pane">
-              <h1 className="section-title">Acquisition History</h1>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <h1 className="section-title" style={{ marginBottom: 0 }}>Acquisition History</h1>
+                <button 
+                  onClick={() => setDashboard(prev => ({ ...prev, orderHistory: [] }))}
+                  style={{ background: 'transparent', border: '1px solid #e2e8f0', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', color: '#64748b' }}
+                >
+                  Clear History
+                </button>
+              </div>
               <p className="section-subtitle">A complete record of all {stats.totalOrders} orders.</p>
 
               {/* Desktop table */}
@@ -216,6 +225,7 @@ const Profile = () => {
                       <th>Timepiece</th>
                       <th>Total</th>
                       <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -225,7 +235,16 @@ const Profile = () => {
                         <td className="col-date">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : 'N/A'}</td>
                         <td className="col-name">{order.preview?.title || 'Watch'}</td>
                         <td className="col-amt">₹{Number(order.grandTotal || 0).toLocaleString('en-IN')}</td>
-                        <td><span className={`item-status-pill ${statusStyles[order.status] || 'status-processing'}`}>{order.status}</span></td>
+                        <td><span className={`item-status-pill ${statusStyles[order.status?.toUpperCase()] || 'status-processing'}`}>{order.status}</span></td>
+                        <td>
+                          <button 
+                            onClick={() => orderService.downloadInvoice(order.id, true)}
+                            title="Download Invoice"
+                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--navy)', padding: '4px' }}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: 18, height: 18 }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -243,7 +262,16 @@ const Profile = () => {
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div className="m-order-price" style={{ marginBottom: '6px' }}>₹{Number(order.grandTotal || 0).toLocaleString('en-IN')}</div>
-                      <span className={`item-status-pill ${statusStyles[order.status] || 'status-processing'}`}>{order.status}</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <button 
+                          onClick={() => orderService.downloadInvoice(order.id, true)}
+                          title="Download Invoice"
+                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--navy)' }}
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: 16, height: 16 }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        </button>
+                        <span className={`item-status-pill ${statusStyles[order.status?.toUpperCase()] || 'status-processing'}`}>{order.status}</span>
+                      </div>
                     </div>
                   </div>
                 ))}

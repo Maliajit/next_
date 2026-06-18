@@ -19,37 +19,49 @@ export function WishlistProvider({ children }) {
       setWishlist([]);
       return;
     }
-    const result = await fetchWishlist(userId);
-    if (result.success) {
-        const items = result.data?.items || [];
-        const mapped = items.map(item => {
-            const variant = item.productVariant;
-            const product = variant?.product;
-            
-            if (!variant || !product) return null;
+    try {
+      const result = await fetchWishlist(userId);
+      if (result.success) {
+          const items = result.data?.items || [];
+          const mapped = items.map(item => {
+              const variant = item.productVariant;
+              const product = variant?.product;
+              
+              if (!variant || !product) return null;
 
-            const display = getDisplayData(product, variant);
+              const display = getDisplayData(product, variant);
 
-            const attrParams = (variant.variantAttributes || []).map(va => {
-                const name = va.attributeValue?.attribute?.name?.toLowerCase();
-                const label = va.attributeValue?.label;
-                return name && label ? `${name}=${encodeURIComponent(label)}` : null;
-            }).filter(Boolean).join('&');
+              const attrParams = (variant.variantAttributes || []).map(va => {
+                  const name = va.attributeValue?.attribute?.name?.toLowerCase();
+                  const label = va.attributeValue?.label;
+                  return name && label ? `${name}=${encodeURIComponent(label)}` : null;
+              }).filter(Boolean).join('&');
 
-            return {
-                ...display,
-                id: item.id.toString(), // WishlistItem ID (Must be last to avoid being overwritten by display.id)
-                productId: product.id.toString(),
-                variantId: variant.id.toString(),
-                title: display.name,
-                variantName: display.subtitle,
-                price: display.price,
-                formattedPrice: display.formattedPrice,
-                image: display.image,
-                redirectUrl: `/discover?watch=${product.id}&variant=${variant.id}${attrParams ? `&${attrParams}` : ''}`,
-            };
-        }).filter(Boolean);
-        setWishlist(mapped);
+              const isOutOfStock = variant.manageStock ? (!variant.inStock || variant.stock_quantity <= 0 || variant.qty <= 0) : false;
+
+              return {
+                  ...display,
+                  id: item.id.toString(), // WishlistItem ID (Must be last to avoid being overwritten by display.id)
+                  productId: product.id.toString(),
+                  variantId: variant.id.toString(),
+                  title: display.name,
+                  variantName: display.subtitle,
+                  price: display.price,
+                  formattedPrice: display.formattedPrice,
+                  image: display.image,
+                  redirectUrl: `/discover?watch=${product.id}&variant=${variant.id}${attrParams ? `&${attrParams}` : ''}`,
+                  isOutOfStock,
+              };
+          }).filter(Boolean);
+          setWishlist(mapped);
+      } else {
+        console.warn('Wishlist fetch error:', result.error);
+        if (result.error && result.error.includes('expired')) {
+          setWishlist([]); // Clear if session expired
+        }
+      }
+    } catch(err) {
+      console.warn('Gracefully caught wishlist fetch error:', err);
     }
   };
 

@@ -94,18 +94,6 @@ const navItems = [
     ],
   },
   {
-    key: 'reviews',
-    title: 'Reviews',
-    icon: 'fas fa-star',
-    path: '/admin/reviews',
-  },
-  {
-    key: 'testimonials',
-    title: 'Testimonials',
-    icon: 'fas fa-quote-right',
-    path: '/admin/testimonials',
-  },
-  {
     key: 'community',
     title: 'Community',
     icon: 'fas fa-camera-retro',

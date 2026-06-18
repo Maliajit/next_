@@ -663,10 +663,9 @@ const EditProductPage = () => {
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                     <h3 className="text-xl font-bold text-gray-900 border-b !pb-2 !mb-2">UI Theme Customization</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <FormField label="Page Background" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
-                                        <FormField label="Brand Accent" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
-                                        <FormField label="Interface Text" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
-                                        <FormField label="Surface Tint (Mist)" name="mistColor" type="color" value={form.mistColor} onChange={handleChange} />
+                                        <FormField label="Fonts color (primary)" name="textColor" type="color" value={form.textColor} onChange={handleChange} />
+                                        <FormField label="Fonts color (secondary)" name="accentColor" type="color" value={form.accentColor} onChange={handleChange} />
+                                        <FormField label="Product Details Page bg color" name="bgColor" type="color" value={form.bgColor} onChange={handleChange} />
                                         <div className="md:col-span-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                                             <label className="block text-sm font-bold text-gray-900 mb-3">Background Gradient (Linear)</label>
                                             <div className="grid grid-cols-2 gap-4">

@@ -422,6 +422,7 @@
 }
 .status-delivered  { background: #e8f9f1; color: #0b9063; }
 .status-processing { background: #fef9ec; color: #b08014; }
+.status-shipped    { background: #e0f2fe; color: #0284c7; }
 .status-cancelled  { background: #fdf0ef; color: #b83c30; }
 
 /* ─── ORDER HISTORY TABLE ─────────────────────────────────── */

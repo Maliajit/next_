@@ -58,6 +58,11 @@ export function CartProvider({ children }) {
         const result = await fetchCart(userId);
         if (result.success) {
             mapCartData(result.data);
+        } else {
+            if (result.error && result.error.includes('expired')) {
+                setItems([]);
+                setTotals({ subtotal: 0, grandTotal: 0 });
+            }
         }
     } finally {
         setLoading(false);
@@ -80,6 +85,8 @@ export function CartProvider({ children }) {
             mapCartData(result.data);
             eventBus.emit(EVENTS.CART_UPDATED);
             if (success) success('Added to cart successfully');
+        } else {
+            if (toastError) toastError(result.error || 'Failed to add to cart');
         }
         return result;
     } catch (err) {
@@ -127,6 +134,8 @@ export function CartProvider({ children }) {
         if (result.success) {
             mapCartData(result.data);
             eventBus.emit(EVENTS.CART_UPDATED);
+        } else {
+            if (toastError) toastError(result.error || 'Failed to update quantity');
         }
     } catch (err) {
         console.error('Update cart qty failed:', err);
