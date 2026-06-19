@@ -169,10 +169,10 @@ export default function Cart() {
           {items.length === 0 ? (
             <div className="cart-empty">
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                <circle cx="32" cy="32" r="30" stroke="#1C2E4A" strokeWidth="1.5" opacity="0.2" />
-                <path d="M20 22h24l-3 18H23L20 22z" stroke="#1C2E4A" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-                <circle cx="26" cy="46" r="2" fill="#1C2E4A" opacity="0.4" />
-                <circle cx="38" cy="46" r="2" fill="#1C2E4A" opacity="0.4" />
+                <circle cx="32" cy="32" r="30" stroke="#ffffff" strokeWidth="1.5" opacity="0.2" />
+                <path d="M20 22h24l-3 18H23L20 22z" stroke="#ffffff" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+                <circle cx="26" cy="46" r="2" fill="#ffffff" opacity="0.4" />
+                <circle cx="38" cy="46" r="2" fill="#ffffff" opacity="0.4" />
               </svg>
               <p>Your cart is empty</p>
               <Link href="/products" className="cart-empty-cta">Explore Watches</Link>
@@ -250,7 +250,8 @@ export default function Cart() {
           padding: calc(var(--header-h, 70px) + 40px) 24px 80px;
           position: relative;
           overflow: hidden;
-          background: #ffffff;
+          background: #000000;
+          color: #ffffff;
           font-family: 'Inter', sans-serif;
         }
 
@@ -262,7 +263,7 @@ export default function Cart() {
         .cart-hero-title {
           font-size: 2rem;
           font-weight: 700;
-          color: #000;
+          color: #ffffff;
           margin-bottom: 10px;
           letter-spacing: -0.02em;
         }
@@ -285,7 +286,8 @@ export default function Cart() {
           display: flex;
           align-items: center;
           gap: 20px;
-          background: #f8f8f8;
+          background: #111111;
+          border: 1px solid #333333;
           padding: 20px 24px;
           margin-bottom: 16px;
           transition: transform 0.3s;
@@ -312,16 +314,16 @@ export default function Cart() {
         }
         .cart-item-details { flex: 1; min-width: 0; }
         .cart-item-name {
-          font-size: 1.2rem; color: #000;
+          font-size: 1.2rem; color: #ffffff;
           font-weight: 700; margin-bottom: 4px;
         }
         .cart-item-variant {
-          font-size: 0.9rem; color: #000;
+          font-size: 0.9rem; color: #ffffff;
           margin-bottom: 10px;
         }
         .cart-item-price {
           font-size: 1rem; font-weight: 600;
-          color: #000;
+          color: #ffffff;
         }
         /* Actions layout for Desktop */
         @media (min-width: 861px) {
@@ -341,7 +343,7 @@ export default function Cart() {
         .cart-qty-btn {
           width: 32px; height: 32px;
           border: none;
-          background: transparent; color: #000;
+          background: transparent; color: #ffffff;
           font-size: 18px; cursor: pointer;
           display: flex; align-items: center; justify-content: center;
           transition: transform 0.2s;
@@ -351,7 +353,7 @@ export default function Cart() {
         }
         .cart-qty-val {
           font-size: 15px; font-weight: 600;
-          color: #000; width: 24px; text-align: center;
+          color: #ffffff; width: 24px; text-align: center;
         }
         .cart-row-secondary-actions {
           display: flex;
@@ -362,7 +364,7 @@ export default function Cart() {
           cursor: pointer; border: none; background: transparent;
           padding: 8px;
           display: flex; align-items: center; justify-content: center;
-          color: #000;
+          color: #ffffff;
           transition: all 0.3s ease;
         }
         .cart-wishlist-btn:hover {
@@ -371,7 +373,7 @@ export default function Cart() {
         .cart-remove-btn {
           cursor: pointer; border: none; background: transparent;
           padding: 8px;
-          color: #000; 
+          color: #ffffff; 
           display: flex; align-items: center; justify-content: center;
           transition: all 0.3s ease;
         }
@@ -382,88 +384,89 @@ export default function Cart() {
         /* Empty */
         .cart-empty {
           text-align: center; padding: 80px 24px;
-          color: #000;
+          color: #ffffff;
           display: flex; flex-direction: column; align-items: center; gap: 16px;
         }
         .cart-empty p { font-size: 16px; }
         .cart-empty-cta {
           display: inline-block;
           padding: 8px 16px;
-          background: #1a1a1a;
-          color: white; border-radius: 50px;
+          background: #ffffff;
+          color: #000000; border-radius: 50px;
           text-decoration: none; font-size: 10px;
           letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          border: 1px solid #1a1a1a;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          border: 1px solid #ffffff;
+          box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
         }
         .cart-empty-cta:hover, .cart-empty-cta:active { 
-          background: #ffffff !important;
-          color: #000000 !important;
+          background: #000000 !important;
+          color: #ffffff !important;
           border-color: #ffffff;
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
         }
 
         /* Summary */
         .cart-summary-card {
-          background: #f8f8f8;
+          background: #111111;
+          border: 1px solid #333333;
           padding: 32px 28px;
         }
         .cart-summary-title {
-          font-size: 1.5rem; font-weight: 700; color: #000;
+          font-size: 1.5rem; font-weight: 700; color: #ffffff;
           margin-bottom: 28px;
         }
         .cart-summary-line {
           display: flex; justify-content: space-between;
-          font-size: 13px; color: #000;
+          font-size: 13px; color: #ffffff;
           margin-bottom: 14px;
         }
         .cart-free-tag {
-          color: #000; font-weight: 600; font-size: 12px;
-          border: 1px solid #000; padding: 2px 8px; border-radius: 20px;
+          color: #ffffff; font-weight: 600; font-size: 12px;
+          border: 1px solid #ffffff; padding: 2px 8px; border-radius: 20px;
         }
         .cart-free-hint {
-          font-size: 11px; color: #000;
+          font-size: 11px; color: #ffffff;
           margin-bottom: 14px;
         }
         .cart-summary-divider {
           height: 1px;
-          background: #e0e0e0;
+          background: #333333;
           margin: 20px 0;
         }
         .cart-summary-total {
           display: flex; justify-content: space-between;
           font-size: 18px; font-weight: 700;
-          color: #000; margin-bottom: 28px;
+          color: #ffffff; margin-bottom: 28px;
         }
         .cart-checkout-btn {
           width: 100%;
           padding: 8px 16px;
-          background: #1a1a1a;
-          color: white; border: 1px solid #1a1a1a; border-radius: 999px;
+          background: #ffffff;
+          color: #000000; border: 1px solid #ffffff; border-radius: 999px;
           font-size: 10px; letter-spacing: 0.15em;
           text-transform: uppercase; font-weight: 700;
           cursor: pointer;
           display: flex; align-items: center; justify-content: center; gap: 10px;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           margin-bottom: 16px;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
         }
         .cart-checkout-btn:hover, .cart-checkout-btn:active {
-          background: #ffffff !important;
-          color: #000000 !important;
+          background: #000000 !important;
+          color: #ffffff !important;
           border-color: #ffffff;
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
         }
         .cart-continue-link {
           display: block; text-align: center;
-          font-size: 12px; color: #000;
+          font-size: 12px; color: #ffffff;
           letter-spacing: 0.04em;
           transition: color 0.2s;
         }
-        .cart-continue-link:hover { color: #000; }
+        .cart-continue-link:hover { color: #cccccc; }
 
         .cart-trust-badges {
           display: flex; justify-content: space-between;
@@ -471,17 +474,17 @@ export default function Cart() {
         }
         .cart-badge {
           flex: 1;
-          background: rgba(255,255,255,0.7);
+          background: rgba(0,0,0,0.7);
           backdrop-filter: blur(8px);
-          border: 1px solid rgba(99,130,201,0.1);
+          border: 1px solid rgba(255,255,255,0.1);
           border-radius: 14px;
           padding: 12px 8px;
           display: flex; flex-direction: column; align-items: center; gap: 6px;
-          font-size: 10px; color: #5a6a80;
+          font-size: 10px; color: #a0aec0;
           text-align: center;
           transition: transform 0.2s, box-shadow 0.2s;
         }
-        .cart-badge:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(28,46,74,0.08); }
+        .cart-badge:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(255,255,255,0.08); }
         .cart-badge-icon { font-size: 18px; }
         .cart-badge-label { letter-spacing: 0.04em; font-weight: 500; }
         
@@ -520,10 +523,10 @@ export default function Cart() {
              justify-content: space-between;
              align-items: center;
              padding-top: 12px;
-             border-top: 1px solid rgba(0,0,0,0.05);
+             border-top: 1px solid rgba(255,255,255,0.05);
           }
           .cart-qty-block { margin: 0; }
-          // .cart-remove-btn { padding: 8px; background: rgba(0,0,0,0.03); }
+          // .cart-remove-btn { padding: 8px; background: rgba(255,255,255,0.03); }
           .cart-summary-card {
             padding: 24px 20px;
           }

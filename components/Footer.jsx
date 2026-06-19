@@ -55,12 +55,12 @@ const Footer = () => {
         }
         .footer-bottom-v1 p {
           font-size: 0.55rem; letter-spacing: 0.2em;
-          text-transform: uppercase; color: rgba(201,169,110,0.3);
+          text-transform: uppercase; color: #ffffff;
         }
         .footer-mark-v1 {
           font-family: 'Cormorant Garamond', serif;
           font-size: 1.6rem; font-weight: 400;
-          letter-spacing: 0.6em; color: #a18b4e; text-transform: uppercase;
+          letter-spacing: 0.6em; color: #ffffff; text-transform: uppercase;
           text-shadow: 0 0 2px rgba(161, 139, 78, 0.3);
           margin-left: 0.6em;
         }
@@ -85,8 +85,8 @@ const Footer = () => {
         <div className="footer-main-v1">
           <div className="footer-col-v1 footer-brand-v1">
             <Link href="/" className="footer-logo-v1">
-              <img src="/logo.png" alt="Fylex" />
-              Fylex
+              <img src="/footer_logo.jpeg" alt="Fylex" />
+              
             </Link>
             <p>Redefining luxury horology through centuries of Swiss excellence and precision engineering.</p>
           </div>

@@ -265,14 +265,19 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 animate-fade-in">
 
-      {/* Page Title */}
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--admin-text)', margin: 0, letterSpacing: '-0.02em' }}>
-          Dashboard Overview
-        </h2>
-        <p style={{ fontSize: 13, color: 'var(--admin-text-muted)', marginTop: 4, fontWeight: 500 }}>
-          Welcome back, Admin! Here's what's happening today.
-        </p>
+      {/* Page Title & Cute Welcome Banner */}
+      <div className="welcome-banner">
+        <div className="welcome-banner-content">
+          <h2 className="welcome-banner-title">
+            Welcome back, Admin! <span className="welcome-banner-waving">👋</span>
+          </h2>
+          <p className="welcome-banner-text">
+            Here's what's happening with your store today. Have a great day managing Fylex!
+          </p>
+        </div>
+        <div className="welcome-banner-illustration hidden md:flex">
+          <i className="fas fa-rocket"></i>
+        </div>
       </div>
 
       {/* Quick Stats Row */}

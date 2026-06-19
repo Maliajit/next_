@@ -153,27 +153,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isExpanded, setIsExpanded }) => {
         style={{ transition: 'width 0.3s ease, transform 0.3s ease' }}
       >
         {/* Logo */}
-        <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">
-            <img src="/fylex_logo.png" alt="Fylex" />
+        <div className="sidebar-logo" style={{ justifyContent: 'center' }}>
+          <div className="sidebar-logo-icon" style={{ width: '120px', height: '40px', background: 'transparent', border: 'none' }}>
+            <img src="/footer_logo.jpeg" alt="Fylex" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'none' }} />
           </div>
-          <span className="sidebar-logo-text">Fylex</span>
-          <button
-            onClick={() => setMobileOpen(false)}
-            className="ml-auto"
-            style={{
-              marginLeft: 'auto',
-              background: 'none',
-              border: 'none',
-              color: '#7c8db5',
-              cursor: 'pointer',
-              padding: 4,
-              display: 'flex',
-            }}
-            aria-label="Close sidebar"
-          >
-            <i className="fas fa-times text-lg md:hidden"></i>
-          </button>
         </div>
 
         {/* Nav */}

@@ -623,9 +623,14 @@ const EditProductPage = () => {
                                     {/* Specifications */}
                                     {categoryDetails && (
                                         <div className="mt-8 border-t pt-8">
-                                            <h4 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                                <i className="fas fa-list-ul text-indigo-600"></i> Technical Specifications
-                                            </h4>
+                                            <div>
+                                                <h4 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                                    <i className="fas fa-list-ul text-indigo-600"></i> Category Specifications
+                                                </h4>
+                                                <p className="text-sm text-gray-500 mb-6 mt-1">
+                                                    These specifications are dynamically loaded based on the selected category. You can create or manage them by editing the category in <a href="/admin/categories" target="_blank" className="text-indigo-600 hover:underline">Categories</a>.
+                                                </p>
+                                            </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 {categoryDetails.specGroups?.map((group) =>
                                                     group.specGroup.specifications?.map((spec, sIdx) => {

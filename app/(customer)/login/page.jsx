@@ -346,7 +346,6 @@ export default function Login() {
           background: rgba(255, 255, 255, 0.03);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 24px;
           padding: 40px;
         }
@@ -554,7 +553,7 @@ export default function Login() {
             height: 45vh; min-height: 280px; max-height: 420px;
           }
           .auth-image-overlay {
-            background: linear-gradient(to bottom, transparent 40%, #0c1a10 100%);
+            background: linear-gradient(to bottom, transparent 40%, #000000 100%);
           }
           .auth-form-panel {
             padding: 32px 24px 48px;

@@ -292,7 +292,7 @@ const Home = () => {
         const { data: cImages } = await cmsService.getCommunityImages();
         if (cImages && Array.isArray(cImages) && cImages.length > 0) {
           setCommunityImages(cImages.map((img: any) => ({
-            src: img.image?.startsWith('http') ? img.image : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/api$/, '')}/${img.image?.replace(/^\//, '')}`,
+            src: img.image?.startsWith('http') ? img.image : getFileUrl(img.image),
             alt: img.title || 'Atelier'
           })));
         }

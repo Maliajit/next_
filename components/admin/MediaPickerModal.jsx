@@ -51,6 +51,13 @@ const MediaPickerModal = ({ isOpen, onClose, onSelect, multiple = false }) => {
     const [selected, setSelected] = useState([]);
     const [search, setSearch] = useState('');
 
+    React.useEffect(() => {
+        if (isOpen) {
+            setSelected([]);
+            setSearch('');
+        }
+    }, [isOpen]);
+
     const toggleSelect = useCallback((m) => {
         const item = { id: m.id.toString(), url: `/uploads/${m.fileName}` };
         if (multiple) {

@@ -11,6 +11,8 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomePhase, setWelcomePhase] = useState(1);
   
   const { setSession } = useAuth();
   const router = useRouter();
@@ -34,8 +36,24 @@ export default function AdminLogin() {
         // Update AuthContext (uses 'fylexx_user' key internally)
         setSession(data.access_token, data.user);
         
-        // Redirect to dashboard
-        router.push('/admin/dashboard');
+        // Show welcome animation
+        setShowWelcome(true);
+        setWelcomePhase(1);
+        
+        // Switch to phase 2 (show text) after 1.5s
+        setTimeout(() => {
+          setWelcomePhase(2);
+        }, 1500);
+
+        // Switch to phase 3 (fly away) after 3.5s
+        setTimeout(() => {
+          setWelcomePhase(3);
+        }, 3500);
+
+        // Redirect to dashboard after 5.0s
+        setTimeout(() => {
+          router.push('/admin/dashboard');
+        }, 5000); // 5.0 seconds to allow slow motion fly away
       } else {
         setError(apiError || 'Invalid administrative credentials');
       }
@@ -48,6 +66,103 @@ export default function AdminLogin() {
 
   if (!mounted) return null;
 
+  if (showWelcome) {
+    return (
+      <div className={`welcome-screen ${welcomePhase === 3 ? 'fly-away' : ''}`}>
+        <div className="welcome-content">
+          <div className="welcome-icon">🚀</div>
+          <h2>{welcomePhase === 1 ? 'Welcome Back, Admin!' : 'Your Dashboard is ready'}</h2>
+          <p className={welcomePhase !== 1 ? 'highlight-text' : ''}>
+            {welcomePhase === 1 ? 'Preparing your dashboard...' : "Now it's time to take off, Bye Bye Guys 👋"}
+          </p>
+        </div>
+        <style jsx>{`
+          .welcome-screen {
+            position: fixed;
+            inset: 0;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.5s ease;
+          }
+          .welcome-screen.fly-away {
+            animation: screenFadeOut 1.5s forwards;
+          }
+          .welcome-background {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+          }
+          .welcome-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+          }
+          .welcome-screen.fly-away .welcome-content {
+            animation: rocketOut 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+          }
+          .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: floatUp 2s ease-in-out infinite;
+            filter: drop-shadow(0 10px 15px rgba(56, 189, 248, 0.4));
+          }
+          .welcome-content h2 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+          }
+          .welcome-content p {
+            color: #94a3b8;
+            font-size: 18px;
+            font-weight: 500;
+            transition: all 0.4s ease;
+          }
+          .highlight-text {
+            color: #38bdf8 !important;
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+            letter-spacing: 0.03em;
+            animation: pulseFast 1s infinite !important;
+          }
+          @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+          }
+          @keyframes floatUp {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px) scale(1.05); }
+          }
+          @keyframes pulseFast {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+          }
+          @keyframes rocketOut {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            15% { transform: translate(-20px, 40px) scale(0.95); opacity: 1; }
+            100% { transform: translate(100vw, -150vh) scale(0.5); opacity: 0; }
+          }
+          @keyframes screenFadeOut {
+            0% { background: #0f172a; opacity: 1; }
+            80% { opacity: 0; }
+            100% { background: transparent; opacity: 0; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-login-page">
       <div className="login-background">
@@ -57,8 +172,8 @@ export default function AdminLogin() {
 
       <div className="login-card animate-fade-in">
         <div className="login-header">
-          <div className="brand-logo">
-            <img src="/fylex_logo.png" alt="Fylex" />
+          <div className="brand-logo" style={{ background: 'transparent', boxShadow: 'none' }}>
+            <img src="/logo.png" alt="Fylex" style={{ width: '120px', height: 'auto', objectFit: 'contain' }} />
           </div>
           <h1>Fylex Admin</h1>
           <p>Secure Administrative Access</p>
