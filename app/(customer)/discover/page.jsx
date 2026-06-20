@@ -903,7 +903,7 @@ function DiscoverContent() {
           margin: 0 auto;
         }
         .cfg-desc-text {
-          text-align: justify;
+          text-align: left;
           line-height: 1.8;
           font-size: 1rem;
         }
@@ -1227,7 +1227,7 @@ function DiscoverContent() {
           line-height: 1.9;
           color: #555;
           font-weight: 300;
-          text-align: justify;
+          text-align: left;
         }
 
         /* ═══════════ LIGHT/ELEGANT MODAL STYLES ═══════════ */
@@ -1381,11 +1381,31 @@ function DiscoverContent() {
           font-weight: 500;
         }
 
+        /* ═══ DESKTOP TEXT JUSTIFY ═══ */
+        @media (min-width: 901px) {
+          .cfg-desc-text {
+            text-align: justify;
+          }
+          .cfg-heritage-text {
+            text-align: justify;
+          }
+        }
+
         /* ═══ RESPONSIVE FIXES ═══ */
         @media (max-width: 900px) {
           .cfg-desc-section {
             padding: 60px 0;
-            text-align: left;
+            text-align: justify;
+          }
+          .cfg-desc-text {
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+          }
+          .cfg-heritage-text {
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto;
           }
           .cfg-desc-img-wrap {
             width: 100vw;

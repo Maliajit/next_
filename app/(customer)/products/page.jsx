@@ -460,7 +460,7 @@ const Products = () => {
           color: #bbbbbb; 
           margin: 24px 0 32px;
           font-weight: 300;
-          text-align: justify;
+          text-align: left;
         }
         .p-link-luxury {
           display: inline-flex !important;
@@ -769,6 +769,13 @@ const Products = () => {
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
+        /* ═══ DESKTOP TEXT JUSTIFY ═══ */
+        @media (min-width: 901px) {
+          .p-description {
+            text-align: justify;
+          }
+        }
+
         /* ═══════════ RESPONSIVE ═══════════ */
         @media (max-width: 1024px) {
           .nav-back, .btn-config-pill {
@@ -915,7 +922,9 @@ const Products = () => {
               line-height: 1.6; 
               margin: 8px 0 14px; 
               color: #999;
-              text-align: left;
+              text-align: justify;
+              hyphens: auto;
+              -webkit-hyphens: auto;
            }
            .p-price-tag { font-size: 1.15rem; margin-bottom: 4px; }
            .p-inventory-status { font-size: 0.7rem; margin-bottom: 8px; }
