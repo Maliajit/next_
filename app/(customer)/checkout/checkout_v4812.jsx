@@ -573,7 +573,7 @@ const Checkout = () => {
         .checkout-back-nav:hover { color: #1e293b; }
 
         .checkout-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 20px; color: #1e293b;
           margin-bottom: 10px;
         }
@@ -611,7 +611,7 @@ const Checkout = () => {
         .checkout-card { padding: 40px; }
 
         .section-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 20px; color: #1e293b; margin-bottom: 24px;
         }
 

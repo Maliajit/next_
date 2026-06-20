@@ -362,7 +362,7 @@ export default function Login() {
 
         /* ─── Typography ─── */
         .auth-title {
-          font-family: 'Playfair Display', 'Georgia', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 28px; font-weight: 700;
           color: #ffffff;
           letter-spacing: 0.01em; line-height: 1.2;

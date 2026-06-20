@@ -166,7 +166,7 @@ export default function ResetPasswordPage() {
           color: #4a6fa5; font-weight: 600; margin-bottom: 10px;
         }
         .fp-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 32px; color: #1C2E4A; margin-bottom: 8px;
         }
         .fp-subtitle { font-size: 13px; color: #7a8aa0; }

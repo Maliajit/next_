@@ -425,7 +425,7 @@ const Home = () => {
 
         /* ── Featured Grid Section ── */
         .featured-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2.5rem, 5vw, 3.5rem);
           font-weight: 400; 
           color: #111;
@@ -601,13 +601,13 @@ const Home = () => {
           text-align: center; padding: 0 40px;
         }
         .hero-title {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2rem, 5vw, 3rem) !important;
           font-weight: 300; color: #2D2D2D;
           margin-bottom: 0.5rem; letter-spacing: 0.1em;
         }
         .hero-subtitle {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2.5rem, 8vw, 6rem) !important;
           font-weight: 400; color: #1A1A1A;
           margin-bottom: 2.5rem; line-height: 1;
@@ -644,7 +644,7 @@ const Home = () => {
         }
         .card.in { opacity: 1; transform: translateX(0); }
         .card h1 {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2rem, 7vw, 5.2rem);
           font-weight: 300; line-height: 1.1;
           letter-spacing: .04em; color: var(--cream);
@@ -688,7 +688,7 @@ const Home = () => {
         }
         .feature-item.active { opacity: 1; }
         .feature-item h3 {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(1.2rem, 2.5vw, 2.2rem); color: #111111;
         }
         .features-right { position: relative; height: 100%; overflow: hidden; }
@@ -717,7 +717,7 @@ const Home = () => {
         .flip-top, .flip-bottom, .flip-flap {
           position: absolute; inset: 0;
           display: flex; align-items: center; justify-content: center;
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 2.4rem; font-weight: 700; color: #fff;
         }
         .flip-top  { clip-path: inset(0 0 50% 0); }
@@ -759,7 +759,7 @@ const Home = () => {
           padding: 0 40px;
         }
         .fylex-gallery-header h2 {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2rem, 5vw, 3rem);
           font-weight: 400; color: #111111;
           letter-spacing: 0.03em; margin: 0 0 12px;
@@ -928,8 +928,11 @@ const Home = () => {
                 />
               </div>
               <div className="card" style={{ zIndex: 10 }}>
-                <h1 dangerouslySetInnerHTML={{ __html: videoSettings.home_legacy_video_title ? videoSettings.home_legacy_video_title.replace('Generations', '<em>Generations</em>') : "Beyond <em>Generations</em>" }}></h1>
-                <p className="legacy-text">{videoSettings.home_legacy_video_subtitle || "A Fylex is not owned — it is entrusted."}</p>
+                <h1 dangerouslySetInnerHTML={{ __html: videoSettings.home_legacy_video_title ? videoSettings.home_legacy_video_title.replace('Same Path.', '<em>Same Path.</em>') : "Not Everyone Follows The <em>Same Path.</em>" }}></h1>
+                <p className="legacy-text">{videoSettings.home_legacy_video_subtitle || "Different Ambitions. Different Routines. Different Stories."}</p>
+                <div style={{ marginTop: '40px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.2em', color: '#fff', textTransform: 'uppercase' }}>
+                  IT'S YOUR TIME.
+                </div>
               </div>
             </div>
           )}
@@ -1026,8 +1029,7 @@ const Home = () => {
             <div ref={galleryRef}>
               <section className="fylex-gallery-section" id="gallery">
                 <div className="fylex-gallery-header">
-                  <h2>The Atelier Chronicles</h2>
-                  <p>A glimpse into the meticulous craftsmanship that defines our legacy.</p>
+                  <h2>The FYLEX World.</h2>
                 </div>
                 <GalleryCarousel items={communityImages.length > 0 ? communityImages : gallery} />
               </section>

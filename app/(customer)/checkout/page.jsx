@@ -485,14 +485,24 @@ const Checkout = () => {
               )}
 
               <div className="checkout-footer-actions">
-                <button
-                  key={`step-${activeStep}`}
-                  className={`primary-btn ${isProcessing || isCalculating || (isServiceable === false) || totals.total <= 0 ? 'disabled' : ''}`}
-                  onClick={(e) => handleNext(e)}
-                  disabled={isProcessing || isCalculating || (isServiceable === false) || totals.total <= 0}
-                >
-                  {isProcessing ? 'Processing...' : (activeStep === 3 ? 'Place Order' : 'Continue')}
-                </button>
+                {isProcessing ? (
+                  <div className="processing-state" style={{ color: '#fff', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                     </svg>
+                     Processing your order...
+                     <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+                  </div>
+                ) : (
+                  <button
+                    key={`step-${activeStep}`}
+                    className={`primary-btn ${isCalculating || (isServiceable === false) || totals.total <= 0 ? 'disabled' : ''}`}
+                    onClick={(e) => handleNext(e)}
+                    disabled={isCalculating || (isServiceable === false) || totals.total <= 0}
+                  >
+                    {activeStep === 3 ? 'Place Order' : 'Continue'}
+                  </button>
+                )}
               </div>
             </div>
           </main>
@@ -508,7 +518,7 @@ const Checkout = () => {
                     </div>
                     <div className="item-info">
                       <div className="item-name">{item.title}</div>
-                      <div className="item-variant" style={{ fontSize: '10px', color: '#000', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <div className="item-variant" style={{ fontSize: '10px', color: '#ccc', textTransform: 'uppercase', marginBottom: '4px' }}>
                         {item.subtitle}
                       </div>
                       <div className="item-meta">{item.qty} item{item.qty !== 1 ? 's' : ''}</div>
@@ -531,11 +541,11 @@ const Checkout = () => {
                          }
                      }} 
                      placeholder="Gift card or discount code" 
-                     style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }}
+                     style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid #333', background: '#000', color: '#fff', fontSize: '13px' }}
                    />
                    <button 
                      type="button" 
-                     style={{ padding: '0 20px', borderRadius: '8px', background: formData.couponCode && formData.couponCode === couponInput.trim() && !couponErrorMsg && totals.discount > 0 ? '#ef4444' : '#1a1a1a', color: 'white', fontWeight: 600, fontSize: '12px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
+                     style={{ padding: '0 20px', borderRadius: '8px', background: formData.couponCode && formData.couponCode === couponInput.trim() && !couponErrorMsg && totals.discount > 0 ? '#ef4444' : '#333', color: 'white', fontWeight: 600, fontSize: '12px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
                      onClick={() => {
                          const isValidAndApplied = formData.couponCode && formData.couponCode === couponInput.trim() && !couponErrorMsg && totals.discount > 0;
                          if (isValidAndApplied) {
@@ -608,7 +618,7 @@ const Checkout = () => {
       <style jsx>{`
         .checkout-page {
           min-height: 100vh;
-          background: #ffffff;
+          background: #000000;
           padding: 80px 24px 80px;
           font-family: 'Inter', sans-serif;
           position: relative;
@@ -629,32 +639,33 @@ const Checkout = () => {
 
         .checkout-back-nav {
           display: flex; align-items: center; gap: 8px;
-          cursor: pointer; color: #000; font-size: 13px;
+          cursor: pointer; color: #ffffff; font-size: 13px;
           margin-bottom: 24px; transition: transform 0.3s;
           width: fit-content;
         }
         .checkout-back-nav:hover { transform: translateX(-4px); }
 
         .checkout-title {
-          font-size: 2rem; color: #000; font-weight: 700;
+          font-size: 2rem; color: #ffffff; font-weight: 700;
           margin-bottom: 10px; letter-spacing: -0.02em;
         }
 
 
         .review-text{
-        font-size:12px;}
+        font-size:12px;
+        color: #a0a0a0;}
 
         .checkout-progress {
           display: flex; justify-content: center; gap: 40px;
         }
         .step-item {
           display: flex; flex-direction: column; align-items: center; gap: 8px;
-          opacity: 0.3; transition: opacity 0.4s; color: #000;
+          opacity: 0.3; transition: opacity 0.4s; color: #ffffff;
         }
         .step-item.active { opacity: 1; }
         .step-dot {
           width: 8px; height: 8px; border-radius: 50%;
-          background: #000;
+          background: #ffffff;
         }
         .step-name { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
 
@@ -663,15 +674,15 @@ const Checkout = () => {
         }
 
         .glassmorphism {
-          background: #f8f8f8;
+          background: #111111;
           border-radius: 24px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #333333;
         }
 
         .checkout-card { padding: 40px; }
 
         .section-title {
-          font-size: 1.5rem; font-weight: 700; color: #000; margin-bottom: 24px;
+          font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 24px;
         }
 
         .form-grid {
@@ -680,15 +691,15 @@ const Checkout = () => {
         .form-group.full { grid-column: span 2; }
         .form-group label {
           display: block; font-size: 11px; text-transform: uppercase;
-          letter-spacing: 0.05em; color: #000; margin-bottom: 8px;
+          letter-spacing: 0.05em; color: #ffffff; margin-bottom: 8px;
           font-weight: 600;
         }
         .form-group input {
           width: 100%; padding: 12px 16px; border-radius: 12px;
-          border: 1px solid #e2e8f0; background: white; color: #000;
+          border: 1px solid #333333; background: #000000; color: #ffffff;
           font-size: 14px; transition: border-color 0.3s;
         }
-        .form-group input:focus { border-color: #000; outline: none; }
+        .form-group input:focus { border-color: #ffffff; outline: none; }
         .form-group.error input { border-color: #ef4444; }
         .error-msg { color: #ef4444; font-size: 10px; margin-top: 4px; display: block; font-weight: 500; }
 
@@ -696,70 +707,70 @@ const Checkout = () => {
           display: grid; gap: 12px;
         }
         .payment-card {
-          padding: 16px; border-radius: 16px; border: 2px solid #e2e8f0;
+          padding: 16px; border-radius: 16px; border: 2px solid #333333;
           display: flex; justify-content: space-between; align-items: center;
           cursor: pointer; transition: all 0.3s;
         }
-        .payment-card.selected { border-color: #000; background: rgba(0, 0, 0, 0.02); }
+        .payment-card.selected { border-color: #ffffff; background: rgba(255, 255, 255, 0.05); }
         .card-info { display: flex; align-items: center; gap: 16px; }
         .card-icon { font-size: 24px; }
-        .card-type { font-size: 14px; font-weight: 600; color: #000; }
-        .card-desc { font-size: 11px; color: #000; }
-        .card-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #e2e8f0; }
-        .selected .card-radio { background: #000; border-color: #000; }
+        .card-type { font-size: 14px; font-weight: 600; color: #ffffff; }
+        .card-desc { font-size: 11px; color: #a0a0a0; }
+        .card-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #333333; }
+        .selected .card-radio { background: #ffffff; border-color: #ffffff; }
 
         .payment-notice {
           margin-top: 24px; padding: 16px; border-radius: 12px;
-          background: rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0; color: #000;
+          background: rgba(255, 255, 255, 0.05); border: 1px solid #333333; color: #ffffff;
           font-size: 13px; line-height: 1.5;
         }
 
         .review-summary-box {
-          background: rgba(0, 0, 0, 0.02); padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0;
+          background: rgba(255, 255, 255, 0.05); padding: 24px; border-radius: 16px; border: 1px solid #333333;
           display: grid; gap: 16px;
         }
         .review-item { display: grid; gap: 4px; }
-        .review-item .review-label { font-size: 11px; text-transform: uppercase; color: #000; font-weight: 600; }
-        .review-item .value { font-size: 14px; color: #000; font-weight: 500; }
+        .review-item .review-label { font-size: 11px; text-transform: uppercase; color: #a0a0a0; font-weight: 600; }
+        .review-item .value { font-size: 14px; color: #ffffff; font-weight: 500; }
 
         .checkout-footer-actions {
-          margin-top: 40px; padding-top: 32px; border-top: 1px solid #e2e8f0;
+          margin-top: 40px; padding-top: 32px; border-top: 1px solid #333333;
           display: flex; justify-content: center;
         }
         .primary-btn {
-          padding: 8px 16px; border-radius: 999px; border: 1px solid #1a1a1a;
-          background: #1a1a1a; color: white; font-weight: 700;
+          padding: 8px 16px; border-radius: 999px; border: 1px solid #ffffff;
+          background: #ffffff; color: #000000; font-weight: 700;
           text-transform: uppercase; letter-spacing: 0.15em;
           font-size: 10px; cursor: pointer; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
         }
         .primary-btn:hover:not(:disabled), .primary-btn:active:not(:disabled) { 
-          background: #ffffff !important;
-          color: #000000 !important;
+          background: #000000 !important;
+          color: #ffffff !important;
           border-color: #ffffff;
           transform: translateY(-2px); 
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); 
+          box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2); 
         }
         .primary-btn:focus { outline: none; }
         .primary-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .order-summary-card { padding: 24px; position: sticky; top: 40px; }
-        .summary-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; color: #000; }
+        .summary-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; color: #ffffff; }
         .summary-item { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
         .item-thumbnail { width: 48px; height: 48px; flex-shrink: 0; }
         .rose-bg { background: transparent; }
-        .item-name { font-size: 13px; font-weight: 700; color: #000; }
-        .item-meta { font-size: 11px; color: #000; }
-        .item-price { margin-left: auto; font-size: 13px; font-weight: 600; color: #000; }
+        .item-name { font-size: 13px; font-weight: 700; color: #ffffff; }
+        .item-meta { font-size: 11px; color: #a0a0a0; }
+        .item-price { margin-left: auto; font-size: 13px; font-weight: 600; color: #ffffff; }
         
-        .summary-divider { height: 1px; background: #e2e8f0; margin: 20px 0; }
-        .summary-line { display: flex; justify-content: space-between; font-size: 13px; color: #000; margin-bottom: 12px; }
-        .summary-line.total { font-weight: 700; font-size: 16px; color: #000; margin-top: 8px; }
-        .free-tag { color: #000; font-weight: 700; }
+        .summary-divider { height: 1px; background: #333333; margin: 20px 0; }
+        .summary-line { display: flex; justify-content: space-between; font-size: 13px; color: #ffffff; margin-bottom: 12px; }
+        .summary-line.total { font-weight: 700; font-size: 16px; color: #ffffff; margin-top: 8px; }
+        .free-tag { color: #ffffff; font-weight: 700; }
 
         .trust-badge-mini {
           display: flex; align-items: center; justify-content: center; gap: 8px;
-          margin-top: 24px; color: #000; font-size: 10px; font-weight: 600;
+          margin-top: 24px; color: #ffffff; font-size: 10px; font-weight: 600;
           text-transform: uppercase; letter-spacing: 0.05em;
         }
 
@@ -768,9 +779,9 @@ const Checkout = () => {
 
         .pulse { animation: pulseBtn 2s infinite; }
         @keyframes pulseBtn { 
-          0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.4); } 
-          70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); } 
-          100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); } 
+          0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); } 
+          70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } 
+          100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } 
         }
 
         .shipping-error-notice {
@@ -784,7 +795,7 @@ const Checkout = () => {
           display: flex; align-items: center; gap: 12px; font-size: 13px;
         }
         .cod-unavailable-hint {
-          margin-top: 12px; font-size: 11px; color: #000; font-weight: 500;
+          margin-top: 12px; font-size: 11px; color: #ffffff; font-weight: 500;
         }
 
         @media (max-width: 860px) {

@@ -13,11 +13,6 @@ const ThankYouPage = () => {
 
   return (
     <div className="thank-you-container">
-      <div className="bg-elements">
-        <div className="blob blob-1"></div>
-        <div className="blob blob-2"></div>
-      </div>
-
       <div className={`thank-you-card ${visible ? 'fade-in' : ''}`}>
         <div className="icon-wrapper">
           <img src="/logo.png" alt="Fylex" className="logo-icon" />
@@ -49,7 +44,7 @@ const ThankYouPage = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #F9F9F7;
+          background: #000000;
           position: relative;
           overflow: hidden;
           padding: 20px;
@@ -90,14 +85,14 @@ const ThankYouPage = () => {
           z-index: 1;
           width: 100%;
           max-width: 500px;
-          background: rgba(255, 255, 255, 0.8);
+          background: #111111;
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.5);
+          border: none;
           border-radius: 32px;
           padding: 60px 40px;
           text-align: center;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
           opacity: 0;
           transform: translateY(20px);
         }
@@ -122,29 +117,29 @@ const ThankYouPage = () => {
         }
 
         .title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 42px;
-          color: #1e293b;
+          color: #ffffff;
           margin-bottom: 8px;
         }
 
         .subtitle {
           font-size: 16px;
-          color: #64748b;
+          color: #a0a0a0;
           font-weight: 500;
           margin-bottom: 30px;
         }
 
         .divider {
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(30, 41, 59, 0.1), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
           margin-bottom: 30px;
         }
 
         .message {
           font-size: 14px;
           line-height: 1.6;
-          color: #475569;
+          color: #cccccc;
           margin-bottom: 40px;
           padding: 0 10px;
         }
@@ -168,25 +163,25 @@ const ThankYouPage = () => {
         }
 
         .btn-primary {
-          background: #1C2E4A;
-          color: white;
+          background: #ffffff;
+          color: #000000;
           border: none;
-          box-shadow: 0 4px 15px rgba(28, 46, 74, 0.2);
+          box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
         }
 
         .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(28, 46, 74, 0.3);
+          box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
         }
 
         .btn-secondary {
           background: transparent;
-          color: #1C2E4A;
-          border: 1px solid #1C2E4A;
+          color: #ffffff;
+          border: 1px solid #ffffff;
         }
 
         .btn-secondary:hover {
-          background: rgba(28, 46, 74, 0.05);
+          background: rgba(255, 255, 255, 0.05);
           transform: translateY(-2px);
         }
 

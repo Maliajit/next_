@@ -8,12 +8,12 @@ const Footer = () => {
       <style>{`
         footer.footer-v1 {
           background: #000000;
-          padding: clamp(40px, 8vw, 80px) clamp(20px, 5vw, 56px) clamp(20px, 4vw, 40px);
+          padding: clamp(20px, 4vw, 40px) clamp(20px, 5vw, 56px) clamp(20px, 4vw, 30px);
           border-top: 1px solid var(--gold-dim);
           position: relative;
           display: flex;
           flex-direction: column;
-          gap: clamp(30px, 6vw, 60px);
+          gap: clamp(15px, 4vw, 30px);
           overflow: hidden;
           color: #ffffff;
         }
@@ -25,7 +25,7 @@ const Footer = () => {
           gap: clamp(20px, 4vw, 40px);
         }
         .footer-col-v1 h4 {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 0.9rem; font-weight: 400;
           letter-spacing: 0.2em; text-transform: uppercase;
           color: #ffffff; margin-bottom: 24px;
@@ -58,14 +58,14 @@ const Footer = () => {
           text-transform: uppercase; color: #ffffff;
         }
         .footer-mark-v1 {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 1.6rem; font-weight: 400;
           letter-spacing: 0.6em; color: #ffffff; text-transform: uppercase;
           text-shadow: 0 0 2px rgba(161, 139, 78, 0.3);
           margin-left: 0.6em;
         }
         .footer-logo-v1 {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 1.5rem; letter-spacing: 0.25em; color: #ffffff;
           text-transform: uppercase; text-decoration: none; display: flex; align-items: center; gap: 10px;
         }
@@ -88,7 +88,7 @@ const Footer = () => {
               <img src="/footer_logo.jpeg" alt="Fylex" />
               
             </Link>
-            <p>Redefining luxury horology through centuries of Swiss excellence and precision engineering.</p>
+            <p>Built On Experience, Designed Around Choice.</p>
           </div>
 
           <div className="footer-col-v1">

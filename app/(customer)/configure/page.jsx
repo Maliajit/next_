@@ -352,9 +352,10 @@ function ConfigureContent() {
           .btn-pill-next:hover { background: rgba(26, 26, 26, 0.8) !important; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
         }
         .btn-pill-next:active { transform: scale(0.96); opacity: 0.9; }
-        .c-summary-footer { background: #fff; padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); }
-        .f-title { font-size: 16px; font-weight: 700; color: #111; margin: 0; }
-        .f-price { font-size: 16px; font-weight: 600; color: #111; }
+        .c-summary-footer { background: #fff; padding: 30px 60px; display: flex; justify-content: flex-start; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); }
+        .f-info { text-align: left; width: 100%; display: flex; flex-direction: column; align-items: flex-start; }
+        .f-title { font-size: 16px; font-weight: 700; color: #111; margin: 0; text-align: left; }
+        .f-price { font-size: 16px; font-weight: 600; color: #111; text-align: left; }
         .alert-overlay { position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: all 0.4s; }
         .alert-overlay.show { opacity: 1; visibility: visible; }
         .alert-box { background: white; padding: 20px; text-align: center; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; position: relative; }

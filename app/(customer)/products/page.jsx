@@ -124,7 +124,7 @@ const Products = () => {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', textAlign: 'center', padding: '0 20px' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#dc2626', fontFamily: "'Playfair Display', serif" }}>Connectivity Issue</h2>
+          <h2 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#dc2626', fontFamily: "'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif" }}>Connectivity Issue</h2>
           <p style={{ color: '#666', marginBottom: '2rem', fontSize: '1.1rem' }}>{error}</p>
           <button onClick={() => window.location.reload()} style={{ padding: '12px 30px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '999px', cursor: 'pointer', fontWeight: '600' }}>Retry Connection</button>
         </div>
@@ -136,7 +136,7 @@ const Products = () => {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', textAlign: 'center', padding: '0 20px' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', marginBottom: '1rem', fontFamily: "'Playfair Display', serif" }}>Our Collection is Evolving</h2>
+          <h2 style={{ fontSize: '2rem', marginBottom: '1rem', fontFamily: "'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif" }}>Our Collection is Evolving</h2>
           <p style={{ color: '#666', marginBottom: '2rem', fontSize: '1.1rem' }}>We are currently updating our timepiece inventory. Please check back shortly for our latest masterpieces.</p>
           <Link href="/" style={{ padding: '12px 30px', background: '#1a1a1a', color: '#fff', textDecoration: 'none', borderRadius: '999px', fontSize: '0.9rem', fontWeight: '600' }}>← Return Home</Link>
         </div>
@@ -311,7 +311,7 @@ const Products = () => {
           opacity: 0.6;
         }
         .products-hero h1 {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2rem, 5vw, 3rem) !important;
           font-weight: 300;
           letter-spacing: 0.1em;
@@ -319,7 +319,7 @@ const Products = () => {
           color: #ffffff;
         }
         .products-hero p {
-          font-family: 'Cormorant Garamond', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2.5rem, 8vw, 5rem) !important;
           color: #ffffff;
           max-width: 800px;
@@ -434,7 +434,7 @@ const Products = () => {
           display: block;
         }
         .p-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2.5rem, 5vw, 4.2rem);
           font-weight: 400;
           line-height: 1.05;
@@ -521,7 +521,7 @@ const Products = () => {
           box-shadow: 0 8px 20px rgba(255, 77, 77, 0.25);
         }
         .p-price-tag {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 2rem;
           font-weight: 400;
           color: #ffffff;
@@ -598,7 +598,7 @@ const Products = () => {
           background: #fafafa;
         }
         .info-modal-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 1.25rem;
           font-weight: 500;
           color: #1a1a1a;
@@ -733,7 +733,7 @@ const Products = () => {
           border-top: 1px solid #eee;
         }
         .p-final h2 {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2.5rem, 6vw, 4.5rem);
           font-weight: 400;
           margin-bottom: 32px;

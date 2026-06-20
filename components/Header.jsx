@@ -102,7 +102,7 @@ const Header = () => {
           display: flex; align-items: center; justify-content: center;
           text-decoration: none;
         }
-        .logo-v1 img { height: clamp(35px, 5vw, 45px); width: auto; filter: brightness(0) invert(1); }
+        .logo-v1 img { height: clamp(22px, 3.5vw, 30px); width: auto; filter: brightness(0) invert(1); }
         
         .nav-trigger {
           display: flex; align-items: center; gap: 10px; cursor: pointer;

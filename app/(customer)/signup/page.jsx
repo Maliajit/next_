@@ -345,7 +345,7 @@ export default function Signup() {
 
         /* ─── Typography ─── */
         .auth-title {
-          font-family: 'Playfair Display', 'Georgia', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 28px; font-weight: 700;
           color: #ffffff;
           letter-spacing: 0.01em; line-height: 1.2;
@@ -510,7 +510,7 @@ export default function Signup() {
           to { transform: scale(1); opacity: 1; }
         }
         .auth-success-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 26px; color: #ffffff;
         }
         .auth-success-sub {

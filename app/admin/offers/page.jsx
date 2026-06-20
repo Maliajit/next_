@@ -262,45 +262,45 @@ const OffersPage = () => {
         />
 
         {analytics && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Coupons</div>
-              <div className="text-2xl font-bold text-gray-900">{analytics.totalCoupons}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '24px' }}>
+            <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '20px', gap: '8px' }}>
+              <div className="stat-label">Total Coupons</div>
+              <div className="stat-value">{analytics.totalCoupons}</div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Active Coupons</div>
-              <div className="text-2xl font-bold text-indigo-600">{analytics.activeCoupons}</div>
+            <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '20px', gap: '8px' }}>
+              <div className="stat-label">Active Coupons</div>
+              <div className="stat-value" style={{ color: 'var(--admin-primary)' }}>{analytics.activeCoupons}</div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Uses</div>
-              <div className="text-2xl font-bold text-gray-900">{analytics.totalUses.toLocaleString()}</div>
+            <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '20px', gap: '8px' }}>
+              <div className="stat-label">Total Uses</div>
+              <div className="stat-value">{analytics.totalUses.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Discount Given</div>
-              <div className="text-2xl font-bold text-red-500">-₹{analytics.totalDiscountGiven.toLocaleString()}</div>
+            <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '20px', gap: '8px' }}>
+              <div className="stat-label">Discount Given</div>
+              <div className="stat-value" style={{ color: 'var(--admin-danger)' }}>-₹{analytics.totalDiscountGiven.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Revenue Gen.</div>
-              <div className="text-2xl font-bold text-emerald-500">₹{analytics.totalRevenueGenerated.toLocaleString()}</div>
+            <div className="stat-card" style={{ flexDirection: 'column', alignItems: 'flex-start', padding: '20px', gap: '8px' }}>
+              <div className="stat-label">Revenue Gen.</div>
+              <div className="stat-value" style={{ color: 'var(--admin-success)' }}>₹{analytics.totalRevenueGenerated.toLocaleString()}</div>
             </div>
           </div>
         )}
 
-        <div className="mt-8 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <div className="px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-            <h3 className="text-base font-bold text-gray-900">Active Campaigns</h3>
-            <div className="text-xs font-medium text-gray-400">
+        <div className="admin-section" style={{ marginTop: '32px' }}>
+          <div className="admin-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3>Active Campaigns</h3>
+            <div style={{ fontSize: '12px', fontWeight: '500', color: 'var(--admin-text-muted)' }}>
               <i className="fas fa-info-circle mr-1"></i> Total {offers.length} offers
             </div>
           </div>
-          <div className="p-1">
+          <div className="admin-section-body" style={{ padding: '4px' }}>
             {loading.offers ? (
               <div className="py-24"><Loader message="Loading offers..." /></div>
             ) : errors.offers ? (
               <div className="p-8"><ErrorBanner message={errors.offers} onRetry={() => refetch.offers()} /></div>
             ) : (
               <div className="overflow-x-auto">
-                <div className="min-w-[900px]"><div ref={tableRef}></div></div>
+                <div style={{ minWidth: '900px' }}><div ref={tableRef}></div></div>
               </div>
             )}
           </div>

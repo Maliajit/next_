@@ -118,11 +118,11 @@ export default function CareSupport() {
         /* HERO */
         .cs-hero { height: 45vh; min-height: 400px; background: #0a0a0a !important; display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 40px; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .cs-hero-content { z-index: 5; }
-        .cs-hero-content h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 6vw, 4.8rem); margin-bottom: 24px; font-weight: 500; color: #fff !important; letter-spacing: -0.01em; opacity: 1 !important; }
+        .cs-hero-content h1 { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: clamp(2.8rem, 6vw, 4.8rem); margin-bottom: 24px; font-weight: 500; color: #fff !important; letter-spacing: -0.01em; opacity: 1 !important; }
         .cs-hero-content p { font-size: clamp(1rem, 1.2vw, 1.25rem); color: rgba(255,255,255,0.7) !important; max-width: 700px; margin: 0 auto; line-height: 1.8; font-weight: 400; letter-spacing: 0.02em; opacity: 1 !important; }
 
         .cs-section { padding: 100px 8%; max-width: 1400px; margin: 0 auto; }
-        .cs-section-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 30px; text-align: center; color: #fff !important; font-weight: 600; opacity: 1 !important; }
+        .cs-section-title { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 30px; text-align: center; color: #fff !important; font-weight: 600; opacity: 1 !important; }
 
         /* TIME SETTING (DYNAMIC CARE STEPS) */
         .time-setting { background: #000 !important; color: #fff !important; }
@@ -138,7 +138,7 @@ export default function CareSupport() {
 
         .product-care-group { margin-bottom: 80px; padding-bottom: 40px; }
         .product-care-header { text-align: center; margin-bottom: 40px; }
-        .product-care-header h3 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 500; color: #fff; margin-bottom: 10px; }
+        .product-care-header h3 { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 2rem; font-weight: 500; color: #fff; margin-bottom: 10px; }
         .product-care-header p { font-size: 0.9rem; color: rgba(255,255,255,0.5); }
         
         .time-content { display: flex; flex-direction: column; align-items: center; gap: 60px; max-width: 800px; margin: 0 auto; }
@@ -171,7 +171,7 @@ export default function CareSupport() {
         }
         
         .step-content { flex: 1; padding-top: 5px; }
-        .step-content h4 { font-size: 1.4rem; margin-bottom: 12px; color: #fff !important; font-family: 'Playfair Display', serif; font-weight: 500; }
+        .step-content h4 { font-size: 1.4rem; margin-bottom: 12px; color: #fff !important; font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-weight: 500; }
         .step-content p { color: rgba(255,255,255,0.7) !important; line-height: 1.7; font-weight: 400; font-size: 1rem; }
         
         .step-img-container { margin-top: 20px; }
@@ -201,7 +201,7 @@ export default function CareSupport() {
         .static-care-sect { background: #000; padding: 100px 8% 60px 8%; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .static-care-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 60px; max-width: 1400px; margin: 0 auto; }
         .care-card { background: #0a0a0a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 40px; }
-        .care-card h3 { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 500; color: #fff; margin-bottom: 20px; }
+        .care-card h3 { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 1.8rem; font-weight: 500; color: #fff; margin-bottom: 20px; }
         .care-card p { color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 15px; font-size: 0.95rem; }
         .care-card ul { margin-left: 20px; list-style-type: none; padding: 0; }
         .care-card ul li { color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 10px; font-size: 0.95rem; position: relative; padding-left: 20px; }
@@ -246,7 +246,7 @@ export default function CareSupport() {
           transform: translateY(-2px); 
         }
         .success-msg { text-align: center; padding: 60px 40px; background: #111; color: #fff !important; border-radius: 8px; font-weight: 400; border: 1px solid rgba(255,255,255,0.1); }
-        .success-msg h3 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 15px; color: #fff !important; }
+        .success-msg h3 { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 2rem; margin-bottom: 15px; color: #fff !important; }
 
         @media (max-width: 1024px) {
           .cs-section { padding: 80px 5%; }

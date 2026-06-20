@@ -414,7 +414,7 @@ function DiscoverContent() {
           display: block;
         }
         .cfg-choice-name {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 1.8rem;
           margin-bottom: 20px;
           color: ${product.textColor};
@@ -1031,7 +1031,7 @@ function DiscoverContent() {
         }
         .cfg-swiper-title {
           text-align: center;
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2rem, 4vw, 3rem);
           font-weight: 400;
           margin-bottom: 50px;
@@ -1179,7 +1179,7 @@ function DiscoverContent() {
           display: flex;
           justify-content: center;
           align-items: center;
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 4rem;
           margin-bottom: 16px;
           color: ${product.accentColor};
@@ -1216,7 +1216,7 @@ function DiscoverContent() {
           margin-bottom: 20px;
         }
         .cfg-heritage-heading {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2rem, 4vw, 3rem);
           font-weight: 400;
           margin: 0 0 30px;
@@ -1275,7 +1275,7 @@ function DiscoverContent() {
           background: #fafaf9;
         }
         .cfg-hero-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 4.5rem;
           font-weight: 400;
           line-height: 1.1;
@@ -1284,7 +1284,7 @@ function DiscoverContent() {
           position: relative;
         }
         .cfg-modal-title {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 1.35rem;
           font-weight: 500;
           color: #1a1a1a;
@@ -1752,7 +1752,6 @@ function DiscoverContent() {
             <div className="cfg-details-left">
               <h1 className="cfg-details-title" style={product.heroBgImage ? { color: '#ffffff' } : {}}>{product.title}</h1>
               <p className="cfg-details-specs" style={product.heroBgImage ? { color: 'rgba(255,255,255,0.8)' } : {}}>{product.subtitle}</p>
-              <p className="cfg-details-ref" style={product.heroBgImage ? { color: 'rgba(255,255,255,0.6)' } : {}}>Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
 
               <div className="cfg-price-add-row">
                 <div className="cfg-details-price" style={product.heroBgImage ? { color: '#ffffff' } : {}}>
@@ -1879,7 +1878,6 @@ function DiscoverContent() {
                 More {product.title}
                 <span>technical details</span>
               </h2>
-              <p className="cfg-specs-ref">Reference {product.referenceNumber || product.id.slice(0, 6)}</p>
             </div>
 
             <div className="cfg-specs-grid">

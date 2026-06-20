@@ -14,6 +14,7 @@ const VideoSettingsPage = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingKey, setUploadingKey] = useState(null);
   const [message, setMessage] = useState(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [failedVideos, setFailedVideos] = useState({});
   const fileInputRefs = useRef({});
 
@@ -100,7 +101,11 @@ const VideoSettingsPage = () => {
       });
       await settingsService.updateSettings(dataToUpdate);
       setMessage({ type: 'success', text: 'All video settings saved successfully!' });
-      setTimeout(() => setMessage(null), 3000);
+      setIsSuccess(true);
+      setTimeout(() => {
+        setMessage(null);
+        setIsSuccess(false);
+      }, 3000);
     } catch (err) {
       setMessage({ type: 'error', text: 'Failed to save settings' });
     } finally {
@@ -367,15 +372,17 @@ const VideoSettingsPage = () => {
 
         {/* Global Save Button */}
         <div style={{
-          position: 'fixed',
-          bottom: 40,
-          right: 40,
-          zIndex: 100
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginTop: 40,
+          position: 'relative',
+          zIndex: 50
         }}>
           <button
-            type="submit"
-            disabled={saving}
-            className="btn-primary"
+            type="button"
+            onClick={handleSave}
+            disabled={saving || isSuccess}
+            className={`btn-primary ${isSuccess ? 'success-state' : ''}`}
             style={{
               padding: '16px 40px',
               borderRadius: 999,
@@ -385,15 +392,15 @@ const VideoSettingsPage = () => {
               display: 'flex',
               alignItems: 'center',
               gap: 12,
-              background: 'var(--admin-accent)',
+              background: isSuccess ? '#10b981' : 'var(--admin-accent, #1a1a1a)',
               color: '#fff',
               border: 'none',
-              cursor: 'pointer',
+              cursor: isSuccess ? 'default' : 'pointer',
               transition: 'all 0.3s'
             }}
           >
-            {saving ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
-            Save All Changes
+            {saving ? <i className="fas fa-spinner fa-spin"></i> : isSuccess ? <i className="fas fa-check"></i> : <i className="fas fa-save"></i>}
+            {saving ? 'Saving...' : isSuccess ? 'Updated successfully' : 'Save All Changes'}
           </button>
         </div>
       </form>

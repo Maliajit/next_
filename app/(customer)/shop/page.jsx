@@ -255,7 +255,7 @@ export default function Shop() {
           text-align: center; z-index: 10; color: var(--cream); padding: 0 24px;
         }
         .video-overlay h1, .video-overlay h2 {
-          font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 68px); font-weight: 500; line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.01em; text-shadow: 0 4px 16px rgba(0,0,0,0.6);
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: clamp(32px, 5vw, 68px); font-weight: 500; line-height: 1.1; margin-bottom: 24px; letter-spacing: -0.01em; text-shadow: 0 4px 16px rgba(0,0,0,0.6);
         }
         .video-overlay p {
           max-width: 600px; font-size: clamp(15px, 1.3vw, 18px); font-weight: 400; line-height: 1.8; letter-spacing: 0.02em; opacity: 0.95; text-shadow: 0 2px 10px rgba(0,0,0,0.8);
@@ -290,7 +290,7 @@ export default function Shop() {
         .watch-showcase { width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; z-index: 3; }
         #mainWatch { height: 70vh; max-width: 90vw; object-fit: contain; filter: drop-shadow(0 30px 60px rgba(28, 37, 53, 0.25)); transform: translateY(100vh); opacity: 0.5; will-change: transform, opacity; }
         .rtxt { position: absolute; left: 8vw; top: 50%; transform: translateY(-50%); z-index: 4; }
-        .rtxt .hd { color: var(--navy); font-family: 'Playfair Display', serif; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 20px; font-weight: 500; }
+        .rtxt .hd { color: var(--navy); font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; line-height: 1.05; letter-spacing: -0.01em; margin-bottom: 20px; font-weight: 500; }
         .rtxt .hd em { color: var(--fyl-gold); font-weight: 400; font-style: italic; }
         .rtxt .lbl { color: var(--fyl-gold); font-size: 12px; letter-spacing: 0.35em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600; display: block; }
         .rtxt .rule { background: var(--fyl-gold); width: 40px; height: 2px; margin-bottom: 24px; }
@@ -333,7 +333,7 @@ export default function Shop() {
         .dimgf img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; border-radius: 4px; }
         .dcap { position: absolute; bottom: 0; left: 0; right: 0; padding: 28px 28px 32px; background: linear-gradient(to top, rgba(0,0,0,.8), transparent); border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
         .dcap span { font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: rgba(255,255,255,.9); font-weight: 500;}
-        .dtxt .hd { color: #ffffff; font-family: 'Playfair Display', serif; font-size: clamp(32px, 4.5vw, 56px); line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 24px; font-weight: 500; }
+        .dtxt .hd { color: #ffffff; font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: clamp(32px, 4.5vw, 56px); line-height: 1.1; letter-spacing: -0.01em; margin-bottom: 24px; font-weight: 500; }
         .dtxt .hd em { color: var(--fyl-gold); font-weight: 400; font-style: italic; }
         .dtxt .bt { max-width: 480px; font-size: 16px; line-height: 1.8; color: #cccccc; letter-spacing: 0.01em; font-weight: 400; }
         .dtxt .lbl { color: var(--fyl-gold); font-size: 12px; letter-spacing: 0.35em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600; display: block; }
@@ -343,12 +343,12 @@ export default function Shop() {
         .dspec:hover { background: rgba(255,255,255,.05); }
         .dspec:nth-child(even) { border-right: none; }
         .dspec:nth-last-child(-n+2) { border-bottom: none; }
-        .dsv { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 400; color: #ffffff; margin-bottom: 6px; line-height: 1; }
+        .dsv { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 38px; font-weight: 400; color: #ffffff; margin-bottom: 6px; line-height: 1; }
         .dsl { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: #aaaaaa; font-weight: 600; }
         #mv { background: #000000; padding: 100px 8vw; position: relative; overflow: hidden; color: #ffffff; }
         .mvbg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?w=1400&q=55') center/cover no-repeat; opacity: .15; filter: grayscale(1); }
         .mvhdr { text-align: center; margin-bottom: 60px; position: relative; z-index: 2; }
-        .mvhdr .hd { color: #ffffff; font-size: clamp(32px, 4vw, 48px); font-family: 'Playfair Display', serif; font-weight: 500;}
+        .mvhdr .hd { color: #ffffff; font-size: clamp(32px, 4vw, 48px); font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-weight: 500;}
         .mvhdr .hd em { color: var(--fyl-gold); font-style: italic; font-weight: 400;}
         .mvhdr .lbl { color: var(--fyl-gold); display: flex; justify-content: center; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600;}
         .mvhdr .rule { background: var(--fyl-gold); margin: 0 auto 24px; width: 40px; height: 2px; }
@@ -358,7 +358,7 @@ export default function Shop() {
         .mvcard:hover { border-color: rgba(255,255,255,0.2); box-shadow: 0 16px 40px rgba(0,0,0,0.4); transform: translateY(-4px); z-index: 5; background: rgba(255, 255, 255, 0.1); }
         .mvico { margin-bottom: 24px; }
         .mvico svg { width: 36px; height: 36px; stroke: var(--fyl-gold); fill: none; stroke-width: 1.5; }
-        .mvval { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: #ffffff; line-height: 1; margin-bottom: 8px; }
+        .mvval { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 36px; font-weight: 400; color: #ffffff; line-height: 1; margin-bottom: 8px; }
         .mvval sup { font-size: 16px; vertical-align: super; color: #aaaaaa; }
         .mvkey { font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: #ffffff; margin-bottom: 12px; font-weight: 600;}
         .mvdsc { font-size: 14px; line-height: 1.7; color: #aaaaaa; letter-spacing: 0.01em; }
@@ -371,7 +371,7 @@ export default function Shop() {
         .vrhdr { text-align: center; margin-bottom: 60px; }
         .vrhdr .rule { margin: 0 auto 24px; width: 40px; height: 2px; background: var(--fyl-gold);}
         .vrhdr .lbl { color: var(--fyl-gold); display: flex; justify-content: center; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 12px; font-weight: 600;}
-        .vrhdr .hd { color: #ffffff; font-size: clamp(32px, 4vw, 48px); font-family: 'Playfair Display', serif; font-weight: 500;}
+        .vrhdr .hd { color: #ffffff; font-size: clamp(32px, 4vw, 48px); font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-weight: 500;}
         .vrhdr .hd em { color: var(--fyl-gold); font-style: italic; font-weight: 400;}
         .vrgrid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
         .vc, .vc.feat { position: relative; cursor: pointer; background: rgba(255, 255, 255, 0.05) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; transition: transform .4s cubic-bezier(.25,.46,.45,.94), box-shadow .4s, border-color .4s; display: flex; flex-direction: column; overflow: hidden; }
@@ -381,9 +381,9 @@ export default function Shop() {
         .vc:hover .vcimg img { transform: scale(1.06); }
         .vbdg { position: absolute; top: 16px; right: 16px; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--fyl-white); background: var(--fyl-gold); padding: 6px 14px; z-index: 3; font-weight: 600; border-radius: 99px; color: #000; }
         .vbody { padding: 32px; background: transparent !important; flex: 1; display: flex; flex-direction: column; }
-        .vname { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 500; color: #ffffff !important; margin-bottom: 8px; }
+        .vname { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 24px; font-weight: 500; color: #ffffff !important; margin-bottom: 8px; }
         .vsub { font-size: 13px; color: #aaaaaa !important; letter-spacing: .02em; margin-bottom: 24px; line-height: 1.5; }
-        .vprice { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; color: #ffffff !important; margin-bottom: 32px; margin-top: auto;}
+        .vprice { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 24px; font-weight: 600; color: #ffffff !important; margin-bottom: 32px; margin-top: auto;}
         .vbtn { 
           display: block; 
           width: 100%; 

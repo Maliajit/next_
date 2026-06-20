@@ -50,7 +50,7 @@ export default function PoliciesPage() {
         }
         
         .policies-header h1 {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(2.5rem, 5vw, 3.5rem);
           margin-bottom: 20px;
           color: #fff;

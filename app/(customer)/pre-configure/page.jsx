@@ -183,7 +183,7 @@ const PreConfigure = () => {
           padding: 0 60px;
         }
         .product-name {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: clamp(1.8rem, 4vw, 3rem);
           font-weight: 400;
           margin: 0;

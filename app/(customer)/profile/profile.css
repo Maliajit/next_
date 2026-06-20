@@ -10,20 +10,20 @@
   --gold:           #c4a35a;
   --gold-light:     #d9bc84;
   --gold-dim:       rgba(196, 163, 90, 0.12);
-  --navy:           #1C2E4A;
-  --navy-mid:       #243858;
-  --navy-light:     rgba(28, 46, 74, 0.08);
-  --ink:            #0d1b2a;
-  --surface:        #ffffff;
-  --surface-raised: #f7f7f5;
-  --surface-ghost:  rgba(255, 255, 255, 0.72);
-  --border:         rgba(0, 0, 0, 0.07);
-  --border-strong:  rgba(0, 0, 0, 0.13);
-  --text-primary:   #0d1b2a;
-  --text-secondary: #6b7a8f;
-  --text-muted:     #a3adb8;
-  --text-inverse:   rgba(255, 255, 255, 0.90);
-  --text-inverse-dim: rgba(255, 255, 255, 0.45);
+  --navy:           #111111;
+  --navy-mid:       #222222;
+  --navy-light:     rgba(255, 255, 255, 0.08);
+  --ink:            #000000;
+  --surface:        #000000;
+  --surface-raised: #0a0a0a;
+  --surface-ghost:  rgba(0, 0, 0, 0.72);
+  --border:         rgba(255, 255, 255, 0.15);
+  --border-strong:  rgba(255, 255, 255, 0.25);
+  --text-primary:   #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted:     #999999;
+  --text-inverse:   #ffffff;
+  --text-inverse-dim: rgba(255, 255, 255, 0.60);
 
   --r-xs:   8px;
   --r-sm:   14px;
@@ -42,7 +42,7 @@
   --ease-in:    cubic-bezier(0.55, 0, 1, 0.45);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  --font-display: 'Playfair Display', Georgia, serif;
+  --font-display: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
   --font-body:    'DM Sans', system-ui, sans-serif;
   --font-mono:    'DM Mono', 'Courier New', monospace;
 }
@@ -53,7 +53,7 @@
 .profile-page-wrapper {
   position: relative;
   min-height: 100vh;
-  background: #F4F4F1;
+  background: #000000;
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--text-primary);
@@ -445,7 +445,7 @@
   transition: background 0.2s, box-shadow 0.2s;
 }
 .order-table tbody tr:hover {
-  background: #f0f0ed;
+  background: #111111;
   box-shadow: var(--shadow-sm);
 }
 .order-table tbody td {
@@ -670,7 +670,7 @@
 .form-input:disabled {
   cursor: not-allowed;
   color: var(--text-muted);
-  background: #f3f3f1;
+  background: #111111;
   border-color: var(--border);
 }
 .form-textarea { resize: none; }
@@ -765,7 +765,7 @@
   display: none;
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   padding: 10px 24px;
@@ -827,7 +827,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #F4F4F1;
+  background: #000000;
 }
 .profile-spinner {
   width: 40px; height: 40px;
