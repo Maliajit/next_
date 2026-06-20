@@ -420,7 +420,8 @@ const Products = () => {
 
         /* Typography & Content */
         .p-content {
-          max-width: 500px;
+          max-width: 560px;
+          text-align: left;
         }
         .p-subtitle {
           font-size: 0.75rem;
@@ -429,7 +430,7 @@ const Products = () => {
           text-transform: uppercase;
           color: #ffffff;
           opacity: 0.5;
-          // margin-bottom: 20px;
+          margin-bottom: 10px;
           display: block;
         }
         .p-title {
@@ -437,7 +438,7 @@ const Products = () => {
           font-size: clamp(2.5rem, 5vw, 4.2rem);
           font-weight: 400;
           line-height: 1.05;
-          margin: 0;
+          margin: 0 0 6px;
           color: #ffffff;
         }
         .p-title em {
@@ -449,15 +450,17 @@ const Products = () => {
           font-size: 1.35rem;
           font-weight: 300;
           color: #e0e0e0; 
-          // margin-top: 12px;
+          margin-top: 4px;
+          margin-bottom: 8px;
           display: block;
         }
         .p-description {
           font-size: 1.1rem;
           line-height: 1.9;
           color: #bbbbbb; 
-          margin: 32px 0 40px;
+          margin: 24px 0 32px;
           font-weight: 300;
+          text-align: justify;
         }
         .p-link-luxury {
           display: inline-flex !important;
@@ -523,7 +526,7 @@ const Products = () => {
           font-weight: 400;
           color: #ffffff;
           letter-spacing: -0.02em;
-          // margin-bottom: 2px;
+          margin-bottom: 4px;
           display: block;
         }
         .p-inventory-status {
@@ -532,7 +535,7 @@ const Products = () => {
           gap: 6px;
           font-size: 0.85rem;
           color: #999999; 
-          margin-bottom: 24px;
+          margin-bottom: 20px;
           font-weight: 400;
           letter-spacing: 0.02em;
         }
@@ -853,45 +856,74 @@ const Products = () => {
 
         @media (max-width: 640px) {
            .p-section { 
-             height: 33.33vh; 
+             min-height: auto; 
+             height: auto;
              padding: 0; 
              display: flex; 
              align-items: stretch;
-             border-bottom: 1px solid rgba(255,255,255,0.05);
+             border-bottom: 1px solid rgba(255,255,255,0.08);
            }
            .p-section-inner {
-              height: 100%;
               width: 100%;
-              gap: 15px;
-              padding: 20px 5%;
+              gap: 12px;
+              padding: 32px 7%;
               display: grid;
-              grid-template-columns: 1fr 1fr;
-              align-items: flex-end; /* Stuck to bottom */
+              grid-template-columns: 1fr auto;
+              align-items: start;
               position: relative;
+           }
+           .p-content {
+              text-align: left;
+              order: 1;
+              max-width: 100%;
            }
            
            .p-watch-wrap {
-              height: 100%;
+              order: 2;
               display: flex;
-              align-items: center;
+              align-items: flex-start;
               justify-content: center;
               position: relative;
-              bottom: 10px; /* Slight offset to look better */
+              width: 120px;
+              flex-shrink: 0;
+              padding-top: 8px;
            }
            .p-watch-image {
-              max-height: 160px;
+              max-height: 130px;
               width: auto;
+              max-width: 120px;
               object-fit: contain;
            }
-           .p-title { font-size: 1.10rem; line-height: 1.1; margin-bottom: 4px; }
-           .p-description { display: none !important; }
-           .p-tagline { font-size: 0.75rem;  opacity: 0.7; }
-           .p-price-tag { font-size: 1rem;  }
-           .p-inventory-status { font-size: 0.65rem; margin-bottom: 12px; }
-           .p-link-luxury { font-size: 0.8rem;}
+           .p-subtitle { 
+              font-size: 0.55rem; 
+              margin-bottom: 8px; 
+              letter-spacing: 0.2em; 
+              display: -webkit-box !important;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              line-height: 1.5;
+           }
+           .p-title { font-size: 1.3rem; line-height: 1.15; margin-bottom: 2px; }
+           .p-tagline { font-size: 0.8rem; opacity: 0.7; margin-bottom: 10px; display: block !important; }
+           .p-description { 
+              display: -webkit-box !important;
+              -webkit-line-clamp: 3;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+              font-size: 0.8rem; 
+              line-height: 1.6; 
+              margin: 8px 0 14px; 
+              color: #999;
+              text-align: left;
+           }
+           .p-price-tag { font-size: 1.15rem; margin-bottom: 4px; }
+           .p-inventory-status { font-size: 0.7rem; margin-bottom: 8px; }
+           .p-link-luxury { font-size: 0.75rem; }
+           .p-actions-row { gap: 10px !important; }
            
-           .p-subtitle { font-size: 0.55rem; margin-bottom: 4px; }
-           .p-diffusion-glow { scale: 0.6; }
+           .p-diffusion-glow { display: none !important; }
+           .p-soft-shadow { display: none !important; }
         }
       `}</style>
 

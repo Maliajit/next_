@@ -621,7 +621,7 @@ function DiscoverContent() {
         .cfg-details-right {
           display: flex;
           align-items: center;
-          margin-bottom: 4px; /* Slight lift to match Add to Cart button level */
+          margin-bottom: 0px; 
         }
         .cfg-details-title {
           font-family: 'Inter', sans-serif;
@@ -638,13 +638,14 @@ function DiscoverContent() {
           line-height: 1.6;
         }
         .cfg-details-specs {
-          font-size: 1.1rem;
+          font-size: 1rem;
           color: #666;
           margin-bottom: 2px;
           font-weight: 300;
+          text-align: justify;
         }
         .cfg-details-ref {
-          font-size: 1.1rem;
+          font-size: 1rem;
           color: #666;
           // margin-bottom: 15px;
           font-weight: 300;
@@ -811,8 +812,11 @@ function DiscoverContent() {
           .cfg-hero {
             padding: 120px 0 60px;
           }
+          .cfg-hero-main-visual {
+            transform: translateY(-40px);
+          }
           .cfg-hero-product-img {
-            max-height: 50vh;
+            max-height: 38vh;
           }
           .cfg-details-box {
             bottom: 30px;
@@ -823,18 +827,32 @@ function DiscoverContent() {
             gap: 15px;
           }
           .cfg-details-title {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
           }
           .cfg-hero-subtitle {
-            font-size: 1rem;
+            font-size: 0.95rem;
+            text-align: left;
+          }
+          .cfg-details-specs, .cfg-details-ref {
+            font-size: 0.9rem;
+          }
+          .cfg-details-left {
+            width: 100%;
+          }
+          .cfg-price-add-row {
+            width: 100%;
+          }
+          .cfg-actions-group {
+            width: 100%;
+            justify-content: space-between;
           }
           .top-actions {
             top: 30px;
             right: 20px;
           }
           .cfg-top-right-cta {
-            top: 25px;
-            right: 80px;
+            top: calc(var(--header-h, 70px) + 15px);
+            right: 20px;
           }
           .cfg-variations-btn {
             bottom: auto;
@@ -863,12 +881,12 @@ function DiscoverContent() {
 
         /* ── DESCRIPTION SECTION ── */
         .cfg-desc-section {
-          padding: 80px 0;
+          padding: 40px 0;
           max-width: 100%;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
-          gap: 40px;
+          gap: 20px;
           background: #000;
           position: relative;
           overflow: hidden;
@@ -884,9 +902,18 @@ function DiscoverContent() {
           max-width: 1000px;
           margin: 0 auto;
         }
+        .cfg-desc-text {
+          text-align: justify;
+          line-height: 1.8;
+          font-size: 1rem;
+        }
+        .cfg-desc-heading {
+          margin: 5px 0 15px;
+          font-size: 1.5rem;
+        }
         .cfg-desc-img-wrap {
           width: 100vw;
-          margin: 40px 0 0;
+          margin: 20px 0 0;
           padding: 0;
           position: relative;
           left: 50%;
@@ -939,21 +966,26 @@ function DiscoverContent() {
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          color: #000;
+          color: #fff;
           transition: all 0.3s;
           width: 40px;
           height: 40px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.2);
+          background: #000000;
           backdrop-filter: blur(8px);
           border: none;
         }
         .cfg-fav-inline:hover {
           transform: scale(1.1);
-          background: rgba(255,255,255,0.4);
+          background: #222222;
         }
         .cfg-fav-inline.active {
-          color: #000;
+          background: #e53935;
+          color: #fff;
+          transform: scale(1.1);
+        }
+        .cfg-fav-inline.active:hover {
+          background: #c62828;
         }
         .cfg-fav-inline svg {
           width: 20px;
@@ -1195,6 +1227,7 @@ function DiscoverContent() {
           line-height: 1.9;
           color: #555;
           font-weight: 300;
+          text-align: justify;
         }
 
         /* ═══════════ LIGHT/ELEGANT MODAL STYLES ═══════════ */
@@ -1420,16 +1453,16 @@ function DiscoverContent() {
         .cfg-book-btn {
           background: #1a1a1a;
           color: #fff;
-          padding: 18px 48px;
+          padding: 12px 24px;
           border-radius: 999px;
-          font-size: 13px;
+          font-size: 11px;
           font-weight: 700;
           letter-spacing: 0.2em;
           text-transform: uppercase;
           border: none;
           cursor: pointer;
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          margin-top: 40px;
+          margin-top: 0px;
           display: inline-flex;
           align-items: center;
           gap: 12px;
@@ -1711,37 +1744,35 @@ function DiscoverContent() {
                   {hasConfig && (
                     <button 
                       className={`cfg-add-now-btn cfg-book-btn ${isAdded ? 'btn-added' : ''}`} 
-                      style={!isAdded && product.heroBgImage ? { background: '#ffffff', color: '#000000' } : {}} 
+                      style={{}} 
                       onClick={handleBookNow}
                     >
                       {isAdded ? 'Added ✓' : 'Add to Cart'}
                     </button>
                   )}
+                  {hasConfig && (
+                    <div className="cfg-details-right">
+                      <div
+                        className={`cfg-fav-inline ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
+                        onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
+                        title={isInWishlist(product.currentVariantId || product.variantId) ? 'Remove from Favourite' : 'Add to Favourite'}
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill={isInWishlist(product.currentVariantId || product.variantId) ? "currentColor" : "none"}
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
-            {hasConfig && (
-              <div className="cfg-details-right">
-                <div
-                  className={`cfg-fav-inline ${isInWishlist(product.currentVariantId || product.variantId) ? 'active' : ''}`}
-                  onClick={() => toggleWishlist({ ...product, variantId: product.currentVariantId || product.variantId })}
-                  title={isInWishlist(product.currentVariantId || product.variantId) ? 'Remove from Favourite' : 'Add to Favourite'}
-                  style={product.heroBgImage ? { color: '#ffffff', background: 'rgba(255,255,255,0.2)' } : {}}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill={isInWishlist(product.currentVariantId || product.variantId) ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                  </svg>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* The image is now a central element, no longer background */}

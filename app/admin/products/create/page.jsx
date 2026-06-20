@@ -179,6 +179,7 @@ const AddProductPage = () => {
             return {
                 name,
                 sku: `${form.sku || 'SKU'}-${skuSuffix}`,
+                comparePrice: '',
                 price: '',
                 stock: '0',
                 attributeValues: combo.map(c => ({
@@ -264,6 +265,7 @@ const AddProductPage = () => {
             }),
             variants: variants.map(v => ({
                 sku: v.sku,
+                comparePrice: parseFloat(v.comparePrice) || null,
                 price: parseFloat(v.price) || 0,
                 stock: parseInt(v.stock) || 0,
                 attributeValues: v.attributeValues,
@@ -643,7 +645,8 @@ const AddProductPage = () => {
                                                             <tr className="bg-gray-50 border-b border-gray-100">
                                                                 <th className="!px-4 !py-3 !text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Variant</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">SKU</th>
-                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Price</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actual Price</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Selling Price</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Media</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest"></th>
@@ -655,6 +658,9 @@ const AddProductPage = () => {
                                                                     <td className="!px-4 !py-4 text-sm font-bold text-gray-900">{variant.name}</td>
                                                                     <td className="!px-4 !py-4">
                                                                         <input type="text" value={variant.sku} onChange={(e) => updateVariantField(vIdx, 'sku', e.target.value)} className="w-full bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                                                    </td>
+                                                                    <td className="!px-4 !py-4">
+                                                                        <input type="number" value={variant.comparePrice} onChange={(e) => updateVariantField(vIdx, 'comparePrice', e.target.value)} className="w-20 bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
                                                                     </td>
                                                                     <td className="!px-4 !py-4">
                                                                         <input type="number" value={variant.price} onChange={(e) => updateVariantField(vIdx, 'price', e.target.value)} className="w-20 bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />

@@ -84,7 +84,7 @@ export function CartProvider({ children }) {
         if (result.success) {
             mapCartData(result.data);
             eventBus.emit(EVENTS.CART_UPDATED);
-            if (success) success('Added to cart successfully');
+            // if (success) success('Added to cart successfully');
         } else {
             if (toastError) toastError(result.error || 'Failed to add to cart');
         }
