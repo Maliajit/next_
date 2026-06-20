@@ -35,6 +35,23 @@ const AdminProducts = () => {
 
     actionsRef.current = {
       onDelete: (id, name) => setDeleteTarget({ id, name }),
+      onToggleStatus: async (cell) => {
+        const d = cell.getRow().getData();
+        const currentStatus = d.isActive === true || d.isActive === 1 || d.status === 'active';
+        const newStatus = !currentStatus;
+        
+        // Optimistic UI update
+        cell.setValue(newStatus);
+        
+        const res = await api.updateProduct(d.id, { isActive: newStatus });
+        if (res.success) {
+            toast.success(`Product marked as ${newStatus ? 'active' : 'inactive'}`);
+            refetch.products?.(); // optionally refresh data
+        } else {
+            cell.setValue(currentStatus);
+            toast.error(res.error || 'Failed to update status');
+        }
+      }
     };
 
     tabulatorRef.current = new Tabulator(tableRef.current, {
@@ -96,9 +113,21 @@ const AdminProducts = () => {
         {
           title: 'STATUS', field: 'isActive', width: 120, hozAlign: 'center',
           formatter: (cell) => {
-            const active = cell.getValue() === true || cell.getValue() === 1;
-            return `<div class="status-badge" style="display:inline-flex;padding:5px 14px;border-radius:10px;font-size:11px;font-weight:700;background:${active ? '#ecfdf5' : '#fef2f2'};color:${active ? '#10b981' : '#64748b'};border:1px solid ${active ? '#d1fae5' : '#e2e8f0'};text-transform:uppercase">${active ? 'active' : 'inactive'}</div>`;
+            const active = cell.getValue() === true || cell.getValue() === 1 || cell.getRow().getData().status === 'active';
+            return `
+              <label class="toggle-switch-container" style="display:flex;align-items:center;justify-content:center;cursor:pointer;height:100%;width:100%">
+                <div style="width:36px;height:20px;background:${active ? '#10b981' : '#cbd5e1'};border-radius:10px;position:relative;transition:background 0.2s;">
+                  <div style="width:16px;height:16px;background:white;border-radius:50%;position:absolute;top:2px;left:${active ? '18px' : '2px'};transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                </div>
+              </label>
+            `;
           },
+          cellClick: (e, cell) => {
+             if (e.target.closest('.toggle-switch-container')) {
+                 e.preventDefault();
+                 actionsRef.current.onToggleStatus(cell);
+             }
+          }
         },
         {
           title: 'ACTIONS', headerSort: false, hozAlign: 'right', width: 110,

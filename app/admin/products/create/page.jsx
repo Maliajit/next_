@@ -110,6 +110,8 @@ const AddProductPage = () => {
                 const newVariants = [...prev];
                 if (type === 'primary') {
                     newVariants[variantIndex].heroImage = selection[0];
+                } else if (type === 'background') {
+                    newVariants[variantIndex].heroBgImage = selection[0];
                 } else {
                     newVariants[variantIndex].gallery = [...(newVariants[variantIndex].gallery || []), ...selection].filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
                 }
@@ -140,6 +142,14 @@ const AddProductPage = () => {
                 newVariants[vIdx] = variant;
             }
             return newVariants;
+        });
+    };
+
+    const removeVariantImage = (vIdx, imgId) => {
+        setVariants(prev => {
+            const next = [...prev];
+            next[vIdx].gallery = next[vIdx].gallery.filter(img => img.id !== imgId);
+            return next;
         });
     };
 
@@ -181,7 +191,20 @@ const AddProductPage = () => {
             };
         });
 
-        setVariants(newVariants);
+        const existingKeys = new Set(variants.map(v => 
+            v.attributeValues.map(av => av.attributeValueId).sort().join('-')
+        ));
+        
+        const toAdd = newVariants.filter(v => 
+            !existingKeys.has(v.attributeValues.map(av => av.attributeValueId).sort().join('-'))
+        );
+        
+        if (toAdd.length > 0) {
+            setVariants(prev => [...prev, ...toAdd]);
+            toast.success(`Generated ${toAdd.length} new variants`);
+        } else {
+            toast.info("No new variants to generate");
+        }
     };
 
     const updateVariantField = (index, field, value) => {
@@ -245,6 +268,7 @@ const AddProductPage = () => {
                 stock: parseInt(v.stock) || 0,
                 attributeValues: v.attributeValues,
                 heroImageId: v.heroImage?.id || undefined,
+                heroBgImageId: v.heroBgImage?.id || undefined,
                 galleryIds: v.gallery?.map(g => g.id).filter(id => id != null) || []
             }))
         };
@@ -721,9 +745,10 @@ const AddProductPage = () => {
                                 <div className="mb-4">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Primary Image</label>
                                     <div className="flex gap-2.5">
-                                        <div className="relative flex-none w-24 h-24 rounded-xl border-2 border-indigo-200 overflow-hidden shadow-sm">
+                                        <div className="relative flex-none w-24 h-24 rounded-xl border-2 border-indigo-200 overflow-hidden shadow-sm group/main">
                                             <img src={getFileUrl(variants[variantImageModal.index].heroImage.url || variants[variantImageModal.index].heroImage)} className="w-full h-full object-cover" />
-                                            <div className="absolute top-1 right-1 bg-indigo-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">MAIN</div>
+                                            <div className="absolute top-1 right-1 bg-indigo-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm group-hover/main:hidden">MAIN</div>
+                                            <button type="button" onClick={() => updateVariantField(variantImageModal.index, 'heroImage', null)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 rounded-lg hidden group-hover/main:flex items-center justify-center text-white hover:bg-red-600 shadow-sm transition-all"><i className="fas fa-trash-alt text-[10px]"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -734,9 +759,10 @@ const AddProductPage = () => {
                                 <div className="mb-4">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">Variant Background</label>
                                     <div className="flex gap-2.5">
-                                        <div className="relative flex-none w-24 h-24 rounded-xl border-2 border-emerald-200 overflow-hidden shadow-sm">
+                                        <div className="relative flex-none w-24 h-24 rounded-xl border-2 border-emerald-200 overflow-hidden shadow-sm group/bg">
                                             <img src={getFileUrl(variants[variantImageModal.index].heroBgImage.url || variants[variantImageModal.index].heroBgImage)} className="w-full h-full object-cover" />
-                                            <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">BG</div>
+                                            <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm group-hover/bg:hidden">BG</div>
+                                            <button type="button" onClick={() => updateVariantField(variantImageModal.index, 'heroBgImage', null)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 rounded-lg hidden group-hover/bg:flex items-center justify-center text-white hover:bg-red-600 shadow-sm transition-all"><i className="fas fa-trash-alt text-[10px]"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -756,14 +782,19 @@ const AddProductPage = () => {
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, -1)}
                                                             disabled={gIdx === 0}
-                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
-                                                        ><i className="fas fa-chevron-left text-[10px]"></i></button>
+                                                            className="w-5 h-5 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-left text-[8px]"></i></button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeVariantImage(variantImageModal.index, img.id)}
+                                                            className="w-5 h-5 bg-red-500 rounded-lg flex items-center justify-center text-white hover:bg-red-600 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-trash-alt text-[8px]"></i></button>
                                                         <button
                                                             type="button"
                                                             onClick={() => moveVariantGalleryImage(variantImageModal.index, gIdx, 1)}
                                                             disabled={gIdx === variants[variantImageModal.index].gallery.length - 1}
-                                                            className="w-6 h-6 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
-                                                        ><i className="fas fa-chevron-right text-[10px]"></i></button>
+                                                            className="w-5 h-5 bg-white rounded-lg flex items-center justify-center text-indigo-600 disabled:opacity-30 hover:bg-indigo-50 cursor-pointer shadow-sm"
+                                                        ><i className="fas fa-chevron-right text-[8px]"></i></button>
                                                     </div>
                                                 </div>
                                             </div>

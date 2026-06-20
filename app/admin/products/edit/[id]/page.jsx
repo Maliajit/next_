@@ -914,9 +914,10 @@ const EditProductPage = () => {
                                 <div className="!mb-4">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest !mb-2 block">Primary Image</label>
                                     <div className="flex gap-2.5">
-                                        <div className="relative flex-none !w-24 !h-24 rounded-xl border-2 border-indigo-200 overflow-hidden shadow-sm">
+                                        <div className="relative flex-none !w-24 !h-24 rounded-xl border-2 border-indigo-200 overflow-hidden shadow-sm group/main">
                                             <img src={getFileUrl(variants[variantImageModal.index].heroImage.url || variants[variantImageModal.index].heroImage)} className="w-full h-full object-cover" />
-                                            <div className="absolute top-1 right-1 bg-indigo-500 text-white text-[9px] font-bold !px-1.5 !py-0.5 rounded shadow-sm">MAIN</div>
+                                            <div className="absolute top-1 right-1 bg-indigo-500 text-white text-[9px] font-bold !px-1.5 !py-0.5 rounded shadow-sm group-hover/main:hidden">MAIN</div>
+                                            <button type="button" onClick={() => updateVariantField(variantImageModal.index, 'heroImage', null)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 rounded-lg hidden group-hover/main:flex items-center justify-center text-white hover:bg-red-600 shadow-sm transition-all"><i className="fas fa-trash-alt text-[10px]"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -927,9 +928,10 @@ const EditProductPage = () => {
                                 <div className="!mb-4">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest !mb-2 block">Variant Background</label>
                                     <div className="flex gap-2.5">
-                                        <div className="relative flex-none !w-24 !h-24 rounded-xl border-2 border-emerald-200 overflow-hidden shadow-sm">
+                                        <div className="relative flex-none !w-24 !h-24 rounded-xl border-2 border-emerald-200 overflow-hidden shadow-sm group/bg">
                                             <img src={getFileUrl(variants[variantImageModal.index].heroBgImage.url || variants[variantImageModal.index].heroBgImage)} className="w-full h-full object-cover" />
-                                            <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-bold !px-1.5 !py-0.5 rounded shadow-sm">BG</div>
+                                            <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-bold !px-1.5 !py-0.5 rounded shadow-sm group-hover/bg:hidden">BG</div>
+                                            <button type="button" onClick={() => updateVariantField(variantImageModal.index, 'heroBgImage', null)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 rounded-lg hidden group-hover/bg:flex items-center justify-center text-white hover:bg-red-600 shadow-sm transition-all"><i className="fas fa-trash-alt text-[10px]"></i></button>
                                         </div>
                                     </div>
                                 </div>
