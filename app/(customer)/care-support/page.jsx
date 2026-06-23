@@ -110,6 +110,25 @@ export default function CareSupport() {
 
   const selectedGroup = groupedSteps.find(g => g.product?.id?.toString() === selectedProductId);
 
+  const boughtProductNames = useMemo(() => {
+    return allProducts
+      .filter(p => purchasedProductIds.has(p.id.toString()))
+      .map(p => p.name)
+      .join(', ');
+  }, [allProducts, purchasedProductIds]);
+
+  const whatsappText = useMemo(() => {
+    let text = "Hi";
+    if (user?.firstName || user?.name) {
+      text += `, my name is ${user.firstName || user.name}`;
+    }
+    if (boughtProductNames) {
+      text += `. I recently bought: ${boughtProductNames}`;
+    }
+    text += `. I wanted to ask: `;
+    return encodeURIComponent(text);
+  }, [user, boughtProductNames]);
+
   return (
     <div className="cs-root">
       <style>{`
@@ -218,35 +237,26 @@ export default function CareSupport() {
         .faq-icon { transition: transform 0.4s; font-size: 24px; color: #fff !important; font-weight: 300; }
         .faq-item.active .faq-icon { transform: rotate(45deg); opacity: 0.5; }
 
-        /* SUPPORT FORM */
-        .support-form-sect { background: #000; border-top: 1px solid rgba(255,255,255,0.05); }
-        .form-container { max-width: 700px; margin: 0 auto; padding: 60px; background: #0a0a0a; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
-        .f-group { margin-bottom: 30px; }
-        .f-group label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 10px; color: rgba(255,255,255,0.8) !important; font-weight: 600; }
-        .f-input { width: 100%; padding: 18px; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-family: inherit; font-size: 1rem; transition: all 0.3s; background: #111; color: #fff !important; }
-        .f-input:focus { border-color: #fff !important; outline: none; box-shadow: 0 0 15px rgba(255,255,255,0.05); }
-        .f-textarea { height: 160px; resize: none; }
-        
-        .btn-submit { 
-          width: 100%; 
-          padding: 16px; 
-          background: #fff !important; 
-          color: #000 !important; 
-          border: none; 
-          font-size: 12px; 
-          font-weight: 700; 
-          text-transform: uppercase; 
-          letter-spacing: 0.15em; 
-          cursor: pointer; 
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); 
-          border-radius: 999px; 
+        .whatsapp-sect { background: #000; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; padding: 80px 20px; }
+        .wa-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          background: #25D366;
+          color: #fff !important;
+          padding: 16px 32px;
+          border-radius: 999px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.3s;
         }
-        .btn-submit:hover, .btn-submit:active { 
-          background: #ccc !important;
-          transform: translateY(-2px); 
+        .wa-btn:hover {
+          background: #1ebe57;
+          transform: translateY(-3px);
+          box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
         }
-        .success-msg { text-align: center; padding: 60px 40px; background: #111; color: #fff !important; border-radius: 8px; font-weight: 400; border: 1px solid rgba(255,255,255,0.1); }
-        .success-msg h3 { font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif; font-size: 2rem; margin-bottom: 15px; color: #fff !important; }
+        .wa-btn svg { width: 24px; height: 24px; fill: currentColor; }
 
         @media (max-width: 1024px) {
           .cs-section { padding: 80px 5%; }
@@ -406,61 +416,23 @@ export default function CareSupport() {
         </div>
       </section>
 
-      {/* SUPPORT FORM */}
-      <section className="cs-section support-form-sect">
+      {/* WHATSAPP SUPPORT */}
+      <section className="whatsapp-sect">
         <h2 className="cs-section-title">Get in Touch</h2>
-        <div className="form-container">
-          {!submitted ? (
-            <form onSubmit={handleSubmit}>
-              <div className="f-group">
-                <label>Full Name</label>
-                <input
-                  type="text"
-                  className="f-input"
-                  required
-                  value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="f-group">
-                <label>Email Address</label>
-                <input
-                  type="email"
-                  className="f-input"
-                  required
-                  value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div className="f-group">
-                <label>Phone Number</label>
-                <input
-                  type="tel"
-                  className="f-input"
-                  required
-                  value={formData.phone}
-                  onChange={handlePhoneChange}
-                  placeholder="Your phone number"
-                />
-              </div>
-              <div className="f-group">
-                <label>Message</label>
-                <textarea
-                  className="f-input f-textarea"
-                  required
-                  value={formData.message}
-                  onChange={e => setFormData({ ...formData, message: e.target.value })}
-                ></textarea>
-              </div>
-              <button type="submit" className="btn-submit">Submit Request</button>
-            </form>
-          ) : (
-            <div className="success-msg">
-              <h3>Thank You!</h3>
-              <p>We'll reach you out soon!</p>
-            </div>
-          )}
-        </div>
+        <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '30px' }}>
+          Have questions? Chat with our care team on WhatsApp.
+        </p>
+        <a 
+          href={`https://wa.me/919724916167?text=${whatsappText}`} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="wa-btn"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.115.55 4.18 1.597 6.002L.032 23.95l6.068-1.591A11.96 11.96 0 0 0 12.031 24c6.645 0 12.03-5.386 12.03-12.03S18.676 0 12.031 0zm0 22.022c-1.785 0-3.53-.478-5.06-1.385l-.362-.215-3.76 1.002.997-3.666-.237-.376a9.988 9.988 0 0 1-1.528-5.35c0-5.526 4.496-10.02 10.022-10.02 5.526 0 10.022 4.495 10.022 10.02 0 5.526-4.496 10.022-10.022 10.022zM17.52 14.502c-.302-.152-1.78-.88-2.057-.982-.275-.1-.476-.151-.676.152-.202.302-.777.981-.954 1.183-.175.201-.35.226-.652.075-.302-.151-1.27-.468-2.42-1.49-.893-.795-1.496-1.78-1.672-2.08-.175-.303-.018-.466.132-.617.135-.135.302-.352.454-.528.15-.175.201-.302.302-.503.1-.202.05-.378-.025-.528-.075-.152-.676-1.63-.925-2.233-.243-.591-.49-.51-.676-.52a11.38 11.38 0 0 0-.577-.01c-.201 0-.527.075-.803.376-.276.302-1.053 1.03-1.053 2.512 0 1.482 1.078 2.915 1.229 3.116.15.201 2.124 3.242 5.143 4.544.718.31 1.278.494 1.716.632.72.23 1.375.197 1.892.12.576-.086 1.78-.727 2.03-1.43.25-.702.25-1.305.176-1.43-.075-.125-.276-.2-.577-.35z" />
+          </svg>
+          Chat on WhatsApp
+        </a>
       </section>
 
     </div>

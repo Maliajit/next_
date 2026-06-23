@@ -188,6 +188,7 @@ const AddProductPage = () => {
                 })),
                 heroImage: null,
                 gallery: [],
+                isSoldConfiguration: false,
                 id: Math.random().toString(36).substr(2, 9)
             };
         });
@@ -271,6 +272,7 @@ const AddProductPage = () => {
                 attributeValues: v.attributeValues,
                 heroImageId: v.heroImage?.id || undefined,
                 heroBgImageId: v.heroBgImage?.id || undefined,
+                isSoldConfiguration: v.isSoldConfiguration || false,
                 galleryIds: v.gallery?.map(g => g.id).filter(id => id != null) || []
             }))
         };
@@ -649,6 +651,7 @@ const AddProductPage = () => {
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Selling Price</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Media</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sold Config</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest"></th>
                                                             </tr>
                                                         </thead>
@@ -669,7 +672,21 @@ const AddProductPage = () => {
                                                                         <input type="number" value={variant.stock} onChange={(e) => updateVariantField(vIdx, 'stock', e.target.value)} className="w-16 bg-white border border-gray-200 rounded !px-2 !py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
                                                                     </td>
                                                                     <td className="!px-4 !py-4">
-                                                                        <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white transition-all">Manage</button>
+                                                                        <div className="flex items-center gap-3">
+                                                                            {variant.heroImage ? (
+                                                                                <div className="w-8 h-8 rounded border border-gray-200 overflow-hidden shrink-0">
+                                                                                    <img src={getFileUrl(variant.heroImage?.url || variant.heroImage)} className="w-full h-full object-cover" />
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className="w-8 h-8 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300 shrink-0">
+                                                                                    <i className="fas fa-image text-xs"></i>
+                                                                                </div>
+                                                                            )}
+                                                                            <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="!px-3 !py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white transition-all whitespace-nowrap">Manage</button>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="!px-4 !py-4">
+                                                                        <input type="checkbox" checked={variant.isSoldConfiguration || false} onChange={(e) => updateVariantField(vIdx, 'isSoldConfiguration', e.target.checked)} className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
                                                                     </td>
                                                                     <td className="!px-4 !py-4 text-right">
                                                                         <button type="button" onClick={() => removeVariant(vIdx)} className="text-gray-300 hover:text-red-500 transition-colors"><i className="fas fa-trash-alt"></i></button>

@@ -60,7 +60,7 @@ export default function AdminLogin() {
         <div className="welcome-content">
           <div className="admin-spinner"></div>
           <h2>Authenticating...</h2>
-          <p>Securely logging you into the Fylex Admin Panel</p>
+          <p>Securely logging you into the <img src="/fylex.png" alt="Fylex" style={{ height: '2.5em', display: 'inline-block', verticalAlign: 'middle', transform: 'translateY(-0.1em)' }} /> Admin Panel</p>
         </div>
         <style jsx>{`
           .welcome-screen {
@@ -126,7 +126,7 @@ export default function AdminLogin() {
           <div className="brand-logo" style={{ background: 'transparent', boxShadow: 'none' }}>
             <img src="/logo.png" alt="Fylex" style={{ width: '120px', height: 'auto', objectFit: 'contain' }} />
           </div>
-          <h1>Fylex Admin</h1>
+          <h1 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><img src="/fylex.png" alt="Fylex" style={{ height: '2.5em', display: 'inline-block', verticalAlign: 'baseline' }} /> Admin</h1>
           <p>Secure Administrative Access</p>
         </div>
 

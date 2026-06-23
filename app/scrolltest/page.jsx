@@ -7,7 +7,7 @@ const ScrollTest = () => {
     <div className="scroll-test-page">
       {/* Top Spacer */}
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111', color: '#fff' }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: 300, letterSpacing: '0.1em' }}>FYLEXX PRECISION</h1>
+        <h1 style={{ fontSize: '3rem', fontWeight: 300, letterSpacing: '0.1em' }}><img src="/fylex.png" alt="FYLEXX" style={{ height: '2.5em', display: 'inline-block', verticalAlign: 'middle', transform: 'translateY(-0.1em)' }} /> PRECISION</h1>
       </div>
 
       {/* The Scroll Sequence Component */}

@@ -272,7 +272,7 @@ const Dashboard = () => {
             Welcome back, Admin! <span className="welcome-banner-waving">👋</span>
           </h2>
           <p className="welcome-banner-text">
-            Here's what's happening with your store today. Have a great day managing Fylex!
+            Here's what's happening with your store today. Have a great day managing <img src="/fylex.png" alt="Fylex" style={{ height: '2.5em', display: 'inline-block', verticalAlign: 'middle', transform: 'translateY(-0.1em)' }} />!
           </p>
         </div>
         <div className="welcome-banner-illustration hidden md:flex">

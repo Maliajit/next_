@@ -316,7 +316,9 @@ const Header = () => {
         <div className="menu-grid-v1">
           <div className="menu-links-side">
             <div className="nav-link-group">
-              <Link href="/products" className="primary" onClick={closeAll}>Fylex Watches</Link>
+              <Link href="/products" className="primary" onClick={closeAll}>
+                FYLEX Watches
+              </Link>
               <Link href="/my-purchases" className="primary" onClick={closeAll}>Your Collection</Link>
               <Link href="/shop" className="primary" onClick={closeAll}>About Us</Link>
               <Link href="/#gallery" className="primary" onClick={(e) => handleLinkClick(e, 'gallery')}>Community</Link>

@@ -91,6 +91,7 @@ function DiscoverContent() {
                   img: vDisplay.image,
                   price: vDisplay.price,
                   formattedPrice: vDisplay.formattedPrice,
+                  isSoldConfiguration: v.isSoldConfiguration,
                   attributes: v.variantAttributes?.map(va => ({
                     name: va.attributeValue?.attribute?.name?.toLowerCase(),
                     value: va.attributeValue?.label
@@ -170,12 +171,22 @@ function DiscoverContent() {
     };
   }, [loading, watchId]); // Re-run on watch change as sections might re-render
   const openInfoModal = (p) => {
-    const templates = p.combinations || [];
-    setActiveModalData({ ...p, combinations: templates });
+    const soldConfigs = (p.combinations || [])
+      .filter(combo => combo.isSoldConfiguration)
+      .map(combo => ({
+        ...combo,
+        isProduct: false
+      }));
+    setActiveModalData({ ...p, combinations: soldConfigs });
   };
   const closeInfoModal = () => setActiveModalData(null);
 
   const handleComboClick = (combo) => {
+    if (combo.isProduct) {
+      router.push(`?watch=${combo.id}`);
+      closeInfoModal();
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     if (activeModalData?.id) {
       params.set('watch', activeModalData.id);
@@ -898,9 +909,10 @@ function DiscoverContent() {
           z-index: 1;
         }
         .cfg-desc-content {
-          padding: 0 8%;
-          max-width: 1000px;
-          margin: 0 auto;
+          padding: 0 40px;
+          width: 100%;
+          text-align: left;
+          box-sizing: border-box;
         }
         .cfg-desc-text {
           text-align: left;
@@ -910,6 +922,7 @@ function DiscoverContent() {
         .cfg-desc-heading {
           margin: 5px 0 15px;
           font-size: 1.5rem;
+          text-align: left;
         }
         .cfg-desc-img-wrap {
           width: 100vw;
@@ -936,13 +949,13 @@ function DiscoverContent() {
           font-size: 0.7rem;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          color: #666;
+          color: #999;
           cursor: pointer;
           // margin-top: 10px;
           transition: color 0.3s;
         }
         .cfg-see-variants:hover {
-          color: #1a1a1a;
+          color: #ffffff;
         }
         .cfg-see-variants svg {
           width: 14px;
@@ -1090,10 +1103,12 @@ function DiscoverContent() {
           flex-direction: column;
           gap: 60px;
           align-items: center;
+          background: #000000;
         }
         .cfg-heritage-left {
           width: 100%;
-          padding: 0 8%;
+          padding: 0 40px;
+          box-sizing: border-box;
         }
         .cfg-heritage-right {
           display: flex;
@@ -1102,14 +1117,14 @@ function DiscoverContent() {
           align-items: center;
         }
         .cfg-sold-stats {
-          background: #ffffff;
-          color: #1a1a1a;
+          background: #000000;
+          color: #ffffff;
           padding: 50px 60px;
           border-radius: 24px;
           text-align: left;
           cursor: pointer;
           transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.5s;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
           position: relative;
           overflow: hidden;
           width: 100%;
@@ -1140,7 +1155,7 @@ function DiscoverContent() {
           position: absolute;
           inset: 2px;
           border-radius: 22px;
-          background: linear-gradient(155deg, #ffffff 0%, #fdfcfa 50%, #fff 100%);
+          background: #000000;
           z-index: -1;
         }
         @property --border-angle {
@@ -1173,7 +1188,7 @@ function DiscoverContent() {
         }
         .cfg-sold-stats:hover {
           transform: translateY(-10px) scale(1.02);
-          box-shadow: 0 35px 70px rgba(0,0,0,0.14), 0 0 30px ${product.accentColor}22;
+          box-shadow: 0 35px 70px rgba(0,0,0,0.3), 0 0 30px ${product.accentColor}44;
         }
         .stats-numbers {
           display: flex;
@@ -1194,7 +1209,7 @@ function DiscoverContent() {
           font-size: 0.9rem;
           letter-spacing: 0.25em;
           text-transform: uppercase;
-          color: #1a1a1a;
+          color: #ffffff;
           font-weight: 600;
           margin-bottom: 5px;
           display: block;
@@ -1221,20 +1236,21 @@ function DiscoverContent() {
           font-weight: 400;
           margin: 0 0 30px;
           line-height: 1.2;
+          color: #ffffff;
         }
         .cfg-heritage-text {
           font-size: 1.15rem;
           line-height: 1.9;
-          color: #555;
+          color: #cccccc;
           font-weight: 300;
           text-align: left;
         }
 
-        /* ═══════════ LIGHT/ELEGANT MODAL STYLES ═══════════ */
+        /* ═══════════ DARK/ELEGANT MODAL STYLES ═══════════ */
         .cfg-modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.4);
+          background: rgba(0, 0, 0, 0.6);
           backdrop-filter: blur(8px);
           z-index: 9999;
           display: flex;
@@ -1249,53 +1265,76 @@ function DiscoverContent() {
           visibility: visible;
         }
         .cfg-modal-box {
-          background: #ffffff;
-          border: 1px solid #eaeaea;
-          width: 100%;
-          max-width: 480px;
-          height: 750px;
-          max-height: 90vh;
-          border-radius: 16px;
+          width: 950px;
+          max-width: 95vw;
+          min-height: 600px;
+          height: 85vh;
+          max-height: 850px;
+          margin: auto;
+          position: relative;
+          overflow: hidden;
+          border-radius: 42px;
+          background: 
+            radial-gradient(circle at left center, rgba(255,185,60,.12), transparent 30%),
+            radial-gradient(circle at center, rgba(255,185,60,.06), transparent 40%),
+            radial-gradient(circle at right bottom, rgba(255,185,60,.1), transparent 30%),
+            linear-gradient(135deg, rgba(12,12,12,.95), rgba(2,2,2,.98));
+          backdrop-filter: blur(40px);
+          -webkit-backdrop-filter: blur(40px);
+          border: 1px solid rgba(255,220,140,.45);
+          box-shadow: 0 0 40px rgba(255,190,70,.15), 0 0 90px rgba(255,190,70,.08), inset 0 1px 0 rgba(255,255,255,.08);
           display: flex;
           flex-direction: column;
-          box-shadow: 0 25px 60px rgba(0,0,0,0.12);
           transform: translateY(20px);
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-          overflow: hidden;
+          animation: goldFlow 10s linear infinite;
         }
+
+        @keyframes goldFlow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
         .cfg-modal-overlay.show .cfg-modal-box {
           transform: translateY(0);
         }
+
         .cfg-modal-header {
-          padding: 24px 30px;
-          border-bottom: 1px solid #f0f0f0;
+          padding: 36px 40px;
+          border-bottom: 1px solid transparent;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: #fafaf9;
-        }
-        .cfg-hero-title {
-          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
-          font-size: 4.5rem;
-          font-weight: 400;
-          line-height: 1.1;
-          color: ${product.textColor};
-          margin: 0;
           position: relative;
+          z-index: 1;
         }
+
+        .cfg-modal-header::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background: rgba(255,220,150,.2);
+        }
+
         .cfg-modal-title {
-          font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
-          font-size: 1.35rem;
+          font-family: 'Inter', sans-serif;
+          font-size: 26px;
           font-weight: 500;
-          color: #1a1a1a;
+          letter-spacing: -1px;
+          color: #ffffff;
           margin: 0;
         }
+
         .cfg-modal-close {
           background: none;
           border: none;
-          font-size: 1.5rem;
+          font-size: 32px;
           cursor: pointer;
-          color: #999;
+          color: rgba(255,240,210,.8);
           transition: color 0.3s;
           display: flex;
           align-items: center;
@@ -1303,82 +1342,157 @@ function DiscoverContent() {
           padding: 4px;
         }
         .cfg-modal-close:hover {
-          color: #1a1a1a;
+          color: white;
         }
+
         .cfg-modal-content {
           flex: 1;
-          overflow-y: scroll; /* Force scrollbar */
+          overflow-y: scroll;
           padding: 0;
           overscroll-behavior: contain;
           min-height: 0;
           -webkit-overflow-scrolling: touch;
+          position: relative;
+          z-index: 1;
         }
         .cfg-modal-content::-webkit-scrollbar {
           width: 8px;
         }
         .cfg-modal-content::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-left: 1px solid #eaeaea;
+          background: transparent;
+          border-left: 1px solid rgba(255, 255, 255, 0.05);
         }
         .cfg-modal-content::-webkit-scrollbar-thumb {
-          background-color: #c1c1c1;
+          background-color: #444444;
           border-radius: 4px;
         }
         .cfg-modal-content::-webkit-scrollbar-thumb:hover {
-          background-color: #a8a8a8;
+          background-color: #666666;
         }
+
         .cfg-combo-item {
+          width: 90%;
+          height: 120px;
+          border-radius: 24px;
+          background: rgba(255,255,255,.04);
+          border: none;
+          backdrop-filter: blur(30px);
+          -webkit-backdrop-filter: blur(30px);
+          box-shadow: 0 0 40px rgba(255,200,90,.1), inset 0 1px 0 rgba(255,255,255,.06);
+          margin: 30px auto;
           display: flex;
           align-items: center;
-          gap: 20px;
-          padding: 24px 30px;
-          border-bottom: 1px solid #f0f0f0;
-          transition: background 0.3s;
+          gap: 18px;
+          padding: 0 30px;
+          position: relative;
           cursor: pointer;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          overflow: hidden;
         }
+
+        .cfg-combo-item::after {
+          content: '';
+          position: absolute;
+          left: -15px;
+          top: 25px;
+          width: 45px;
+          height: 60px;
+          filter: blur(30px);
+          background: rgba(255,190,80,.4);
+          z-index: 0;
+          pointer-events: none;
+        }
+
         .cfg-combo-item:hover {
-          background: #fdfdfc;
+          transform: translateY(-6px);
+          box-shadow: 0 0 60px rgba(255,210,100,.18), 0 0 120px rgba(255,210,100,.1);
         }
-        .cfg-combo-num {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: #888;
-          letter-spacing: 0.1em;
-          min-width: 40px;
-        }
+
         .cfg-combo-img-wrap {
-          width: 66px;
-          height: 66px;
-          background: #f9f9f9;
-          border: 1px solid #f0f0f0;
-          border-radius: 12px;
+          width: 80px;
+          height: 80px;
+          background: rgba(255,255,255,.05);
+          border: 1px solid rgba(255,255,255,.08);
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          position: relative;
+          z-index: 1;
         }
+
         .cfg-combo-img-wrap img {
-          width: 80%;
-          height: 80%;
+          width: 100%;
+          height: 100%;
           object-fit: contain;
-          filter: drop-shadow(0 4px 10px rgba(0,0,0,0.06));
+          transform: scale(1.35);
         }
+
         .cfg-combo-details {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
+          position: relative;
+          z-index: 1;
         }
+
         .cfg-combo-name {
-          font-size: 0.9rem;
-          color: #1a1a1a;
-          line-height: 1.5;
-          font-weight: 500;
+          font-family: 'Inter', sans-serif;
+          font-size: 20px;
+          font-weight: 600;
+          color: white;
+          line-height: 1.1;
+          margin: 0;
         }
+
         .cfg-combo-status {
-          font-size: 0.75rem;
-          color: ${product.accentColor};
-          font-weight: 500;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          font-weight: 400;
+          color: rgba(255,220,180,.75);
+        }
+
+        .cfg-combo-chevron {
+          font-size: 40px;
+          color: rgba(255,230,190,.75);
+          transition: transform 0.3s, color 0.3s;
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .cfg-combo-item:hover .cfg-combo-chevron {
+          transform: translateX(10px);
+          color: white;
+        }
+
+        @media (max-width: 600px) {
+          .cfg-modal-box {
+            width: 95%;
+          }
+          .cfg-combo-item {
+            width: 80%;
+            max-width: 320px;
+            height: auto;
+            min-height: unset;
+            flex-direction: column;
+            justify-content: center;
+            padding: 24px 20px 20px 20px;
+            text-align: center;
+            gap: 12px;
+            margin: 20px auto;
+          }
+          .cfg-combo-chevron {
+            transform: rotate(90deg);
+            margin-top: 15px;
+          }
+          .cfg-combo-item:hover .cfg-combo-chevron {
+            transform: rotate(90deg) translateX(10px);
+          }
         }
 
         /* ═══ DESKTOP TEXT JUSTIFY ═══ */
@@ -1395,7 +1509,6 @@ function DiscoverContent() {
         @media (max-width: 900px) {
           .cfg-desc-section {
             padding: 60px 0;
-            text-align: justify;
           }
           .cfg-desc-text {
             text-align: justify;
@@ -1962,6 +2075,7 @@ function DiscoverContent() {
                     <span className="cfg-combo-name">{combo.name}</span>
                     <span className="cfg-combo-status">Exclusive Build</span>
                   </div>
+                  <div className="cfg-combo-chevron">&#8250;</div>
                 </div>
               ))
             ) : (

@@ -15,6 +15,11 @@ import { ProductSkeleton } from '@/components/ui/Skeleton';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const injectLogo = (text: string) => {
+  if (!text) return '';
+  return text.replace(/(Fylexx|Fylex|FYLEXX|FYLEX)/gi, '<img src="/fylex.png" alt="$1" style="height: 2.5em; display: inline-block; vertical-align: middle; transform: translateY(-0.1em); filter: invert(1);" />');
+};
+
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const features = [
@@ -874,7 +879,7 @@ const Home = () => {
                 />
               </div>
               <div className="hero-center">
-                <h1 className="hero-title">{videoSettings.home_hero_video_title || "The Fylex"}</h1>
+                <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: videoSettings.home_hero_video_title || "The Fylex" }} />
                 <p className="hero-subtitle">{videoSettings.home_hero_video_subtitle || "A Legacy of Precision"}</p>
                 <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
                   <Link href="/products">
@@ -928,8 +933,8 @@ const Home = () => {
                 />
               </div>
               <div className="card" style={{ zIndex: 10 }}>
-                <h1 dangerouslySetInnerHTML={{ __html: videoSettings.home_legacy_video_title ? videoSettings.home_legacy_video_title.replace('Same Path.', '<em>Same Path.</em>') : "Not Everyone Follows The <em>Same Path.</em>" }}></h1>
-                <p className="legacy-text">{videoSettings.home_legacy_video_subtitle || "Different Ambitions. Different Routines. Different Stories."}</p>
+                <h1 dangerouslySetInnerHTML={{ __html: (videoSettings.home_legacy_video_title || "Not Everyone Follows The Same Path.").replace(/Same Path\./g, '<em>Same Path.</em>') }}></h1>
+                <p className="legacy-text" dangerouslySetInnerHTML={{ __html: videoSettings.home_legacy_video_subtitle || "Different Ambitions. Different Routines. Different Stories." }}></p>
                 <div style={{ marginTop: '40px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.2em', color: '#fff', textTransform: 'uppercase' }}>
                   IT'S YOUR TIME.
                 </div>
@@ -1029,7 +1034,7 @@ const Home = () => {
             <div ref={galleryRef}>
               <section className="fylex-gallery-section" id="gallery">
                 <div className="fylex-gallery-header">
-                  <h2>The FYLEX World.</h2>
+                  <h2 dangerouslySetInnerHTML={{ __html: injectLogo("The FYLEX World.") }} />
                 </div>
                 <GalleryCarousel items={communityImages.length > 0 ? communityImages : gallery} />
               </section>

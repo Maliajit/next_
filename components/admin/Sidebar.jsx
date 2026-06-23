@@ -121,6 +121,12 @@ const navItems = [
     icon: 'fas fa-cog',
     path: '/admin/settings',
   },
+  {
+    key: 'login-settings',
+    title: 'Login',
+    icon: 'fas fa-sign-in-alt',
+    path: '/admin/login-settings',
+  },
 ];
 
 const Sidebar = ({ mobileOpen, setMobileOpen, isExpanded, setIsExpanded }) => {
@@ -155,7 +161,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isExpanded, setIsExpanded }) => {
         {/* Logo */}
         <div className="sidebar-logo" style={{ justifyContent: 'center' }}>
           <div className="sidebar-logo-icon" style={{ width: '120px', height: '40px', background: 'transparent', border: 'none' }}>
-            <img src="/footer_logo.jpeg" alt="Fylex" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'none' }} />
+            <img src="/fylex.png" alt="Fylex" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'none' }} />
           </div>
         </div>
 

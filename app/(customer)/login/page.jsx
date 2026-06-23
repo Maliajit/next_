@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { checkMobileApi } from '@/lib/api';
+import { checkMobileApi, fetchSettings } from '@/lib/api';
 
 /* ─── OTP Input Boxes ─── */
 function OtpBoxes({ value, onChange, length = 4 }) {
@@ -72,10 +72,29 @@ export default function Login() {
   const [shake, setShake] = useState(false);
   const [error, setError] = useState('');
   const [focused, setFocused] = useState(false);
+  const [loginPageImage, setLoginPageImage] = useState('/assets/auth-hero.png');
+  const [loginBtnColor, setLoginBtnColor] = useState('#1a3a2a');
+  const [loginBtnTextColor, setLoginBtnTextColor] = useState('#ffffff');
   const { loginOtp } = useAuth();
   const navigate = useRouter();
 
   useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await fetchSettings();
+        if (res?.success && Array.isArray(res.data)) {
+          const settingsObj = {};
+          res.data.forEach(item => { settingsObj[item.key] = item.value; });
+          
+          if (settingsObj.loginPageImage) setLoginPageImage(settingsObj.loginPageImage);
+          if (settingsObj.loginButtonColor) setLoginBtnColor(settingsObj.loginButtonColor);
+          if (settingsObj.loginButtonTextColor) setLoginBtnTextColor(settingsObj.loginButtonTextColor);
+        }
+      } catch (err) {
+        console.error('Failed to load login settings', err);
+      }
+    };
+    loadSettings();
     const t = setTimeout(() => setLoaded(true), 100);
     return () => clearTimeout(t);
   }, []);
@@ -151,7 +170,7 @@ export default function Login() {
         {/* Image Panel */}
         <div className={`auth-image-panel ${loaded ? 'auth-loaded' : ''}`}>
           <img
-            src="/assets/auth-hero.png"
+            src={loginPageImage}
             alt="Luxury timepiece"
             className="auth-hero-img"
           />
@@ -199,6 +218,7 @@ export default function Login() {
                     type="submit"
                     className={`auth-submit-btn ${submitting ? 'auth-submitting' : ''}`}
                     disabled={submitting}
+                    style={{ backgroundColor: loginBtnColor, color: loginBtnTextColor }}
                   >
                     {submitting ? <span className="auth-spinner" /> : 'Send OTP'}
                   </button>
@@ -231,6 +251,7 @@ export default function Login() {
                     type="submit"
                     className={`auth-submit-btn ${submitting ? 'auth-submitting' : ''}`}
                     disabled={submitting}
+                    style={{ backgroundColor: loginBtnColor, color: loginBtnTextColor }}
                   >
                     {submitting ? <span className="auth-spinner" /> : 'Continue'}
                   </button>
@@ -310,6 +331,7 @@ export default function Login() {
           display: grid;
           grid-template-columns: 1fr 1fr;
           min-height: 100vh;
+          background: #000000;
         }
 
         /* ─── Image Panel ─── */
@@ -317,6 +339,7 @@ export default function Login() {
           position: relative; overflow: hidden;
           opacity: 0; transform: scale(1.02);
           transition: opacity 0.9s ease, transform 0.9s ease;
+          height: 100%;
         }
         .auth-image-panel.auth-loaded {
           opacity: 1; transform: scale(1);
@@ -324,29 +347,27 @@ export default function Login() {
         .auth-hero-img {
           width: 100%; height: 100%;
           object-fit: cover; display: block;
+          object-position: center;
         }
         .auth-image-overlay {
           position: absolute; inset: 0;
-          background: linear-gradient(to right, transparent 60%, #000000 100%);
+          background: linear-gradient(to right, transparent 70%, #000000 100%);
           pointer-events: none;
         }
 
         /* ─── Form Panel ─── */
         .auth-form-panel {
           display: flex; align-items: center; justify-content: center;
-          padding: 100px 60px 60px;
+          padding: 80px 60px 60px;
           opacity: 0; transform: translateY(20px);
           transition: opacity 0.7s ease 0.2s, transform 0.7s ease 0.2s;
+          background: #000000;
         }
         .auth-form-panel.auth-loaded {
           opacity: 1; transform: translateY(0);
         }
         .auth-form-inner {
           width: 100%; max-width: 440px;
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-radius: 24px;
           padding: 40px;
         }
 
@@ -559,9 +580,12 @@ export default function Login() {
             padding: 32px 24px 48px;
             align-items: flex-start;
           }
-          .auth-form-inner { max-width: 100%; }
+          .auth-form-inner { 
+            max-width: 100%;
+            padding: 0;
+          }
           .auth-title {
-            font-size: 24px; text-align: center;
+            font-size: 26px; text-align: center;
           }
           .auth-subtitle {
             text-align: center; max-width: 100%;
@@ -577,8 +601,8 @@ export default function Login() {
           .auth-image-panel {
             height: 38vh; min-height: 220px;
           }
-          .auth-form-panel { padding: 24px 20px 40px; }
-          .auth-title { font-size: 22px; }
+          .auth-form-panel { padding: 32px 20px 40px; }
+          .auth-title { font-size: 24px; }
           .otp-box { width: 46px; height: 50px; font-size: 18px; gap: 8px; }
           .otp-boxes { gap: 8px; }
         }

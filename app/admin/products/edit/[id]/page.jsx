@@ -46,6 +46,7 @@ const EditProductPage = () => {
         gradient: '',
         mistColor: '#f8fafc',
         videoUrl: '',
+        discoverHeroBgImage: '',
         isFeatured: false
     });
 
@@ -177,6 +178,7 @@ const EditProductPage = () => {
                             id: v.variantImages.find(vi => vi.type === 'HERO_BG').mediaId.toString(),
                             url: v.variantImages.find(vi => vi.type === 'HERO_BG').media.url || `/uploads/${v.variantImages.find(vi => vi.type === 'HERO_BG').media.fileName}`
                         } : null,
+                        isSoldConfiguration: v.isSoldConfiguration || false,
                     })));
 
                     // Hydrate selectedAttributeValues
@@ -411,6 +413,7 @@ const EditProductPage = () => {
                 attributeValues: v.attributeValues,
                 heroImageId: v.heroImage?.id || undefined,
                 heroBgImageId: v.heroBgImage?.id || undefined,
+                isSoldConfiguration: v.isSoldConfiguration || false,
                 galleryIds: v.gallery?.map(g => g.id).filter(id => id != null) || []
             }))
         };
@@ -808,6 +811,7 @@ const EditProductPage = () => {
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Selling Price</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Stock</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Media</th>
+                                                                <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sold Config</th>
                                                                 <th className="!px-4 !py-3 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest"></th>
                                                             </tr>
                                                         </thead>
@@ -841,6 +845,9 @@ const EditProductPage = () => {
                                                                             <button type="button" onClick={() => setVariantImageModal({ index: vIdx, name: variant.name })} className="!px-3 !py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white transition-all whitespace-nowrap">Manage</button>
                                                                         </div>
                                                                     </td>
+                                                                    <td className="!px-4 !py-4">
+                                                                        <input type="checkbox" checked={variant.isSoldConfiguration || false} onChange={(e) => updateVariantField(vIdx, 'isSoldConfiguration', e.target.checked)} className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                                                                    </td>
                                                                     <td className="!px-4 !py-4 text-right">
                                                                         <button type="button" onClick={() => removeVariant(vIdx)} className="text-gray-300 hover:text-red-500 transition-colors"><i className="fas fa-trash-alt"></i></button>
                                                                     </td>
@@ -858,7 +865,7 @@ const EditProductPage = () => {
                                             </div>
                                             <h4 className="text-lg font-bold text-gray-900">Configuration Required</h4>
                                             <p className="text-sm text-gray-500 max-w-xs mx-auto mt-2">
-                                                Select "Configurable" in Basic Info and choose a category with attributes to manage variants.
+                                                Select &quot;Configurable&quot; in Basic Info and choose a category with attributes to manage variants.
                                             </p>
                                         </div>
                                     )}

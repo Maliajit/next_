@@ -573,7 +573,7 @@ const Products = () => {
           visibility: visible;
         }
         .info-modal-box {
-          background: #ffffff;
+          background: #000000;
           width: 100%;
           max-width: 400px;
           height: 700px;
@@ -581,7 +581,8 @@ const Products = () => {
           border-radius: 12px;
           display: flex;
           flex-direction: column;
-          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           transform: translateY(20px);
           transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
           overflow: hidden;
@@ -591,17 +592,17 @@ const Products = () => {
         }
         .info-modal-header {
           padding: 20px 24px;
-          border-bottom: 1px solid #f0f0f0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: #fafafa;
+          background: #000000;
         }
         .info-modal-title {
           font-family: 'Avenir', 'Neue Haas Grotesk Display Pro', 'Inter', sans-serif;
           font-size: 1.25rem;
           font-weight: 500;
-          color: #1a1a1a;
+          color: #ffffff;
           margin: 0;
         }
         .info-modal-close {
@@ -617,7 +618,7 @@ const Products = () => {
           padding: 4px;
         }
         .info-modal-close:hover {
-          color: #1a1a1a;
+          color: #ffffff;
         }
         .info-modal-content {
           flex: 1;
@@ -638,11 +639,11 @@ const Products = () => {
           align-items: center;
           gap: 16px;
           padding: 20px 24px;
-          border-bottom: 1px solid #f0f0f0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           transition: background 0.3s;
         }
         .info-combo-item:hover {
-          background: #fdfdfd;
+          background: #111111;
         }
         .info-combo-item:last-child {
           border-bottom: none;
@@ -657,7 +658,7 @@ const Products = () => {
         .info-combo-img-wrap {
           width: 60px;
           height: 60px;
-          background: #f9f9f9;
+          background: #000000;
           border-radius: 8px;
           display: flex;
           align-items: center;
@@ -677,7 +678,7 @@ const Products = () => {
         }
         .info-combo-name {
           font-size: 0.85rem;
-          color: #1a1a1a;
+          color: #ffffff;
           line-height: 1.4;
           font-weight: 500;
         }

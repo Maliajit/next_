@@ -102,7 +102,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom-v1">
-          <p>&copy; 2026 Fylex</p>
+          <p>&copy; 2026 <img src="/fylex.png" alt="Fylex" style={{ height: '3em', display: 'inline-block', verticalAlign: 'baseline', transform: 'translateY(0.2em)' }} /></p>
           <div className="footer-mark-v1">F · Y · L · E · X</div>
           <p>Crafted with Intention</p>
         </div>
