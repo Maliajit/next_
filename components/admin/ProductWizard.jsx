@@ -175,6 +175,7 @@ const ProductWizard = () => {
                         <FormField label="Mist Color" type="color" name="mistColor" value={coreForm.mistColor} onChange={e => setCoreForm({...coreForm, mistColor: e.target.value})} />
                     </div>
                     <FormField label="Short Description" type="textarea" value={coreForm.shortDescription} onChange={e => setCoreForm({...coreForm, shortDescription: e.target.value})} />
+                    <FormField label="Model Stories" type="textarea" value={coreForm.description} onChange={e => setCoreForm({...coreForm, description: e.target.value})} />
                     <FormField label="Heritage Text" type="textarea" value={coreForm.heritageText} onChange={e => setCoreForm({...coreForm, heritageText: e.target.value})} />
                 </div>
                 

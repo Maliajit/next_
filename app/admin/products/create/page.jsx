@@ -376,7 +376,7 @@ const AddProductPage = () => {
                                             <FormField label="Short Description" name="shortDesc" type="textarea" value={form.shortDesc} onChange={handleChange} rows={1} />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <FormField label="Full Description" name="description" type="textarea" value={form.description} onChange={handleChange} rows={4} />
+                                            <FormField label="Model Stories" name="description" type="textarea" value={form.description} onChange={handleChange} rows={4} />
                                         </div>
                                         <div className="md:col-span-2">
                                             <FormField label="Heritage Story" name="heritageText" type="textarea" value={form.heritageText} onChange={handleChange} rows={3} placeholder="The legacy behind this craftsmanship..." />

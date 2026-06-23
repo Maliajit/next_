@@ -1941,8 +1941,7 @@ function DiscoverContent() {
               background: `radial-gradient(circle at 70% 40%, rgba(${product.mistRgb}, 0.2) 0%, transparent 70%)`
             }}></div>
             <div className="cfg-desc-content" style={{ position: 'relative', zIndex: 2 }}>
-              <span className="cfg-desc-eyebrow">About This Timepiece</span>
-              <h2 className="cfg-desc-heading">Crafted for the Extraordinary</h2>
+              <h2 className="cfg-desc-heading">Model Stories</h2>
               <p className="cfg-desc-text">{product.longDesc}</p>
             </div>
             <div className="cfg-desc-img-wrap" style={{ position: 'relative', zIndex: 2 }}>
@@ -1957,8 +1956,7 @@ function DiscoverContent() {
               background: `radial-gradient(circle at 70% 40%, rgba(${product.mistRgb}, 0.15) 0%, transparent 70%)`
             }}></div>
             <div className="cfg-desc-content" style={{ position: 'relative', zIndex: 2 }}>
-              <span className="cfg-desc-eyebrow" style={{ color: product.accentColor }}>Your Masterpiece</span>
-              <h2 className="cfg-desc-heading" style={{ color: product.textColor }}>The Result of Your Craft</h2>
+              <h2 className="cfg-desc-heading" style={{ color: product.textColor }}>Model Stories</h2>
               <p className="cfg-desc-text" style={{ color: product.textColor }}>
                 {product.longDesc}
               </p>
