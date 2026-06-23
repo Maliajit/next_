@@ -158,9 +158,8 @@ const Sidebar = ({ mobileOpen, setMobileOpen, isExpanded, setIsExpanded }) => {
         className={`admin-sidebar ${isExpanded ? 'expanded' : ''} ${mobileOpen ? 'mobile-show' : ''}`}
         style={{ transition: 'width 0.3s ease, transform 0.3s ease' }}
       >
-        {/* Logo */}
-        <div className="sidebar-logo" style={{ justifyContent: 'center' }}>
-          <div className="sidebar-logo-icon" style={{ width: '120px', height: '40px', background: 'transparent', border: 'none' }}>
+        <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+          <div className="sidebar-logo-icon" style={{ width: '220px', height: '80px', background: 'transparent', border: 'none', margin: '0 auto' }}>
             <img src="/fylex.png" alt="Fylex" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'none' }} />
           </div>
         </div>

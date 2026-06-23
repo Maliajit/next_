@@ -26,7 +26,17 @@ const SettingsPage = () => {
 
     // Use useMemo to prevent 'remoteSettings' from changing identity on every render 
     // when data.settings is null/undefined.
-    const remoteSettings = React.useMemo(() => data.settings || {}, [data.settings]);
+    const remoteSettings = React.useMemo(() => {
+        if (!data.settings) return {};
+        if (Array.isArray(data.settings)) {
+            const obj = {};
+            data.settings.forEach(item => {
+                obj[item.key] = item.value;
+            });
+            return obj;
+        }
+        return data.settings;
+    }, [data.settings]);
 
     useEffect(() => {
         if (remoteSettings && Object.keys(remoteSettings).length > 0) {

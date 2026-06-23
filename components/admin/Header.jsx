@@ -23,27 +23,8 @@ const Header = ({ setMobileOpen }) => {
 
   return (
     <header className="admin-header">
-      {/* Left — hamburger + title */}
+      {/* Left — title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="hamburger-btn"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            border: '1px solid var(--admin-border)',
-            background: '#fff',
-            cursor: 'pointer',
-            color: '#64748b',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          aria-label="Open sidebar"
-        >
-          <i className="fas fa-bars"></i>
-        </button>
 
         <div className="header-title">
           <h1 style={{ textTransform: 'capitalize' }}>{pageTitle}</h1>

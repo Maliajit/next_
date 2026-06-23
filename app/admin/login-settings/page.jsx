@@ -23,7 +23,17 @@ const LoginSettingsPage = () => {
     const [isDirty, setIsDirty] = useState(false);
     const fileInputRef = useRef(null);
 
-    const remoteSettings = React.useMemo(() => data.settings || {}, [data.settings]);
+    const remoteSettings = React.useMemo(() => {
+        if (!data.settings) return {};
+        if (Array.isArray(data.settings)) {
+            const obj = {};
+            data.settings.forEach(item => {
+                obj[item.key] = item.value;
+            });
+            return obj;
+        }
+        return data.settings;
+    }, [data.settings]);
 
     useEffect(() => {
         if (remoteSettings && Object.keys(remoteSettings).length > 0) {
