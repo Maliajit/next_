@@ -879,8 +879,8 @@ const Home = () => {
                 />
               </div>
               <div className="hero-center">
-                <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: videoSettings.home_hero_video_title || "The Fylex" }} />
-                <p className="hero-subtitle">{videoSettings.home_hero_video_subtitle || "A Legacy of Precision"}</p>
+                <h1 className="hero-title" dangerouslySetInnerHTML={{ __html: videoSettings.home_hero_video_title || "FYLEX" }} />
+                <p className="hero-subtitle">{videoSettings.home_hero_video_subtitle || "Wear Your Choice."}</p>
                 <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
                   <Link href="/products">
                     <button className="cta-button">Explore</button>

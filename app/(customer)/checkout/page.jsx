@@ -228,7 +228,8 @@ const Checkout = () => {
   };
 
   const handleRazorpayPayment = async (addressId) => {
-    const payRes = await initiatePaymentApi(currentUserId, formData.postalCode, `rcpt_${Date.now()}`);
+    const activeCoupon = (!couponErrorMsg && formData.couponCode === couponInput.trim()) ? formData.couponCode : '';
+    const payRes = await initiatePaymentApi(currentUserId, formData.postalCode, `rcpt_${Date.now()}`, activeCoupon);
     if (!payRes.success) throw new Error(payRes.error);
 
     const options = {
